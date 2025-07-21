@@ -56,7 +56,15 @@ export const loginUser = createAsyncThunk(
   async (credentials: LoginCredentials, { rejectWithValue }) => {
     try {
       const response = await axios.post(`${API_BASE_URL}/api/auth/login/`, credentials);
-      return response.data as AuthResponse;
+      
+      // Transform the response to match our expected AuthResponse interface
+      const transformedResponse: AuthResponse = {
+        access: response.data.tokens.access,
+        refresh: response.data.tokens.refresh,
+        user: response.data.user
+      };
+      
+      return transformedResponse;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Login failed');
     }
