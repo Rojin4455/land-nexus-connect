@@ -20,13 +20,22 @@ const AdminLogin = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { isLoading, error, isAuthenticated } = useAppSelector((state) => state.auth);
+  const { isLoading, error, isAuthenticated, user } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/admin/dashboard');
+    console.log('AdminLogin - Auth state changed:', { isAuthenticated, user });
+    if (isAuthenticated && user) {
+      console.log('AdminLogin - User is authenticated, checking admin status:', user.is_staff);
+      if (user.is_staff) {
+        console.log('AdminLogin - Redirecting to admin dashboard');
+        navigate('/admin/dashboard');
+      } else {
+        console.log('AdminLogin - User is not admin, redirecting to user dashboard');
+        // If user is authenticated but not admin, redirect to user dashboard
+        navigate('/dashboard');
+      }
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, user, navigate]);
 
   useEffect(() => {
     if (error) {

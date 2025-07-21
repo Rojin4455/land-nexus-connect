@@ -190,6 +190,7 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(loginUser.fulfilled, (state, action) => {
+        console.log('User login successful:', action.payload);
         state.isLoading = false;
         state.user = action.payload.user;
         state.accessToken = action.payload.access;
@@ -210,6 +211,7 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(loginAdmin.fulfilled, (state, action) => {
+        console.log('Admin login successful:', action.payload);
         state.isLoading = false;
         state.user = action.payload.user;
         state.accessToken = action.payload.access;
