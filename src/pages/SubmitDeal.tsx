@@ -10,16 +10,17 @@ import { toast } from '@/hooks/use-toast';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Upload, X, FileText, Image, Video } from 'lucide-react';
 import { landDealsApi, handleApiError } from '@/services/landDealsApi';
+import { useAppDispatch } from '@/hooks/useAppDispatch';
+import { useAppSelector } from '@/hooks/useAppSelector';
+import { fetchAllFormOptions } from '@/store/formOptionsSlice';
+import { transformFormOptionsForSelect } from '@/services/formOptionsApi';
 
 const SubmitDeal = () => {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState([]);
-  const [formOptions, setFormOptions] = useState({
-    landTypes: [],
-    utilities: [],
-    accessTypes: []
-  });
+  const { utilities, landTypes, accessTypes, loading: formOptionsLoading } = useAppSelector((state) => state.formOptions);
   const [formData, setFormData] = useState({
     address: '',
     landType: '',
@@ -45,41 +46,14 @@ const SubmitDeal = () => {
     }
 
     // Load form options
-    loadFormOptions();
-  }, [navigate]);
+    dispatch(fetchAllFormOptions());
+  }, [navigate, dispatch]);
 
-  const loadFormOptions = async () => {
-    try {
-      const response = await landDealsApi.getFormOptions();
-      if (response.success) {
-        setFormOptions(response.data);
-      }
-    } catch (error) {
-      // Fallback to default options if API fails
-      setFormOptions({
-        landTypes: [
-          { value: 'residential', label: 'Residential' },
-          { value: 'commercial', label: 'Commercial' },
-          { value: 'industrial', label: 'Industrial' },
-          { value: 'agricultural', label: 'Agricultural' },
-          { value: 'recreational', label: 'Recreational' },
-          { value: 'mixed-use', label: 'Mixed Use' }
-        ],
-        utilities: [
-          { value: 'electricity, water, sewer, gas', label: 'All utilities' },
-          { value: 'electricity, water', label: 'Electricity & Water' },
-          { value: 'electricity', label: 'Electricity only' },
-          { value: 'none', label: 'No utilities' }
-        ],
-        accessTypes: [
-          { value: 'paved-road', label: 'Paved Road' },
-          { value: 'gravel-road', label: 'Gravel Road' },
-          { value: 'dirt-road', label: 'Dirt Road' },
-          { value: 'trail', label: 'Trail Access' },
-          { value: 'none', label: 'No Direct Access' }
-        ]
-      });
-    }
+  // Transform API data for select components
+  const formOptions = {
+    landTypes: transformFormOptionsForSelect(landTypes),
+    utilities: transformFormOptionsForSelect(utilities),
+    accessTypes: transformFormOptionsForSelect(accessTypes),
   };
 
   const handleInputChange = (e) => {

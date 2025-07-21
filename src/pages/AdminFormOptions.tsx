@@ -10,6 +10,13 @@ import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { logoutUser } from '@/store/authSlice';
 import { 
+  fetchAllFormOptions, 
+  createUtility, 
+  createLandType, 
+  createAccessType,
+  clearError 
+} from '@/store/formOptionsSlice';
+import { 
   Plus, 
   Edit3, 
   Trash2, 
@@ -17,18 +24,12 @@ import {
   LogOut,
   Settings
 } from 'lucide-react';
-import { landDealsApi, handleApiError } from '@/services/landDealsApi';
 
 const AdminFormOptions = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
-  const [formOptions, setFormOptions] = useState({
-    landTypes: [],
-    utilities: [],
-    accessTypes: []
-  });
-  const [isLoading, setIsLoading] = useState(false);
+  const { utilities, landTypes, accessTypes, loading, error } = useAppSelector((state) => state.formOptions);
   const [editingOption, setEditingOption] = useState(null);
   const [newOption, setNewOption] = useState({ value: '', label: '' });
   const [activeTab, setActiveTab] = useState('landTypes');
@@ -46,48 +47,61 @@ const AdminFormOptions = () => {
       return;
     }
 
-    loadFormOptions();
-  }, [isAuthenticated, user, navigate]);
+    dispatch(fetchAllFormOptions());
+  }, [isAuthenticated, user, navigate, dispatch]);
 
-  const loadFormOptions = async () => {
+  const getTabData = () => {
+    const data = {
+      landTypes: { title: 'Land Types', items: landTypes },
+      utilities: { title: 'Utilities', items: utilities },
+      accessTypes: { title: 'Access Types', items: accessTypes }
+    };
+    return data[activeTab] || { title: '', items: [] };
+  };
+
+  const addOption = async (category) => {
+    if (!newOption.value.trim() || !newOption.label.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter both value and label",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const data = {
+      value: newOption.value.trim(),
+      display_name: newOption.label.trim(),
+    };
+
     try {
-      setIsLoading(true);
-      const response = await landDealsApi.admin.getFormOptions();
-      if (response.success) {
-        setFormOptions(response.data);
+      let action;
+      switch (category) {
+        case 'utilities':
+          action = createUtility(data);
+          break;
+        case 'landTypes':
+          action = createLandType(data);
+          break;
+        case 'accessTypes':
+          action = createAccessType(data);
+          break;
+        default:
+          throw new Error('Invalid category');
       }
-    } catch (error) {
-      // Fallback to localStorage or default options
-      const savedOptions = localStorage.getItem('formOptions');
-      if (savedOptions) {
-        setFormOptions(JSON.parse(savedOptions));
-      } else {
-        setFormOptions({
-          landTypes: [
-            { value: 'residential', label: 'Residential' },
-            { value: 'commercial', label: 'Commercial' },
-            { value: 'industrial', label: 'Industrial' },
-            { value: 'agricultural', label: 'Agricultural' },
-            { value: 'recreational', label: 'Recreational' },
-            { value: 'mixed-use', label: 'Mixed Use' }
-          ],
-          utilities: [
-            { value: 'electricity, water, sewer, gas', label: 'All utilities' },
-            { value: 'electricity, water', label: 'Electricity & Water' },
-            { value: 'electricity', label: 'Electricity only' },
-            { value: 'none', label: 'No utilities' }
-          ],
-          accessTypes: [
-            { value: 'paved-road', label: 'Paved Road' },
-            { value: 'gravel-road', label: 'Gravel Road' },
-            { value: 'dirt-road', label: 'Dirt Road' },
-            { value: 'trail', label: 'Trail Access' },
-            { value: 'none', label: 'No Direct Access' }
-          ]
-        });
-      }
-    } finally {
-      setIsLoading(false);
+
+      await dispatch(action).unwrap();
+      setNewOption({ value: '', label: '' });
+      toast({
+        title: "Success",
+        description: `${newOption.label} added successfully`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error || "Failed to add option",
+        variant: "destructive",
+      });
     }
   };
 
@@ -108,103 +122,28 @@ const AdminFormOptions = () => {
     }
   };
 
-  const saveToLocalStorage = (options) => {
-    localStorage.setItem('formOptions', JSON.stringify(options));
-  };
-
-  const handleAddOption = async () => {
-    if (!newOption.value.trim() || !newOption.label.trim()) {
-      toast({
-        title: "Error",
-        description: "Please fill in both value and label fields.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const updatedOptions = {
-        ...formOptions,
-        [activeTab]: [...formOptions[activeTab], newOption]
-      };
-      
-      setFormOptions(updatedOptions);
-      saveToLocalStorage(updatedOptions);
-      setNewOption({ value: '', label: '' });
-      
-      toast({
-        title: "Option added",
-        description: "New form option has been added successfully.",
-      });
-    } catch (error) {
-      const errorMessage = handleApiError(error);
-      toast({
-        title: "Failed to add option",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    }
-  };
+  const handleAddOption = () => addOption(activeTab);
 
   const handleEditOption = (index) => {
-    setEditingOption({ index, ...formOptions[activeTab][index] });
+    const data = getTabData();
+    setEditingOption({ index, ...data.items[index] });
   };
 
   const handleUpdateOption = async () => {
-    if (!editingOption.value.trim() || !editingOption.label.trim()) {
-      toast({
-        title: "Error",
-        description: "Please fill in both value and label fields.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const updatedOptions = { ...formOptions };
-      updatedOptions[activeTab][editingOption.index] = {
-        value: editingOption.value,
-        label: editingOption.label
-      };
-      
-      setFormOptions(updatedOptions);
-      saveToLocalStorage(updatedOptions);
-      setEditingOption(null);
-      
-      toast({
-        title: "Option updated",
-        description: "Form option has been updated successfully.",
-      });
-    } catch (error) {
-      const errorMessage = handleApiError(error);
-      toast({
-        title: "Failed to update option",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    }
+    // Note: Update functionality would require additional API endpoints
+    toast({
+      title: "Feature coming soon",
+      description: "Update functionality will be available in the next version.",
+    });
+    setEditingOption(null);
   };
 
   const handleDeleteOption = async (index) => {
-    try {
-      const updatedOptions = { ...formOptions };
-      updatedOptions[activeTab].splice(index, 1);
-      
-      setFormOptions(updatedOptions);
-      saveToLocalStorage(updatedOptions);
-      
-      toast({
-        title: "Option deleted",
-        description: "Form option has been deleted successfully.",
-      });
-    } catch (error) {
-      const errorMessage = handleApiError(error);
-      toast({
-        title: "Failed to delete option",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    }
+    // Note: Delete functionality would require additional API endpoints
+    toast({
+      title: "Feature coming soon",
+      description: "Delete functionality will be available in the next version.",
+    });
   };
 
   const getTabDisplayName = (tab) => {
@@ -267,7 +206,7 @@ const AdminFormOptions = () => {
         <div className="space-y-8">
           {/* Tabs */}
           <div className="flex space-x-2 border-b border-border">
-            {Object.keys(formOptions).map((tab) => (
+            {['landTypes', 'utilities', 'accessTypes'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -321,18 +260,18 @@ const AdminFormOptions = () => {
               <CardTitle>Current {getTabDisplayName(activeTab)}</CardTitle>
             </CardHeader>
             <CardContent>
-              {isLoading ? (
+              {loading ? (
                 <div className="text-center py-8">
                   <p className="text-muted-foreground">Loading options...</p>
                 </div>
-              ) : formOptions[activeTab].length === 0 ? (
+              ) : getTabData().items.length === 0 ? (
                 <div className="text-center py-8">
                   <p className="text-muted-foreground">No options available. Add one above.</p>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {formOptions[activeTab].map((option, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 bg-secondary/50 rounded-lg">
+                  {getTabData().items.map((option, index) => (
+                    <div key={option.id || index} className="flex items-center justify-between p-4 bg-secondary/50 rounded-lg">
                       {editingOption && editingOption.index === index ? (
                         <div className="flex items-center space-x-4 flex-1">
                           <Input
@@ -342,8 +281,8 @@ const AdminFormOptions = () => {
                             className="max-w-[200px]"
                           />
                           <Input
-                            value={editingOption.label}
-                            onChange={(e) => setEditingOption({ ...editingOption, label: e.target.value })}
+                            value={editingOption.display_name || editingOption.label}
+                            onChange={(e) => setEditingOption({ ...editingOption, display_name: e.target.value, label: e.target.value })}
                             placeholder="Label"
                             className="max-w-[200px]"
                           />
@@ -362,7 +301,7 @@ const AdminFormOptions = () => {
                             <Badge variant="outline" className="font-mono text-xs">
                               {option.value}
                             </Badge>
-                            <span className="font-medium">{option.label}</span>
+                            <span className="font-medium">{option.display_name}</span>
                           </div>
                           <div className="flex items-center space-x-2">
                             <Button

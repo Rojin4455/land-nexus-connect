@@ -10,7 +10,25 @@ const api = axios.create({
 
 // Add auth token to requests if available
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('authToken');
+  // Check Redux store first, then fallback to localStorage
+  const persistedState = localStorage.getItem('persist:root');
+  let token = null;
+  
+  if (persistedState) {
+    try {
+      const parsed = JSON.parse(persistedState);
+      const authData = JSON.parse(parsed.auth);
+      token = authData?.access;
+    } catch (error) {
+      console.warn('Failed to parse persisted auth state');
+    }
+  }
+  
+  // Fallback to localStorage tokens
+  if (!token) {
+    token = localStorage.getItem('authToken') || localStorage.getItem('adminToken') || localStorage.getItem('userToken');
+  }
+  
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

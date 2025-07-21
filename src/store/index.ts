@@ -3,15 +3,17 @@ import { persistStore, persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import { combineReducers } from '@reduxjs/toolkit';
 import authReducer from './authSlice';
+import formOptionsReducer from './formOptionsSlice';
 
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['auth'],
+  whitelist: ['auth', 'formOptions'],
 };
 
 const rootReducer = combineReducers({
   auth: authReducer,
+  formOptions: formOptionsReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
