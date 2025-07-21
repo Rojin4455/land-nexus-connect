@@ -37,7 +37,20 @@ const AdminDashboard = () => {
     // Load all deals from localStorage
     const savedDeals = localStorage.getItem('userDeals');
     if (savedDeals) {
-      setDeals(JSON.parse(savedDeals));
+      const parsedDeals = JSON.parse(savedDeals);
+      console.log('Loaded deals:', parsedDeals);
+      // Ensure all deals have required fields
+      const safeDeals = parsedDeals.map(deal => ({
+        ...deal,
+        lotAddress: deal.lotAddress || deal.address || '',
+        id: deal.id || `deal-${Date.now()}-${Math.random()}`,
+        landType: deal.landType || '',
+        status: deal.status || 'pending',
+        askingPrice: deal.askingPrice || 0,
+        submittedOn: deal.submittedOn || new Date().toISOString(),
+        lotSize: deal.lotSize || deal.acreage || 'N/A'
+      }));
+      setDeals(safeDeals);
     }
   }, [navigate]);
 
@@ -238,8 +251,8 @@ const AdminDashboard = () => {
                             <div className="flex items-start space-x-2">
                               <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                               <div>
-                                <p className="font-medium text-foreground text-sm line-clamp-1">{deal.lotAddress}</p>
-                                <p className="text-xs text-muted-foreground">{deal.lotSize}</p>
+                                <p className="font-medium text-foreground text-sm line-clamp-1">{deal.lotAddress || 'No address'}</p>
+                                <p className="text-xs text-muted-foreground">{deal.lotSize || deal.acreage || 'N/A'}</p>
                               </div>
                             </div>
                           </td>
@@ -254,7 +267,7 @@ const AdminDashboard = () => {
                           <td className="p-4">
                             <div className="flex items-center space-x-2">
                               <Calendar className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-sm text-foreground">{formatDate(deal.submittedOn)}</span>
+                              <span className="text-sm text-foreground">{deal.submittedOn ? formatDate(deal.submittedOn) : 'N/A'}</span>
                             </div>
                           </td>
                           <td className="p-4">
