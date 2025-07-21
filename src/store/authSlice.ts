@@ -133,6 +133,33 @@ export const getUserProfile = createAsyncThunk(
   }
 );
 
+// Logout User
+export const logoutUser = createAsyncThunk(
+  'auth/logoutUser',
+  async (_, { getState, rejectWithValue }) => {
+    try {
+      const state = getState() as { auth: AuthState };
+      const { accessToken, refreshToken } = state.auth;
+
+      if (!accessToken || !refreshToken) {
+        return;
+      }
+
+      await axios.post(`${API_BASE_URL}/api/auth/logout/`, {
+        refresh: refreshToken,
+      }, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      return;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Logout failed');
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -232,6 +259,24 @@ const authSlice = createSlice({
     builder
       .addCase(getUserProfile.fulfilled, (state, action) => {
         state.user = action.payload;
+      });
+
+    // Logout User
+    builder
+      .addCase(logoutUser.fulfilled, (state) => {
+        state.user = null;
+        state.accessToken = null;
+        state.refreshToken = null;
+        state.isAuthenticated = false;
+        state.error = null;
+      })
+      .addCase(logoutUser.rejected, (state) => {
+        // Even if logout fails on backend, clear local state
+        state.user = null;
+        state.accessToken = null;
+        state.refreshToken = null;
+        state.isAuthenticated = false;
+        state.error = null;
       });
   },
 });
