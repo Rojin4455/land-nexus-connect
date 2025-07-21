@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
+import { useAppSelector } from '@/hooks/useAppSelector';
 import { logoutUser } from '@/store/authSlice';
 import { 
   Users, 
@@ -25,15 +26,21 @@ import {
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
   const [deals, setDeals] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const adminEmail = localStorage.getItem('adminEmail') || 'admin@example.com';
+  const adminEmail = user?.email || localStorage.getItem('adminEmail') || 'admin@example.com';
 
   useEffect(() => {
-    // Check if admin is authenticated
-    const adminToken = localStorage.getItem('adminToken');
-    if (!adminToken) {
+    // Check if user is authenticated
+    if (!isAuthenticated) {
       navigate('/admin/login');
+      return;
+    }
+
+    // Check if user is actually an admin
+    if (!user?.is_staff) {
+      navigate('/dashboard');
       return;
     }
 
@@ -55,7 +62,7 @@ const AdminDashboard = () => {
       }));
       setDeals(safeDeals);
     }
-  }, [navigate]);
+  }, [isAuthenticated, user, navigate]);
 
   const handleLogout = async () => {
     try {

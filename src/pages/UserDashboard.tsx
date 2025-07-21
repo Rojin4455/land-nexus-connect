@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import DashboardLayout from '@/components/DashboardLayout';
+import { useAppSelector } from '@/hooks/useAppSelector';
 import { 
   MapPin, 
   Calendar, 
@@ -19,12 +20,25 @@ import { toast } from '@/hooks/use-toast';
 
 const UserDashboard = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
   const [deals, setDeals] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Check if user is authenticated
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
+    // Check if user is trying to access admin area (redirect admins to admin dashboard)
+    if (user?.is_staff) {
+      navigate('/admin/dashboard');
+      return;
+    }
+
     loadDeals();
-  }, []);
+  }, [isAuthenticated, user, navigate]);
 
   const loadDeals = async () => {
     try {
