@@ -270,7 +270,7 @@ const SubmitDeal = () => {
                     <SelectItem value="electricity, water, sewer, gas">All utilities</SelectItem>
                     <SelectItem value="electricity, water">Electricity & Water</SelectItem>
                     <SelectItem value="electricity">Electricity only</SelectItem>
-                    <SelectItem value="">No utilities</SelectItem>
+                    <SelectItem value="none">No utilities</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
