@@ -2,11 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { FileText, Upload, Download } from 'lucide-react';
 
-interface DocumentsSectionProps {
-  deal: any;
-}
-
-const DocumentsSection = ({ deal }: DocumentsSectionProps) => {
+const DocumentsSection = ({ deal }) => {
   return (
     <Card className="card-elevated">
       <CardHeader>
@@ -18,7 +14,7 @@ const DocumentsSection = ({ deal }: DocumentsSectionProps) => {
       <CardContent>
         {deal.files && deal.files.length > 0 ? (
           <div className="space-y-3">
-            {deal.files.map((file: any) => (
+            {deal.files.map((file) => (
               <div key={file.id} className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg hover:bg-secondary/70 transition-colors">
                 <div className="flex items-center space-x-3">
                   <FileText className="h-4 w-4 text-muted-foreground" />
