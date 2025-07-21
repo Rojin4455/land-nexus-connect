@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,6 +15,11 @@ const SubmitDeal = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [formOptions, setFormOptions] = useState({
+    landTypes: [],
+    utilities: [],
+    accessTypes: []
+  });
   const [formData, setFormData] = useState({
     address: '',
     landType: '',
@@ -30,6 +35,52 @@ const SubmitDeal = () => {
     nearestAttraction: '',
     description: ''
   });
+
+  useEffect(() => {
+    // Check if user is authenticated
+    const userToken = localStorage.getItem('userToken');
+    if (!userToken) {
+      navigate('/user/login');
+      return;
+    }
+
+    // Load form options
+    loadFormOptions();
+  }, [navigate]);
+
+  const loadFormOptions = async () => {
+    try {
+      const response = await landDealsApi.getFormOptions();
+      if (response.success) {
+        setFormOptions(response.data);
+      }
+    } catch (error) {
+      // Fallback to default options if API fails
+      setFormOptions({
+        landTypes: [
+          { value: 'residential', label: 'Residential' },
+          { value: 'commercial', label: 'Commercial' },
+          { value: 'industrial', label: 'Industrial' },
+          { value: 'agricultural', label: 'Agricultural' },
+          { value: 'recreational', label: 'Recreational' },
+          { value: 'mixed-use', label: 'Mixed Use' }
+        ],
+        utilities: [
+          { value: 'electricity, water, sewer, gas', label: 'All utilities' },
+          { value: 'electricity, water', label: 'Electricity & Water' },
+          { value: 'electricity', label: 'Electricity only' },
+          { value: 'none', label: 'No utilities' }
+        ],
+        accessTypes: [
+          { value: 'paved-road', label: 'Paved Road' },
+          { value: 'gravel-road', label: 'Gravel Road' },
+          { value: 'dirt-road', label: 'Dirt Road' },
+          { value: 'trail', label: 'Trail Access' },
+          { value: 'none', label: 'No Direct Access' }
+        ]
+      });
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -167,12 +218,11 @@ const SubmitDeal = () => {
                     <SelectValue placeholder="Select land type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="residential">Residential</SelectItem>
-                    <SelectItem value="commercial">Commercial</SelectItem>
-                    <SelectItem value="industrial">Industrial</SelectItem>
-                    <SelectItem value="agricultural">Agricultural</SelectItem>
-                    <SelectItem value="recreational">Recreational</SelectItem>
-                    <SelectItem value="mixed-use">Mixed Use</SelectItem>
+                    {formOptions.landTypes.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -267,10 +317,11 @@ const SubmitDeal = () => {
                     <SelectValue placeholder="Select utilities" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="electricity, water, sewer, gas">All utilities</SelectItem>
-                    <SelectItem value="electricity, water">Electricity & Water</SelectItem>
-                    <SelectItem value="electricity">Electricity only</SelectItem>
-                    <SelectItem value="none">No utilities</SelectItem>
+                    {formOptions.utilities.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -282,11 +333,11 @@ const SubmitDeal = () => {
                     <SelectValue placeholder="Select access type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="paved-road">Paved Road</SelectItem>
-                    <SelectItem value="gravel-road">Gravel Road</SelectItem>
-                    <SelectItem value="dirt-road">Dirt Road</SelectItem>
-                    <SelectItem value="trail">Trail Access</SelectItem>
-                    <SelectItem value="none">No Direct Access</SelectItem>
+                    {formOptions.accessTypes.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

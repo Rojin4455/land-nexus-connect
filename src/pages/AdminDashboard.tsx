@@ -16,7 +16,8 @@ import {
   MessageSquare,
   Calendar,
   DollarSign,
-  MapPin
+  MapPin,
+  Settings
 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -107,6 +108,15 @@ const AdminDashboard = () => {
             </div>
             
             <div className="flex items-center space-x-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/admin/form-options')}
+                className="hover:bg-primary hover:text-primary-foreground"
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Form Options
+              </Button>
               <div className="text-right">
                 <p className="text-sm font-medium text-foreground">Admin</p>
                 <p className="text-xs text-muted-foreground">{adminEmail}</p>

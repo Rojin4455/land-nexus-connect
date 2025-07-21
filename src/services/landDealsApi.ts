@@ -156,6 +156,59 @@ export const landDealsApi = {
     const response = await api.get('/land-deals/stats');
     return response.data;
   },
+
+  // Get form options (utilities, access types, land types)
+  getFormOptions: async (): Promise<ApiResponse<{
+    landTypes: Array<{ value: string; label: string }>;
+    utilities: Array<{ value: string; label: string }>;
+    accessTypes: Array<{ value: string; label: string }>;
+  }>> => {
+    try {
+      const response = await api.get('/land-deals/form-options');
+      return response.data;
+    } catch (error) {
+      // Fallback to localStorage if API is not available
+      const savedOptions = localStorage.getItem('formOptions');
+      if (savedOptions) {
+        return {
+          success: true,
+          data: JSON.parse(savedOptions)
+        };
+      }
+      throw error;
+    }
+  },
+
+  // Admin functions to manage form options
+  admin: {
+    // Get all form options
+    getFormOptions: async (): Promise<ApiResponse<{
+      landTypes: Array<{ value: string; label: string }>;
+      utilities: Array<{ value: string; label: string }>;
+      accessTypes: Array<{ value: string; label: string }>;
+    }>> => {
+      const response = await api.get('/admin/form-options');
+      return response.data;
+    },
+
+    // Create new form option
+    createFormOption: async (type: 'landTypes' | 'utilities' | 'accessTypes', data: { value: string; label: string }): Promise<ApiResponse<{ value: string; label: string }>> => {
+      const response = await api.post(`/admin/form-options/${type}`, data);
+      return response.data;
+    },
+
+    // Update form option
+    updateFormOption: async (type: 'landTypes' | 'utilities' | 'accessTypes', optionId: string, data: { value: string; label: string }): Promise<ApiResponse<{ value: string; label: string }>> => {
+      const response = await api.put(`/admin/form-options/${type}/${optionId}`, data);
+      return response.data;
+    },
+
+    // Delete form option
+    deleteFormOption: async (type: 'landTypes' | 'utilities' | 'accessTypes', optionId: string): Promise<ApiResponse<{ id: string }>> => {
+      const response = await api.delete(`/admin/form-options/${type}/${optionId}`);
+      return response.data;
+    },
+  },
 };
 
 // Error handling utility
