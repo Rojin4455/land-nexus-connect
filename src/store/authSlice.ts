@@ -68,9 +68,12 @@ export const loginAdmin = createAsyncThunk(
   'auth/loginAdmin',
   async (credentials: LoginCredentials, { rejectWithValue }) => {
     try {
+      console.log('AuthSlice - Making admin login request to:', `${API_BASE_URL}/api/auth/admin/login/`);
       const response = await axios.post(`${API_BASE_URL}/api/auth/admin/login/`, credentials);
+      console.log('AuthSlice - Admin login response:', response.data);
       return response.data as AuthResponse;
     } catch (error: any) {
+      console.error('AuthSlice - Admin login error:', error);
       return rejectWithValue(error.response?.data?.message || 'Admin login failed');
     }
   }

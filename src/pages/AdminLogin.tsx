@@ -60,7 +60,13 @@ const AdminLogin = () => {
       return;
     }
 
-    dispatch(loginAdmin(formData));
+    console.log('AdminLogin - Submitting login form');
+    try {
+      const result = await dispatch(loginAdmin(formData)).unwrap();
+      console.log('AdminLogin - Login result:', result);
+    } catch (error) {
+      console.error('AdminLogin - Login error:', error);
+    }
   };
 
   const handleInputChange = (e: any) => {
