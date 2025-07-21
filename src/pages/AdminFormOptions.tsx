@@ -6,6 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
+import { useAppDispatch } from '@/hooks/useAppDispatch';
+import { useAppSelector } from '@/hooks/useAppSelector';
+import { logoutUser } from '@/store/authSlice';
 import { 
   Plus, 
   Edit3, 
@@ -18,6 +21,8 @@ import { landDealsApi, handleApiError } from '@/services/landDealsApi';
 
 const AdminFormOptions = () => {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
   const [formOptions, setFormOptions] = useState({
     landTypes: [],
     utilities: [],
@@ -27,18 +32,22 @@ const AdminFormOptions = () => {
   const [editingOption, setEditingOption] = useState(null);
   const [newOption, setNewOption] = useState({ value: '', label: '' });
   const [activeTab, setActiveTab] = useState('landTypes');
-  const adminEmail = localStorage.getItem('adminEmail') || 'admin@example.com';
+  const adminEmail = user?.email || 'admin@example.com';
 
   useEffect(() => {
-    // Check if admin is authenticated
-    const adminToken = localStorage.getItem('adminToken');
-    if (!adminToken) {
+    // Check if user is authenticated and is admin
+    if (!isAuthenticated) {
       navigate('/admin/login');
       return;
     }
 
+    if (!user?.is_staff) {
+      navigate('/dashboard');
+      return;
+    }
+
     loadFormOptions();
-  }, [navigate]);
+  }, [isAuthenticated, user, navigate]);
 
   const loadFormOptions = async () => {
     try {
@@ -82,14 +91,21 @@ const AdminFormOptions = () => {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminEmail');
-    toast({
-      title: "Logged out",
-      description: "You have been successfully logged out.",
-    });
-    navigate('/admin/login');
+  const handleLogout = async () => {
+    try {
+      await dispatch(logoutUser()).unwrap();
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out.",
+      });
+    } catch (error) {
+      toast({
+        title: "Logged out",
+        description: "You have been logged out locally.",
+      });
+    } finally {
+      navigate('/admin/login');
+    }
   };
 
   const saveToLocalStorage = (options) => {
