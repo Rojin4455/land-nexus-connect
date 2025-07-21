@@ -1,7 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin, DollarSign } from 'lucide-react';
 
-const PropertyInformation = ({ deal, formatCurrency }) => {
+interface PropertyInformationProps {
+  deal: any;
+  formatCurrency: (amount: number) => string;
+}
+
+const PropertyInformation = ({ deal, formatCurrency }: PropertyInformationProps) => {
   return (
     <div className="space-y-6">
       {/* Basic Information */}

@@ -44,9 +44,9 @@ const SubmitDeal = () => {
     });
   };
 
-  const handleFileUpload = (e) => {
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    const newFiles = files.map((file) => ({
+    const newFiles = files.map((file: File) => ({
       id: Math.random().toString(36).substr(2, 9),
       name: file.name,
       size: file.size,
