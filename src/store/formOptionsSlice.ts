@@ -66,6 +66,80 @@ export const createAccessType = createAsyncThunk(
   }
 );
 
+// Update thunks
+export const updateUtility = createAsyncThunk(
+  'formOptions/updateUtility',
+  async ({ id, data }: { id: number; data: CreateFormOptionData }, { rejectWithValue }) => {
+    try {
+      const utility = await formOptionsApi.updateUtility(id, data);
+      return { id, utility };
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || error.message || 'Failed to update utility');
+    }
+  }
+);
+
+export const updateLandType = createAsyncThunk(
+  'formOptions/updateLandType',
+  async ({ id, data }: { id: number; data: CreateFormOptionData }, { rejectWithValue }) => {
+    try {
+      const landType = await formOptionsApi.updateLandType(id, data);
+      return { id, landType };
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || error.message || 'Failed to update land type');
+    }
+  }
+);
+
+export const updateAccessType = createAsyncThunk(
+  'formOptions/updateAccessType',
+  async ({ id, data }: { id: number; data: CreateFormOptionData }, { rejectWithValue }) => {
+    try {
+      const accessType = await formOptionsApi.updateAccessType(id, data);
+      return { id, accessType };
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || error.message || 'Failed to update access type');
+    }
+  }
+);
+
+// Delete thunks
+export const deleteUtility = createAsyncThunk(
+  'formOptions/deleteUtility',
+  async (id: number, { rejectWithValue }) => {
+    try {
+      await formOptionsApi.deleteUtility(id);
+      return id;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || error.message || 'Failed to delete utility');
+    }
+  }
+);
+
+export const deleteLandType = createAsyncThunk(
+  'formOptions/deleteLandType',
+  async (id: number, { rejectWithValue }) => {
+    try {
+      await formOptionsApi.deleteLandType(id);
+      return id;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || error.message || 'Failed to delete land type');
+    }
+  }
+);
+
+export const deleteAccessType = createAsyncThunk(
+  'formOptions/deleteAccessType',
+  async (id: number, { rejectWithValue }) => {
+    try {
+      await formOptionsApi.deleteAccessType(id);
+      return id;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || error.message || 'Failed to delete access type');
+    }
+  }
+);
+
 const formOptionsSlice = createSlice({
   name: 'formOptions',
   initialState,
@@ -113,6 +187,63 @@ const formOptionsSlice = createSlice({
         state.accessTypes.push(action.payload);
       })
       .addCase(createAccessType.rejected, (state, action) => {
+        state.error = action.payload as string;
+      })
+      
+      // Update utility
+      .addCase(updateUtility.fulfilled, (state, action) => {
+        const index = state.utilities.findIndex(item => item.id === action.payload.id);
+        if (index !== -1) {
+          state.utilities[index] = action.payload.utility;
+        }
+      })
+      .addCase(updateUtility.rejected, (state, action) => {
+        state.error = action.payload as string;
+      })
+      
+      // Update land type
+      .addCase(updateLandType.fulfilled, (state, action) => {
+        const index = state.landTypes.findIndex(item => item.id === action.payload.id);
+        if (index !== -1) {
+          state.landTypes[index] = action.payload.landType;
+        }
+      })
+      .addCase(updateLandType.rejected, (state, action) => {
+        state.error = action.payload as string;
+      })
+      
+      // Update access type
+      .addCase(updateAccessType.fulfilled, (state, action) => {
+        const index = state.accessTypes.findIndex(item => item.id === action.payload.id);
+        if (index !== -1) {
+          state.accessTypes[index] = action.payload.accessType;
+        }
+      })
+      .addCase(updateAccessType.rejected, (state, action) => {
+        state.error = action.payload as string;
+      })
+      
+      // Delete utility
+      .addCase(deleteUtility.fulfilled, (state, action) => {
+        state.utilities = state.utilities.filter(item => item.id !== action.payload);
+      })
+      .addCase(deleteUtility.rejected, (state, action) => {
+        state.error = action.payload as string;
+      })
+      
+      // Delete land type
+      .addCase(deleteLandType.fulfilled, (state, action) => {
+        state.landTypes = state.landTypes.filter(item => item.id !== action.payload);
+      })
+      .addCase(deleteLandType.rejected, (state, action) => {
+        state.error = action.payload as string;
+      })
+      
+      // Delete access type
+      .addCase(deleteAccessType.fulfilled, (state, action) => {
+        state.accessTypes = state.accessTypes.filter(item => item.id !== action.payload);
+      })
+      .addCase(deleteAccessType.rejected, (state, action) => {
         state.error = action.payload as string;
       });
   },

@@ -93,6 +93,39 @@ export const formOptionsApi = {
     return response.data.data;
   },
 
+  // Update utility
+  updateUtility: async (id: number, data: CreateFormOptionData): Promise<FormOption> => {
+    const response = await api.put(`/auth/utilities/${id}/`, data);
+    return response.data.data;
+  },
+
+  // Delete utility
+  deleteUtility: async (id: number): Promise<void> => {
+    await api.delete(`/auth/utilities/${id}/`);
+  },
+
+  // Update land type
+  updateLandType: async (id: number, data: CreateFormOptionData): Promise<FormOption> => {
+    const response = await api.put(`/auth/land-types/${id}/`, data);
+    return response.data.data;
+  },
+
+  // Delete land type
+  deleteLandType: async (id: number): Promise<void> => {
+    await api.delete(`/auth/land-types/${id}/`);
+  },
+
+  // Update access type
+  updateAccessType: async (id: number, data: CreateFormOptionData): Promise<FormOption> => {
+    const response = await api.put(`/auth/access-types/${id}/`, data);
+    return response.data.data;
+  },
+
+  // Delete access type
+  deleteAccessType: async (id: number): Promise<void> => {
+    await api.delete(`/auth/access-types/${id}/`);
+  },
+
   // Get all form options at once
   getAllFormOptions: async (): Promise<FormOptionsResponse> => {
     const [utilities, landTypes, accessTypes] = await Promise.all([
