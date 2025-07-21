@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* TEST CSS - This should make everything red if CSS is loading */
+* {
+  color: red !important;
+  border: 1px solid blue !important;
+}
+
 /* Professional Real Estate Platform Design System */
 
 @layer base {
