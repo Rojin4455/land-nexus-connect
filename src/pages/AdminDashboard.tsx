@@ -68,7 +68,8 @@ const AdminDashboard = () => {
   };
 
   const getStatusVariant = (status) => {
-    switch (status.toLowerCase()) {
+    const statusLower = (status || '').toLowerCase();
+    switch (statusLower) {
       case 'pending':
         return 'status-pending';
       case 'under review':
@@ -83,13 +84,13 @@ const AdminDashboard = () => {
   };
 
   const filteredDeals = deals.filter(deal =>
-    deal.lotAddress.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    deal.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    deal.landType.toLowerCase().includes(searchTerm.toLowerCase())
+    (deal.lotAddress || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (deal.id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (deal.landType || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const totalValue = deals.reduce((sum, deal) => sum + (deal.askingPrice || 0), 0);
-  const pendingDeals = deals.filter(deal => deal.status.toLowerCase().includes('pending') || deal.status.toLowerCase().includes('review')).length;
+  const pendingDeals = deals.filter(deal => (deal.status || '').toLowerCase().includes('pending') || (deal.status || '').toLowerCase().includes('review')).length;
 
   return (
     <div className="min-h-screen bg-background">
