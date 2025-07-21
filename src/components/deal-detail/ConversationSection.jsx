@@ -6,24 +6,16 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import { User, Send, MessageCircle, Clock } from 'lucide-react';
 
-interface ConversationSectionProps {
-  deal: any;
-  messages: any[];
-  setMessages: (messages: any[]) => void;
-  formatDate: (dateString: string) => string;
-  getStatusVariant: (status: string) => string;
-}
-
 const ConversationSection = ({ 
   deal, 
   messages, 
   setMessages, 
   formatDate, 
   getStatusVariant 
-}: ConversationSectionProps) => {
+}) => {
   const [newMessage, setNewMessage] = useState('');
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = (e) => {
     e.preventDefault();
     if (!newMessage.trim()) return;
 
