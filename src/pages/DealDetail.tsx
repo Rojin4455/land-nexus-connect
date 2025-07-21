@@ -6,7 +6,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import PropertyInformation from '@/components/deal-detail/PropertyInformation';
 import DocumentsSection from '@/components/deal-detail/DocumentsSection';
 import ConversationSection from '@/components/deal-detail/ConversationSection';
-import { ArrowLeft, FileText } from 'lucide-react';
+import { ArrowLeft, FileText, MapPin, Upload, MessageCircle } from 'lucide-react';
 
 const DealDetail = () => {
   const { id } = useParams();
@@ -14,6 +14,7 @@ const DealDetail = () => {
   const [deal, setDeal] = useState(null);
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('details');
 
   useEffect(() => {
     // Load deal data
@@ -113,9 +114,51 @@ const DealDetail = () => {
     );
   }
 
+  const tabs = [
+    {
+      id: 'details',
+      label: 'Main Details',
+      icon: MapPin,
+      count: null
+    },
+    {
+      id: 'documents',
+      label: 'Documents',
+      icon: Upload,
+      count: deal?.files?.length || 0
+    },
+    {
+      id: 'conversation',
+      label: 'Conversation',
+      icon: MessageCircle,
+      count: messages.length
+    }
+  ];
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'details':
+        return <PropertyInformation deal={deal} formatCurrency={formatCurrency} />;
+      case 'documents':
+        return <DocumentsSection deal={deal} />;
+      case 'conversation':
+        return (
+          <ConversationSection 
+            deal={deal}
+            messages={messages}
+            setMessages={setMessages}
+            formatDate={formatDate}
+            getStatusVariant={getStatusVariant}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <DashboardLayout>
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between animate-fade-in">
           <div className="flex items-center space-x-4">
@@ -137,31 +180,42 @@ const DealDetail = () => {
           </Badge>
         </div>
 
-        {/* Three Column Layout */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-          {/* Property Information Section */}
-          <div className="xl:col-span-1 animate-fade-in">
-            <PropertyInformation 
-              deal={deal} 
-              formatCurrency={formatCurrency} 
-            />
+        {/* Tab Navigation */}
+        <div className="bg-card rounded-lg border border-border p-1 animate-fade-in">
+          <div className="flex space-x-1">
+            {tabs.map((tab) => (
+              <Button
+                key={tab.id}
+                variant={activeTab === tab.id ? "default" : "ghost"}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 flex-1 ${
+                  activeTab === tab.id 
+                    ? 'bg-primary text-primary-foreground shadow-sm' 
+                    : 'hover:bg-secondary/50'
+                }`}
+              >
+                <tab.icon className="h-4 w-4" />
+                <span className="font-medium">{tab.label}</span>
+                {tab.count !== null && tab.count > 0 && (
+                  <Badge 
+                    variant="secondary" 
+                    className={`ml-1 text-xs ${
+                      activeTab === tab.id 
+                        ? 'bg-primary-foreground/20 text-primary-foreground' 
+                        : 'bg-primary/10 text-primary'
+                    }`}
+                  >
+                    {tab.count}
+                  </Badge>
+                )}
+              </Button>
+            ))}
           </div>
+        </div>
 
-          {/* Documents Section */}
-          <div className="xl:col-span-1 animate-fade-in">
-            <DocumentsSection deal={deal} />
-          </div>
-
-          {/* Conversation Section */}
-          <div className="xl:col-span-1 animate-fade-in">
-            <ConversationSection 
-              deal={deal}
-              messages={messages}
-              setMessages={setMessages}
-              formatDate={formatDate}
-              getStatusVariant={getStatusVariant}
-            />
-          </div>
+        {/* Tab Content */}
+        <div className="animate-fade-in">
+          {renderTabContent()}
         </div>
       </div>
     </DashboardLayout>
