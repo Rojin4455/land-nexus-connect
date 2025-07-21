@@ -121,6 +121,9 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
+    background-color: #f8fafc !important;
+    color: #1e293b !important;
+    border: 2px solid red !important;
   }
 }
 
