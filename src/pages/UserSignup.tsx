@@ -1,29 +1,53 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { toast } from '@/hooks/use-toast';
-import AuthLayout from '@/components/AuthLayout';
 import { Eye, EyeOff } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import AuthLayout from '@/components/AuthLayout';
+import { useAppDispatch } from '@/hooks/useAppDispatch';
+import { useAppSelector } from '@/hooks/useAppSelector';
+import { signupUser, clearError } from '@/store/authSlice';
 
 const UserSignup = () => {
-  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
+    username: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    password_confirm: '',
+    first_name: '',
+    last_name: ''
   });
-  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { isLoading, error, isAuthenticated } = useAppSelector((state) => state.auth);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
+
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: "Signup Failed",
+        description: error,
+        variant: "destructive",
+      });
+      dispatch(clearError());
+    }
+  }, [error, toast, dispatch]);
+
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
     
-    if (formData.password !== formData.confirmPassword) {
+    if (formData.password !== formData.password_confirm) {
       toast({
         title: "Error",
         description: "Passwords do not match.",
@@ -32,91 +56,91 @@ const UserSignup = () => {
       return;
     }
 
-    setIsLoading(true);
-
-    // Simulate account creation
-    setTimeout(() => {
-      localStorage.setItem('userToken', 'demo-user-token');
-      localStorage.setItem('userEmail', formData.email);
-      localStorage.setItem('userName', `${formData.firstName} ${formData.lastName}`);
+    if (!formData.username || !formData.email || !formData.password) {
       toast({
-        title: "Account created!",
-        description: "Welcome to LandDeal Pro. You can now start submitting deals.",
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
       });
-      navigate('/dashboard');
-      setIsLoading(false);
-    }, 1000);
+      return;
+    }
+
+    dispatch(signupUser(formData));
   };
 
-  const handleInputChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+  const handleInputChange = (e: any) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   return (
-    <AuthLayout 
-      title="Create Account" 
-      subtitle="Join our platform and start managing your land deals today"
-      type="user"
-    >
+    <AuthLayout title="Create Account" subtitle="Join our platform and start managing your land deals today">
       <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="username">Username *</Label>
+          <Input
+            id="username"
+            name="username"
+            type="text"
+            value={formData.username}
+            onChange={handleInputChange}
+            required
+            className="w-full"
+          />
+        </div>
+
         <div className="grid grid-cols-2 gap-4">
-          <div className="form-field">
-            <Label htmlFor="firstName" className="form-label">First Name</Label>
+          <div className="space-y-2">
+            <Label htmlFor="first_name">First Name</Label>
             <Input
-              id="firstName"
-              name="firstName"
+              id="first_name"
+              name="first_name"
               type="text"
-              placeholder="First name"
-              value={formData.firstName}
+              value={formData.first_name}
               onChange={handleInputChange}
-              className="form-input"
-              required
+              className="w-full"
             />
           </div>
-          <div className="form-field">
-            <Label htmlFor="lastName" className="form-label">Last Name</Label>
+          <div className="space-y-2">
+            <Label htmlFor="last_name">Last Name</Label>
             <Input
-              id="lastName"
-              name="lastName"
+              id="last_name"
+              name="last_name"
               type="text"
-              placeholder="Last name"
-              value={formData.lastName}
+              value={formData.last_name}
               onChange={handleInputChange}
-              className="form-input"
-              required
+              className="w-full"
             />
           </div>
         </div>
 
-        <div className="form-field">
-          <Label htmlFor="email" className="form-label">Email Address</Label>
+        <div className="space-y-2">
+          <Label htmlFor="email">Email Address *</Label>
           <Input
             id="email"
             name="email"
             type="email"
-            placeholder="Enter your email"
             value={formData.email}
             onChange={handleInputChange}
-            className="form-input"
             required
+            className="w-full"
           />
         </div>
 
-        <div className="form-field">
-          <Label htmlFor="password" className="form-label">Password</Label>
+        <div className="space-y-2">
+          <Label htmlFor="password">Password *</Label>
           <div className="relative">
             <Input
               id="password"
               name="password"
               type={showPassword ? "text" : "password"}
-              placeholder="Create a password"
               value={formData.password}
               onChange={handleInputChange}
-              className="form-input pr-10"
               required
+              className="w-full pr-10"
             />
             <Button
               type="button"
@@ -126,26 +150,25 @@ const UserSignup = () => {
               onClick={() => setShowPassword(!showPassword)}
             >
               {showPassword ? (
-                <EyeOff className="h-4 w-4 text-muted-foreground" />
+                <EyeOff className="h-4 w-4" />
               ) : (
-                <Eye className="h-4 w-4 text-muted-foreground" />
+                <Eye className="h-4 w-4" />
               )}
             </Button>
           </div>
         </div>
 
-        <div className="form-field">
-          <Label htmlFor="confirmPassword" className="form-label">Confirm Password</Label>
+        <div className="space-y-2">
+          <Label htmlFor="password_confirm">Confirm Password *</Label>
           <div className="relative">
             <Input
-              id="confirmPassword"
-              name="confirmPassword"
+              id="password_confirm"
+              name="password_confirm"
               type={showConfirmPassword ? "text" : "password"}
-              placeholder="Confirm your password"
-              value={formData.confirmPassword}
+              value={formData.password_confirm}
               onChange={handleInputChange}
-              className="form-input pr-10"
               required
+              className="w-full pr-10"
             />
             <Button
               type="button"
@@ -155,9 +178,9 @@ const UserSignup = () => {
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
             >
               {showConfirmPassword ? (
-                <EyeOff className="h-4 w-4 text-muted-foreground" />
+                <EyeOff className="h-4 w-4" />
               ) : (
-                <Eye className="h-4 w-4 text-muted-foreground" />
+                <Eye className="h-4 w-4" />
               )}
             </Button>
           </div>
@@ -165,7 +188,7 @@ const UserSignup = () => {
 
         <Button 
           type="submit" 
-          className="w-full btn-primary" 
+          className="w-full" 
           disabled={isLoading}
         >
           {isLoading ? "Creating account..." : "Create Account"}
@@ -174,13 +197,9 @@ const UserSignup = () => {
         <div className="text-center">
           <p className="text-sm text-muted-foreground">
             Already have an account?{' '}
-            <Button 
-              variant="link" 
-              className="p-0 text-primary hover:text-primary-dark"
-              onClick={() => navigate('/login')}
-            >
+            <Link to="/login" className="text-primary hover:underline">
               Sign in here
-            </Button>
+            </Link>
           </p>
         </div>
       </form>

@@ -3,6 +3,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Provider } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react';
+import { store, persistor } from './store';
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
@@ -23,34 +26,38 @@ import AdminFormOptions from "./pages/AdminFormOptions";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<UserLogin />} />
-          
-          {/* Authentication Routes */}
-          <Route path="/login" element={<UserLogin />} />
-          <Route path="/signup" element={<UserSignup />} />
-          <Route path="/admin/login" element={<AdminLogin />} />
-          
-          {/* User Portal Routes */}
-          <Route path="/dashboard" element={<UserDashboard />} />
-          <Route path="/submit-deal" element={<SubmitDeal />} />
-          <Route path="/deal/:id" element={<DealDetail />} />
-          
-          {/* Admin Portal Routes */}
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/form-options" element={<AdminFormOptions />} />
-          
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <Provider store={store}>
+    <PersistGate loading={null} persistor={persistor}>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<UserLogin />} />
+              
+              {/* Authentication Routes */}
+              <Route path="/login" element={<UserLogin />} />
+              <Route path="/signup" element={<UserSignup />} />
+              <Route path="/admin/login" element={<AdminLogin />} />
+              
+              {/* User Portal Routes */}
+              <Route path="/dashboard" element={<UserDashboard />} />
+              <Route path="/submit-deal" element={<SubmitDeal />} />
+              <Route path="/deal/:id" element={<DealDetail />} />
+              
+              {/* Admin Portal Routes */}
+              <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/admin/form-options" element={<AdminFormOptions />} />
+              
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </PersistGate>
+  </Provider>
 );
 
 export default App;

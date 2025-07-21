@@ -1,51 +1,69 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { toast } from '@/hooks/use-toast';
-import AuthLayout from '@/components/AuthLayout';
 import { Eye, EyeOff, Shield } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import AuthLayout from '@/components/AuthLayout';
+import { useAppDispatch } from '@/hooks/useAppDispatch';
+import { useAppSelector } from '@/hooks/useAppSelector';
+import { loginAdmin, clearError } from '@/store/authSlice';
 
 const AdminLogin = () => {
-  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    email: '',
+    username: '',
     password: ''
   });
-  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { isLoading, error, isAuthenticated } = useAppSelector((state) => state.auth);
 
-    // Simulate authentication
-    setTimeout(() => {
-      localStorage.setItem('adminToken', 'demo-admin-token');
-      localStorage.setItem('adminEmail', formData.email);
-      toast({
-        title: "Admin access granted",
-        description: "Welcome to the admin dashboard.",
-      });
+  useEffect(() => {
+    if (isAuthenticated) {
       navigate('/admin/dashboard');
-      setIsLoading(false);
-    }, 1000);
+    }
+  }, [isAuthenticated, navigate]);
+
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: "Admin Login Failed",
+        description: error,
+        variant: "destructive",
+      });
+      dispatch(clearError());
+    }
+  }, [error, toast, dispatch]);
+
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+    
+    if (!formData.username || !formData.password) {
+      toast({
+        title: "Error",
+        description: "Please fill in all fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    dispatch(loginAdmin(formData));
   };
 
-  const handleInputChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+  const handleInputChange = (e: any) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   return (
-    <AuthLayout 
-      title="Admin Portal" 
-      subtitle="Secure access for platform administrators"
-      type="admin"
-    >
+    <AuthLayout title="Admin Portal" subtitle="Secure access for platform administrators">
       <div className="flex items-center justify-center mb-6">
         <div className="p-3 bg-primary/10 rounded-full">
           <Shield className="h-8 w-8 text-primary" />
@@ -53,32 +71,30 @@ const AdminLogin = () => {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="form-field">
-          <Label htmlFor="email" className="form-label">Admin Email</Label>
+        <div className="space-y-2">
+          <Label htmlFor="username">Admin Username</Label>
           <Input
-            id="email"
-            name="email"
-            type="email"
-            placeholder="admin@example.com"
-            value={formData.email}
+            id="username"
+            name="username"
+            type="text"
+            value={formData.username}
             onChange={handleInputChange}
-            className="form-input"
             required
+            className="w-full"
           />
         </div>
 
-        <div className="form-field">
-          <Label htmlFor="password" className="form-label">Admin Password</Label>
+        <div className="space-y-2">
+          <Label htmlFor="password">Admin Password</Label>
           <div className="relative">
             <Input
               id="password"
               name="password"
               type={showPassword ? "text" : "password"}
-              placeholder="Enter admin password"
               value={formData.password}
               onChange={handleInputChange}
-              className="form-input pr-10"
               required
+              className="w-full pr-10"
             />
             <Button
               type="button"
@@ -88,9 +104,9 @@ const AdminLogin = () => {
               onClick={() => setShowPassword(!showPassword)}
             >
               {showPassword ? (
-                <EyeOff className="h-4 w-4 text-muted-foreground" />
+                <EyeOff className="h-4 w-4" />
               ) : (
-                <Eye className="h-4 w-4 text-muted-foreground" />
+                <Eye className="h-4 w-4" />
               )}
             </Button>
           </div>
@@ -98,7 +114,7 @@ const AdminLogin = () => {
 
         <Button 
           type="submit" 
-          className="w-full btn-primary" 
+          className="w-full" 
           disabled={isLoading}
         >
           {isLoading ? "Authenticating..." : "Access Admin Portal"}
@@ -107,13 +123,9 @@ const AdminLogin = () => {
         <div className="text-center">
           <p className="text-sm text-muted-foreground">
             Not an admin?{' '}
-            <Button 
-              variant="link" 
-              className="p-0 text-primary hover:text-primary-dark"
-              onClick={() => navigate('/login')}
-            >
+            <Link to="/login" className="text-primary hover:underline">
               User Login
-            </Button>
+            </Link>
           </p>
         </div>
       </form>
