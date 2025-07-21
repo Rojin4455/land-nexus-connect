@@ -7,6 +7,8 @@ import PropertyInformation from '@/components/deal-detail/PropertyInformation';
 import DocumentsSection from '@/components/deal-detail/DocumentsSection';
 import ConversationSection from '@/components/deal-detail/ConversationSection';
 import { ArrowLeft, FileText, MapPin, Upload, MessageCircle } from 'lucide-react';
+import { landDealsApi, handleApiError } from '@/services/landDealsApi';
+import { toast } from '@/hooks/use-toast';
 
 const DealDetail = () => {
   const { id } = useParams();
@@ -17,42 +19,58 @@ const DealDetail = () => {
   const [activeTab, setActiveTab] = useState('details');
 
   useEffect(() => {
-    // Load deal data
-    const deals = JSON.parse(localStorage.getItem('userDeals') || '[]');
-    const foundDeal = deals.find(d => d.id === id);
-    
-    if (foundDeal) {
-      setDeal(foundDeal);
-      
-      // Load messages for this deal
-      const savedMessages = localStorage.getItem(`messages_${id}`);
-      if (savedMessages) {
-        setMessages(JSON.parse(savedMessages));
-      } else {
-        // Demo messages
-        const demoMessages = [
-          {
-            id: 1,
-            sender: 'coach',
-            senderName: foundDeal.coach,
-            message: 'Thank you for submitting this deal. I\'ve reviewed the initial information and have some questions about the zoning and utilities.',
-            timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
-          },
-          {
-            id: 2,
-            sender: 'user',
-            senderName: 'You',
-            message: 'Hi! I can provide more details about the utilities. The property has power and water available at the street.',
-            timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
-          }
-        ];
-        setMessages(demoMessages);
-        localStorage.setItem(`messages_${id}`, JSON.stringify(demoMessages));
-      }
-    }
-    
-    setIsLoading(false);
+    loadDealData();
   }, [id]);
+
+  const loadDealData = async () => {
+    try {
+      const response = await landDealsApi.getLandDealById(id);
+      if (response.success) {
+        setDeal(response.data);
+        
+        // Load messages for this deal (still using localStorage for now)
+        const savedMessages = localStorage.getItem(`messages_${id}`);
+        if (savedMessages) {
+          setMessages(JSON.parse(savedMessages));
+        } else {
+          // Demo messages
+          const demoMessages = [
+            {
+              id: 1,
+              sender: 'coach',
+              senderName: response.data.coach || 'Your Coach',
+              message: 'Thank you for submitting this deal. I\'ve reviewed the initial information and have some questions about the zoning and utilities.',
+              timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+            },
+            {
+              id: 2,
+              sender: 'user',
+              senderName: 'You',
+              message: 'Hi! I can provide more details about the utilities. The property has power and water available at the street.',
+              timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+            }
+          ];
+          setMessages(demoMessages);
+          localStorage.setItem(`messages_${id}`, JSON.stringify(demoMessages));
+        }
+      } else {
+        toast({
+          title: "Deal not found",
+          description: "The requested deal could not be found.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      const errorMessage = handleApiError(error);
+      toast({
+        title: "Error loading deal",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {

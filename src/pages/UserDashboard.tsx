@@ -14,42 +14,65 @@ import {
   FileText,
   Clock
 } from 'lucide-react';
+import { landDealsApi, handleApiError } from '@/services/landDealsApi';
+import { toast } from '@/hooks/use-toast';
 
 const UserDashboard = () => {
   const navigate = useNavigate();
   const [deals, setDeals] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Load deals from localStorage or API
-    const savedDeals = localStorage.getItem('userDeals');
-    if (savedDeals) {
-      setDeals(JSON.parse(savedDeals));
-    } else {
-      // Demo data
-      const demoDeals = [
-        {
-          id: 'DEAL-001',
-          address: '123 Mountain View Ave, Colorado Springs, CO',
-          submittedOn: '2024-01-15',
-          status: 'Under Review',
-          coach: 'Sarah Johnson',
-          askingPrice: 125000,
-          landType: 'Residential'
-        },
-        {
-          id: 'DEAL-002', 
-          address: '456 Forest Trail, Boulder, CO',
-          submittedOn: '2024-01-10',
-          status: 'Approved',
-          coach: 'Mike Chen',
-          askingPrice: 89000,
-          landType: 'Commercial'
-        }
-      ];
-      setDeals(demoDeals);
-      localStorage.setItem('userDeals', JSON.stringify(demoDeals));
-    }
+    loadDeals();
   }, []);
+
+  const loadDeals = async () => {
+    try {
+      const response = await landDealsApi.getUserLandDeals();
+      if (response.success) {
+        setDeals(response.data);
+      } else {
+        // Fallback to demo data if API fails
+        const demoDeals = [
+          {
+            id: 'DEAL-001',
+            address: '123 Mountain View Ave, Colorado Springs, CO',
+            submittedOn: '2024-01-15',
+            status: 'Under Review',
+            coach: 'Sarah Johnson',
+            askingPrice: 125000,
+            landType: 'Residential'
+          },
+          {
+            id: 'DEAL-002', 
+            address: '456 Forest Trail, Boulder, CO',
+            submittedOn: '2024-01-10',
+            status: 'Approved',
+            coach: 'Mike Chen',
+            askingPrice: 89000,
+            landType: 'Commercial'
+          }
+        ];
+        setDeals(demoDeals);
+        toast({
+          title: "Using demo data",
+          description: "Could not connect to API, showing demo data.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      const errorMessage = handleApiError(error);
+      toast({
+        title: "Error loading deals",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      // Set empty array on error
+      setDeals([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const getStatusVariant = (status) => {
     switch (status.toLowerCase()) {
@@ -81,6 +104,19 @@ const UserDashboard = () => {
       minimumFractionDigits: 0
     }).format(amount);
   };
+
+  if (isLoading) {
+    return (
+      <DashboardLayout activeTab="dashboard">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading your deals...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout activeTab="dashboard">

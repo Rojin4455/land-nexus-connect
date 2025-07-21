@@ -9,39 +9,50 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from '@/hooks/use-toast';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Upload, X, FileText, Image, Video } from 'lucide-react';
+import { landDealsApi, handleApiError } from '@/services/landDealsApi';
 
 const SubmitDeal = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [formData, setFormData] = useState({
-    lotAddress: '',
+    address: '',
     landType: '',
-    lotSize: '',
-    zoningClassification: '',
+    acreage: '',
+    zoning: '',
     askingPrice: '',
     estimatedAEV: '',
     developmentCosts: '',
-    utilitiesAvailable: '',
+    utilities: [],
     accessType: '',
     topography: '',
     environmentalFactors: '',
     nearestAttraction: '',
-    landDescription: ''
+    description: ''
   });
 
   const handleInputChange = (e) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: name === 'askingPrice' || name === 'acreage' ? parseFloat(value) || 0 : value
     });
   };
 
   const handleSelectChange = (name, value) => {
-    setFormData({
-      ...formData,
-      [name]: value
-    });
+    if (name === 'utilities') {
+      // Handle utilities as array
+      const utilitiesArray = value.split(',').map(u => u.trim()).filter(u => u);
+      setFormData({
+        ...formData,
+        [name]: utilitiesArray
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value
+      });
+    }
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,32 +90,45 @@ const SubmitDeal = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate form submission
-    setTimeout(() => {
-      const dealId = `DEAL-${String(Date.now()).slice(-6)}`;
-      const newDeal = {
-        id: dealId,
-        ...formData,
-        submittedOn: new Date().toISOString().split('T')[0],
-        status: 'Pending',
-        coach: 'Assigned Soon',
+    try {
+      // Prepare files for upload
+      const photos = uploadedFiles.filter(f => f.type.startsWith('image/')).map(f => f.file);
+      const documents = uploadedFiles.filter(f => !f.type.startsWith('image/')).map(f => f.file);
+
+      // Prepare API data
+      const dealData = {
+        address: formData.address,
         askingPrice: parseFloat(formData.askingPrice) || 0,
-        files: uploadedFiles
+        landType: formData.landType,
+        description: formData.description,
+        acreage: parseFloat(formData.acreage) || 0,
+        zoning: formData.zoning,
+        utilities: formData.utilities,
+        photos,
+        documents
       };
 
-      // Save to localStorage
-      const existingDeals = JSON.parse(localStorage.getItem('userDeals') || '[]');
-      existingDeals.push(newDeal);
-      localStorage.setItem('userDeals', JSON.stringify(existingDeals));
-
+      const response = await landDealsApi.createLandDeal(dealData);
+      
+      if (response.success) {
+        toast({
+          title: "Deal submitted successfully!",
+          description: `Your deal has been submitted for review.`,
+        });
+        navigate('/dashboard');
+      } else {
+        throw new Error(response.message || 'Failed to submit deal');
+      }
+    } catch (error) {
+      const errorMessage = handleApiError(error);
       toast({
-        title: "Deal submitted successfully!",
-        description: `Your deal ${dealId} has been submitted for review.`,
+        title: "Submission failed",
+        description: errorMessage,
+        variant: "destructive",
       });
-
-      navigate('/dashboard');
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   return (
@@ -124,12 +148,12 @@ const SubmitDeal = () => {
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="md:col-span-2 form-field">
-                <Label htmlFor="lotAddress" className="form-label">Lot Address / Location *</Label>
+                <Label htmlFor="address" className="form-label">Lot Address / Location *</Label>
                 <Input
-                  id="lotAddress"
-                  name="lotAddress"
+                  id="address"
+                  name="address"
                   placeholder="123 Main St, City, State, ZIP"
-                  value={formData.lotAddress}
+                  value={formData.address}
                   onChange={handleInputChange}
                   className="form-input"
                   required
@@ -154,12 +178,14 @@ const SubmitDeal = () => {
               </div>
 
               <div className="form-field">
-                <Label htmlFor="lotSize" className="form-label">Lot Size *</Label>
+                <Label htmlFor="acreage" className="form-label">Lot Size (Acres) *</Label>
                 <Input
-                  id="lotSize"
-                  name="lotSize"
-                  placeholder="e.g., 2.5 acres or 5000 sq ft"
-                  value={formData.lotSize}
+                  id="acreage"
+                  name="acreage"
+                  type="number"
+                  step="0.1"
+                  placeholder="e.g., 2.5"
+                  value={formData.acreage}
                   onChange={handleInputChange}
                   className="form-input"
                   required
@@ -167,12 +193,12 @@ const SubmitDeal = () => {
               </div>
 
               <div className="form-field">
-                <Label htmlFor="zoningClassification" className="form-label">Zoning Classification</Label>
+                <Label htmlFor="zoning" className="form-label">Zoning Classification</Label>
                 <Input
-                  id="zoningClassification"
-                  name="zoningClassification"
+                  id="zoning"
+                  name="zoning"
                   placeholder="e.g., R-1, C-2, M-1"
-                  value={formData.zoningClassification}
+                  value={formData.zoning}
                   onChange={handleInputChange}
                   className="form-input"
                 />
@@ -235,15 +261,16 @@ const SubmitDeal = () => {
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="form-field">
-                <Label htmlFor="utilitiesAvailable" className="form-label">Utilities Available? *</Label>
-                <Select value={formData.utilitiesAvailable} onValueChange={(value) => handleSelectChange('utilitiesAvailable', value)}>
+                <Label htmlFor="utilities" className="form-label">Utilities Available *</Label>
+                <Select value={formData.utilities.join(', ')} onValueChange={(value) => handleSelectChange('utilities', value)}>
                   <SelectTrigger className="form-input">
-                    <SelectValue placeholder="Select utilities status" />
+                    <SelectValue placeholder="Select utilities" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="yes">Yes - All utilities</SelectItem>
-                    <SelectItem value="partial">Partial utilities</SelectItem>
-                    <SelectItem value="no">No utilities</SelectItem>
+                    <SelectItem value="electricity, water, sewer, gas">All utilities</SelectItem>
+                    <SelectItem value="electricity, water">Electricity & Water</SelectItem>
+                    <SelectItem value="electricity">Electricity only</SelectItem>
+                    <SelectItem value="">No utilities</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -301,12 +328,12 @@ const SubmitDeal = () => {
               </div>
 
               <div className="md:col-span-2 form-field">
-                <Label htmlFor="landDescription" className="form-label">Land Description</Label>
+                <Label htmlFor="description" className="form-label">Land Description</Label>
                 <Textarea
-                  id="landDescription"
-                  name="landDescription"
+                  id="description"
+                  name="description"
                   placeholder="Provide a detailed description of the property..."
-                  value={formData.landDescription}
+                  value={formData.description}
                   onChange={handleInputChange}
                   className="min-h-[120px]"
                 />
