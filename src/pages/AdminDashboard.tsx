@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
+import { useAppDispatch } from '@/hooks/useAppDispatch';
+import { logoutUser } from '@/store/authSlice';
 import { 
   Users, 
   FileText, 
@@ -22,6 +24,7 @@ import {
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const [deals, setDeals] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const adminEmail = localStorage.getItem('adminEmail') || 'admin@example.com';
@@ -54,14 +57,21 @@ const AdminDashboard = () => {
     }
   }, [navigate]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminEmail');
-    toast({
-      title: "Logged out",
-      description: "You have been successfully logged out.",
-    });
-    navigate('/admin/login');
+  const handleLogout = async () => {
+    try {
+      await dispatch(logoutUser()).unwrap();
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out.",
+      });
+    } catch (error) {
+      toast({
+        title: "Logged out",
+        description: "You have been logged out locally.",
+      });
+    } finally {
+      navigate('/admin/login');
+    }
   };
 
   const formatDate = (dateString) => {
