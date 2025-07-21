@@ -18,7 +18,7 @@ api.interceptors.request.use((config) => {
     try {
       const parsed = JSON.parse(persistedState);
       const authData = JSON.parse(parsed.auth);
-      token = authData?.access;
+      token = authData?.accessToken;
     } catch (error) {
       console.warn('Failed to parse persisted auth state');
     }
