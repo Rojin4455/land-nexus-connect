@@ -56,6 +56,16 @@ const SubmitDeal = () => {
     accessTypes: transformFormOptionsForSelect(accessTypes),
   };
 
+  // Helper function to get display names for selected utilities
+  const getSelectedUtilitiesDisplay = () => {
+    if (!formData.utilities || formData.utilities.length === 0) return '';
+    const selectedUtilities = formData.utilities.map(id => {
+      const utility = formOptions.utilities.find(u => u.value === id);
+      return utility ? utility.label : id;
+    });
+    return selectedUtilities.join(', ');
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -66,11 +76,21 @@ const SubmitDeal = () => {
 
   const handleSelectChange = (name, value) => {
     if (name === 'utilities') {
-      // Handle utilities as array
-      const utilitiesArray = value.split(',').map(u => u.trim()).filter(u => u);
+      // Handle utilities as array of IDs
+      const currentUtilities = formData.utilities || [];
+      let updatedUtilities;
+      
+      if (currentUtilities.includes(value)) {
+        // Remove if already selected
+        updatedUtilities = currentUtilities.filter(id => id !== value);
+      } else {
+        // Add if not selected
+        updatedUtilities = [...currentUtilities, value];
+      }
+      
       setFormData({
         ...formData,
-        [name]: utilitiesArray
+        [name]: updatedUtilities
       });
     } else {
       setFormData({
@@ -301,14 +321,22 @@ const SubmitDeal = () => {
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="form-field">
                 <Label htmlFor="utilities" className="form-label">Utilities Available *</Label>
-                <Select value={formData.utilities.join(', ')} onValueChange={(value) => handleSelectChange('utilities', value)}>
+                <Select value={getSelectedUtilitiesDisplay()} onValueChange={(value) => handleSelectChange('utilities', value)}>
                   <SelectTrigger className="form-input">
                     <SelectValue placeholder="Select utilities" />
                   </SelectTrigger>
                   <SelectContent>
                     {formOptions.utilities.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
-                        {option.label}
+                        <div className="flex items-center space-x-2">
+                          <input 
+                            type="checkbox" 
+                            checked={formData.utilities.includes(option.value)}
+                            readOnly
+                            className="w-4 h-4"
+                          />
+                          <span>{option.label}</span>
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>

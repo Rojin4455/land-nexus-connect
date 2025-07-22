@@ -145,7 +145,7 @@ export const formOptionsApi = {
 // Transform API data to format expected by forms
 export const transformFormOptionsForSelect = (options: FormOption[]) => {
   return options.map(option => ({
-    value: option.value,
+    value: option.id.toString(), // Use ID as value for backend mapping
     label: option.display_name,
   }));
 };
