@@ -76,8 +76,8 @@ export const loginAdmin = createAsyncThunk(
   'auth/loginAdmin',
   async (credentials: LoginCredentials, { rejectWithValue }) => {
     try {
-      console.log('AuthSlice - Making admin login request to:', `${API_BASE_URL}/api/auth/admin/login/`);
-      const response = await axios.post(`${API_BASE_URL}/api/auth/admin/login/`, credentials);
+      console.log('AuthSlice - Making admin login request to:', `${API_BASE_URL}/auth/admin/login/`);
+      const response = await axios.post(`${API_BASE_URL}/auth/admin/login/`, credentials);
       console.log('AuthSlice - Admin login response:', response.data);
       
       // Transform the response to match our expected AuthResponse interface
@@ -101,7 +101,7 @@ export const signupUser = createAsyncThunk(
   'auth/signupUser',
   async (signupData: SignupData, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/api/auth/signup/`, signupData);
+      const response = await axios.post(`${API_BASE_URL}/auth/signup/`, signupData);
       return response.data as AuthResponse;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Signup failed');
@@ -121,7 +121,7 @@ export const refreshToken = createAsyncThunk(
         return rejectWithValue('No refresh token available');
       }
 
-      const response = await axios.post(`${API_BASE_URL}/api/auth/token/refresh/`, {
+      const response = await axios.post(`${API_BASE_URL}/auth/token/refresh/`, {
         refresh,
       });
       
@@ -140,7 +140,7 @@ export const getUserProfile = createAsyncThunk(
       const state = getState() as { auth: AuthState };
       const token = state.auth.accessToken;
       
-      const response = await axios.get(`${API_BASE_URL}/api/auth/profile/`, {
+      const response = await axios.get(`${API_BASE_URL}/auth/profile/`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -165,7 +165,7 @@ export const logoutUser = createAsyncThunk(
         return;
       }
 
-      await axios.post(`${API_BASE_URL}/api/auth/logout/`, {
+      await axios.post(`${API_BASE_URL}/auth/logout/`, {
         refresh: refreshToken,
       }, {
         headers: {
