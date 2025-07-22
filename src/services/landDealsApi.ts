@@ -361,7 +361,7 @@ export const landDealsApi = {
 
     // Get all deals (admin view)
     getAllDeals: async (): Promise<ApiResponse<LandDeal[]>> => {
-      const response = await api.get('/auth/properties/list/');
+      const response = await api.get('/data/properties/list-all/');
       const transformedData = response.data.map((property: any) => ({
         id: property.id.toString(),
         address: property.address,
@@ -382,7 +382,7 @@ export const landDealsApi = {
 
     // Update deal status
     updateDealStatus: async (dealId: string, status: string): Promise<ApiResponse<{ id: string; status: string }>> => {
-      const response = await api.patch(`/auth/properties/${dealId}/`, { status });
+      const response = await api.patch(`/data/properties/${dealId}/status/`, { status });
       return {
         success: true,
         data: { id: dealId, status }
