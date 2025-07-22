@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Configure base API instance
 const api = axios.create({
-  baseURL: import.meta.env.REACT_APP_API_URL || 'http://localhost:8000/api',
+  baseURL: import.meta.env.REACT_APP_API_URL || 'https://app.jvdealhub.com/api',
   headers: {
     'Content-Type': 'application/json',
   },
