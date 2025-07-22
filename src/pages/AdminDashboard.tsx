@@ -490,7 +490,7 @@ const AdminDashboard = () => {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => navigate(`/deal/${deal.id}`)}
+                                  onClick={() => navigate(`/admin/deal/${deal.id}`)}
                                   className="hover:bg-primary hover:text-primary-foreground"
                                 >
                                   <Eye className="h-4 w-4 mr-1" />

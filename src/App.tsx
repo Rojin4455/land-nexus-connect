@@ -22,6 +22,7 @@ import DealDetail from "./pages/DealDetail";
 // Admin portal pages
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminFormOptions from "./pages/AdminFormOptions";
+import AdminDealDetail from "./pages/AdminDealDetail";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +50,7 @@ const App = () => (
               {/* Admin Portal Routes */}
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/admin/form-options" element={<AdminFormOptions />} />
+              <Route path="/admin/deal/:id" element={<AdminDealDetail />} />
               
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
