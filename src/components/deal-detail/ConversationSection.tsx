@@ -1,64 +1,76 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import { User, Send, MessageCircle, Clock } from 'lucide-react';
+import { landDealsApi, handleApiError } from '@/services/landDealsApi';
 
 interface ConversationSectionProps {
   deal: any;
-  messages: any[];
-  setMessages: (messages: any[]) => void;
   formatDate: (dateString: string) => string;
   getStatusVariant: (status: string) => string;
 }
 
 const ConversationSection = ({ 
   deal, 
-  messages, 
-  setMessages, 
   formatDate, 
   getStatusVariant 
 }: ConversationSectionProps) => {
+  const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSending, setIsSending] = useState(false);
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  useEffect(() => {
+    loadMessages();
+  }, [deal.id]);
+
+  const loadMessages = async () => {
+    try {
+      setIsLoading(true);
+      const response = await landDealsApi.conversations.getMessages(deal.id);
+      if (response.success) {
+        setMessages(response.data);
+      }
+    } catch (error) {
+      const errorMessage = handleApiError(error);
+      toast({
+        title: "Error loading messages",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || isSending) return;
 
-    const message = {
-      id: Date.now(),
-      sender: 'user',
-      senderName: 'You',
-      message: newMessage,
-      timestamp: new Date().toISOString()
-    };
-
-    const updatedMessages = [...messages, message];
-    setMessages(updatedMessages);
-    localStorage.setItem(`messages_${deal.id}`, JSON.stringify(updatedMessages));
-    setNewMessage('');
-
-    toast({
-      title: "Message sent",
-      description: "Your message has been sent to your coach.",
-    });
-
-    // Simulate coach response after 3 seconds
-    setTimeout(() => {
-      const coachResponse = {
-        id: Date.now() + 1,
-        sender: 'coach',
-        senderName: deal.coach,
-        message: 'Thanks for the additional information! I\'ll review this and get back to you with my analysis.',
-        timestamp: new Date().toISOString()
-      };
-      
-      const finalMessages = [...updatedMessages, coachResponse];
-      setMessages(finalMessages);
-      localStorage.setItem(`messages_${deal.id}`, JSON.stringify(finalMessages));
-    }, 3000);
+    try {
+      setIsSending(true);
+      const response = await landDealsApi.conversations.sendMessage(deal.id, newMessage);
+      if (response.success) {
+        setMessages(prev => [...prev, response.data]);
+        setNewMessage('');
+        toast({
+          title: "Message sent",
+          description: "Your message has been sent successfully.",
+        });
+      }
+    } catch (error) {
+      const errorMessage = handleApiError(error);
+      toast({
+        title: "Error sending message",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -75,27 +87,34 @@ const ConversationSection = ({
           <div className="space-y-4">
             {/* Messages */}
             <div className="h-96 overflow-y-auto space-y-4 p-4 bg-secondary/20 rounded-lg">
-              {messages.length === 0 ? (
+              {isLoading ? (
+                <div className="text-center text-muted-foreground py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                  <p className="text-sm">Loading messages...</p>
+                </div>
+              ) : messages.length === 0 ? (
                 <div className="text-center text-muted-foreground py-8">
                   <MessageCircle className="h-12 w-12 mx-auto mb-3 opacity-50" />
                   <p className="font-medium mb-1">No messages yet</p>
-                  <p className="text-sm">Start a conversation with your coach!</p>
+                  <p className="text-sm">Start a conversation with the admin!</p>
                 </div>
               ) : (
                 messages.map((message) => (
                   <div
                     key={message.id}
-                    className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
+                    className={`flex ${!message.is_admin ? 'justify-end' : 'justify-start'} animate-fade-in`}
                   >
                     <div className={`max-w-xs lg:max-w-md ${
-                      message.sender === 'user' 
+                      !message.is_admin 
                         ? 'chat-message chat-message-user' 
                         : 'chat-message chat-message-admin'
                     }`}>
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-medium">{message.senderName}</span>
+                        <span className="text-xs font-medium">
+                          {message.is_admin ? 'Admin' : message.sender_username}
+                        </span>
                         <span className="text-xs opacity-70">
-                          {new Date(message.timestamp).toLocaleTimeString()}
+                          {formatDate(message.timestamp)}
                         </span>
                       </div>
                       <p className="text-sm">{message.message}</p>
@@ -108,10 +127,11 @@ const ConversationSection = ({
             {/* Message Input */}
             <form onSubmit={handleSendMessage} className="flex gap-2">
               <Textarea
-                placeholder="Type your message to the coach..."
+                placeholder="Type your message to the admin..."
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 className="flex-1 min-h-[60px] resize-none"
+                disabled={isSending}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
@@ -119,20 +139,24 @@ const ConversationSection = ({
                   }
                 }}
               />
-              <Button type="submit" disabled={!newMessage.trim()}>
-                <Send className="h-4 w-4" />
+              <Button type="submit" disabled={!newMessage.trim() || isSending}>
+                {isSending ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
               </Button>
             </form>
           </div>
         </CardContent>
       </Card>
 
-      {/* Deal Status & Coach Info */}
+      {/* Deal Status & Info */}
       <Card className="card-elevated">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5 text-primary" />
-            Deal Status & Coach
+            Deal Status & Information
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -143,11 +167,8 @@ const ConversationSection = ({
             </Badge>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-muted-foreground">Assigned Coach</span>
-            <div className="flex items-center gap-2">
-              <User className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium">{deal.coach}</span>
-            </div>
+            <span className="text-muted-foreground">Property Address</span>
+            <span className="font-medium text-right">{deal.address}</span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-muted-foreground">Submitted</span>

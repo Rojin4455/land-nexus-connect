@@ -14,7 +14,6 @@ const DealDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [deal, setDeal] = useState(null);
-  const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('details');
 
@@ -27,32 +26,6 @@ const DealDetail = () => {
       const response = await landDealsApi.getLandDealById(id);
       if (response.success) {
         setDeal(response.data);
-        
-        // Load messages for this deal (still using localStorage for now)
-        const savedMessages = localStorage.getItem(`messages_${id}`);
-        if (savedMessages) {
-          setMessages(JSON.parse(savedMessages));
-        } else {
-          // Demo messages
-          const demoMessages = [
-            {
-              id: 1,
-              sender: 'coach',
-              senderName: response.data.coach || 'Your Coach',
-              message: 'Thank you for submitting this deal. I\'ve reviewed the initial information and have some questions about the zoning and utilities.',
-              timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
-            },
-            {
-              id: 2,
-              sender: 'user',
-              senderName: 'You',
-              message: 'Hi! I can provide more details about the utilities. The property has power and water available at the street.',
-              timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
-            }
-          ];
-          setMessages(demoMessages);
-          localStorage.setItem(`messages_${id}`, JSON.stringify(demoMessages));
-        }
       } else {
         toast({
           title: "Deal not found",
@@ -149,7 +122,7 @@ const DealDetail = () => {
       id: 'conversation',
       label: 'Conversation',
       icon: MessageCircle,
-      count: messages.length
+      count: null
     }
   ];
 
@@ -163,8 +136,6 @@ const DealDetail = () => {
         return (
           <ConversationSection 
             deal={deal}
-            messages={messages}
-            setMessages={setMessages}
             formatDate={formatDate}
             getStatusVariant={getStatusVariant}
           />

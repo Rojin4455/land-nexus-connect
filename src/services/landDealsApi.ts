@@ -417,6 +417,41 @@ export const landDealsApi = {
       return response.data;
     },
   },
+
+  // Conversation functions
+  conversations: {
+    // Get conversation messages for a property
+    getMessages: async (propertyId: string): Promise<ApiResponse<Array<{
+      id: number;
+      sender_username: string;
+      property_submission_id: number;
+      message: string;
+      timestamp: string;
+      is_admin: boolean;
+    }>>> => {
+      const response = await api.get(`/data/conversations/${propertyId}/`);
+      return {
+        success: true,
+        data: response.data
+      };
+    },
+
+    // Send a message for a property
+    sendMessage: async (propertyId: string, message: string): Promise<ApiResponse<{
+      id: number;
+      sender_username: string;
+      property_submission_id: number;
+      message: string;
+      timestamp: string;
+      is_admin: boolean;
+    }>> => {
+      const response = await api.post(`/data/conversations/${propertyId}/send/`, { message });
+      return {
+        success: true,
+        data: response.data
+      };
+    },
+  },
 };
 
 // Error handling utility
