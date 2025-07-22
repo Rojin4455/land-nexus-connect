@@ -120,18 +120,33 @@ const SubmitDeal = () => {
       const photos = uploadedFiles.filter(f => f.type.startsWith('image/')).map(f => f.file);
       const documents = uploadedFiles.filter(f => !f.type.startsWith('image/')).map(f => f.file);
 
-      // Prepare API data
+      // Prepare API data with ALL form fields
       const dealData = {
         address: formData.address,
-        askingPrice: parseFloat(formData.askingPrice) || 0,
         landType: formData.landType,
-        description: formData.description,
         acreage: parseFloat(formData.acreage) || 0,
         zoning: formData.zoning,
+        askingPrice: parseFloat(formData.askingPrice) || 0,
+        estimatedAEV: parseFloat(formData.estimatedAEV) || 0,
+        developmentCosts: parseFloat(formData.developmentCosts) || 0,
         utilities: formData.utilities,
+        accessType: formData.accessType,
+        topography: formData.topography,
+        environmentalFactors: formData.environmentalFactors,
+        nearestAttraction: formData.nearestAttraction,
+        description: formData.description,
         photos,
         documents
       };
+
+      // Log the complete form data for verification
+      console.log('=== LAND DEAL SUBMISSION DATA ===');
+      console.log('Form Data:', formData);
+      console.log('Deal Data being sent to API:', dealData);
+      console.log('Uploaded Files:', uploadedFiles);
+      console.log('Photos:', photos.map(p => p.name));
+      console.log('Documents:', documents.map(d => d.name));
+      console.log('=====================================');
 
       const response = await landDealsApi.createLandDeal(dealData);
       
