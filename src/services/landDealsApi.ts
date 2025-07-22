@@ -319,8 +319,76 @@ export const landDealsApi = {
     }
   },
 
-  // Admin functions to manage form options
+  // Admin functions to manage form options and users
   admin: {
+    // Get all users
+    getUsers: async (): Promise<ApiResponse<Array<{
+      id: number;
+      username: string;
+      email: string;
+      first_name: string;
+      last_name: string;
+      date_joined: string;
+      is_active: boolean;
+    }>>> => {
+      const response = await api.get('/auth/users/');
+      return {
+        success: true,
+        data: response.data
+      };
+    },
+
+    // Get deals for a specific user
+    getUserDeals: async (userId: number): Promise<ApiResponse<LandDeal[]>> => {
+      const response = await api.get(`/data/properties/list/${userId}/`);
+      const transformedData = response.data.map((property: any) => ({
+        id: property.id.toString(),
+        address: property.address,
+        submittedOn: property.created_at,
+        status: property.status,
+        coach: 'Assigned Coach',
+        askingPrice: parseFloat(property.asking_price),
+        landType: property.land_type_name,
+        acreage: parseFloat(property.acreage),
+        totalFilesCount: property.total_files_count
+      }));
+      
+      return {
+        success: true,
+        data: transformedData
+      };
+    },
+
+    // Get all deals (admin view)
+    getAllDeals: async (): Promise<ApiResponse<LandDeal[]>> => {
+      const response = await api.get('/auth/properties/list/');
+      const transformedData = response.data.map((property: any) => ({
+        id: property.id.toString(),
+        address: property.address,
+        submittedOn: property.created_at,
+        status: property.status,
+        coach: 'Assigned Coach',
+        askingPrice: parseFloat(property.asking_price),
+        landType: property.land_type_name,
+        acreage: parseFloat(property.acreage),
+        totalFilesCount: property.total_files_count
+      }));
+      
+      return {
+        success: true,
+        data: transformedData
+      };
+    },
+
+    // Update deal status
+    updateDealStatus: async (dealId: string, status: string): Promise<ApiResponse<{ id: string; status: string }>> => {
+      const response = await api.patch(`/auth/properties/${dealId}/`, { status });
+      return {
+        success: true,
+        data: { id: dealId, status }
+      };
+    },
+
     // Get all form options
     getFormOptions: async (): Promise<ApiResponse<{
       landTypes: Array<{ value: string; label: string }>;
