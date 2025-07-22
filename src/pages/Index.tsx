@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Building, Users, TrendingUp, Shield, ArrowRight, CheckCircle } from 'lucide-react';
+import { MapPin, Users, TrendingUp, Shield, ArrowRight, CheckCircle } from 'lucide-react';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -16,7 +16,7 @@ const Index = () => {
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
                   <div className="p-3 bg-primary rounded-xl">
-                    <Building className="h-8 w-8 text-primary-foreground" />
+                    <MapPin className="h-8 w-8 text-primary-foreground" />
                   </div>
                   <h1 className="text-4xl lg:text-5xl font-bold text-foreground">
                     LandDeal Pro
@@ -134,7 +134,7 @@ const Index = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center space-y-4">
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                <Building className="h-8 w-8 text-primary" />
+                <MapPin className="h-8 w-8 text-primary" />
               </div>
               <h3 className="text-xl font-semibold text-foreground">Submit Deals</h3>
               <p className="text-muted-foreground">

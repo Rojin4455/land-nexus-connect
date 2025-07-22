@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import PropertyInformation from '@/components/deal-detail/PropertyInformation';
 import AdminDocumentsSection from '@/components/deal-detail/AdminDocumentsSection';
 import AdminConversationSection from '@/components/deal-detail/AdminConversationSection';
-import { ArrowLeft, FileText, MapPin, Upload, MessageCircle, Edit, Shield, LogOut } from 'lucide-react';
+import { ArrowLeft, FileText, MapPin, Upload, MessageCircle, Edit, LogOut } from 'lucide-react';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { logoutUser } from '@/store/authSlice';
@@ -118,7 +118,7 @@ const AdminDealDetail = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               <div className="flex items-center space-x-4">
-                <Shield className="h-8 w-8 text-primary" />
+                <MapPin className="h-8 w-8 text-primary" />
                 <div>
                   <h1 className="text-xl font-bold text-foreground">Admin Dashboard</h1>
                   <p className="text-sm text-muted-foreground">Land Deal Management System</p>
@@ -163,7 +163,7 @@ const AdminDealDetail = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               <div className="flex items-center space-x-4">
-                <Shield className="h-8 w-8 text-primary" />
+                <MapPin className="h-8 w-8 text-primary" />
                 <div>
                   <h1 className="text-xl font-bold text-foreground">Admin Dashboard</h1>
                   <p className="text-sm text-muted-foreground">Land Deal Management System</p>
@@ -250,7 +250,7 @@ const AdminDealDetail = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
-              <Shield className="h-8 w-8 text-primary" />
+              <MapPin className="h-8 w-8 text-primary" />
               <div>
                 <h1 className="text-xl font-bold text-foreground">Admin Dashboard</h1>
                 <p className="text-sm text-muted-foreground">Land Deal Management System</p>

@@ -5,7 +5,7 @@ import { toast } from '@/hooks/use-toast';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { logoutUser } from '@/store/authSlice';
 import { 
-  Building, 
+  MapPin, 
   Home, 
   Plus, 
   User, 
@@ -52,7 +52,7 @@ const DashboardLayout = ({ children, activeTab = 'dashboard' }) => {
       <div className="p-6 border-b border-border">
         <div className="flex items-center space-x-3">
           <div className="p-2 bg-primary rounded-lg">
-            <Building className="h-6 w-6 text-primary-foreground" />
+            <MapPin className="h-6 w-6 text-primary-foreground" />
           </div>
           <div>
             <h2 className="font-bold text-lg">LandDeal Pro</h2>
