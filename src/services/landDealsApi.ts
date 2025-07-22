@@ -201,7 +201,7 @@ export const landDealsApi = {
 
   // Fetch details of a specific land deal
   getLandDealById: async (dealId: string): Promise<ApiResponse<LandDeal>> => {
-    const response = await api.get(`/data/properties/${dealId}/`);
+    const response = await api.get(`/data/properties/list/${dealId}/`);
     // Transform the response to match our interface
     const property = response.data;
     const transformedData = {
