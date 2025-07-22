@@ -14,14 +14,11 @@ api.interceptors.request.use((config) => {
   const persistedState = localStorage.getItem('persist:root');
   let token = null;
 
-
-  
   if (persistedState) {
     try {
       const parsed = JSON.parse(persistedState);
       const authData = JSON.parse(parsed.auth);
       token = authData?.accessToken;
-
     } catch (error) {
       console.warn('Failed to parse persisted auth state');
     }
@@ -37,6 +34,70 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+// Add response interceptor for automatic token refresh
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      
+      try {
+        // Get refresh token from Redux store
+        const persistedState = localStorage.getItem('persist:root');
+        let refreshToken = null;
+        
+        if (persistedState) {
+          try {
+            const parsed = JSON.parse(persistedState);
+            const authData = JSON.parse(parsed.auth);
+            refreshToken = authData?.refreshToken;
+          } catch (parseError) {
+            console.warn('Failed to parse persisted auth state for refresh');
+          }
+        }
+        
+        if (refreshToken) {
+          // Call refresh token API
+          const refreshResponse = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/auth/token/refresh/`, {
+            refresh: refreshToken
+          });
+          
+          const newAccessToken = refreshResponse.data.access;
+          
+          // Update the persisted state with new token
+          if (persistedState) {
+            try {
+              const parsed = JSON.parse(persistedState);
+              const authData = JSON.parse(parsed.auth);
+              authData.accessToken = newAccessToken;
+              parsed.auth = JSON.stringify(authData);
+              localStorage.setItem('persist:root', JSON.stringify(parsed));
+            } catch (updateError) {
+              console.warn('Failed to update persisted auth state');
+            }
+          }
+          
+          // Retry the original request with new token
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+          return api(originalRequest);
+        }
+      } catch (refreshError) {
+        // Refresh failed, redirect to login
+        console.warn('Token refresh failed:', refreshError);
+        // Clear persisted state
+        localStorage.removeItem('persist:root');
+        // Redirect to login page
+        window.location.href = '/login';
+        return Promise.reject(refreshError);
+      }
+    }
+    
+    return Promise.reject(error);
+  }
+);
 
 // Types for API responses
 export interface LandDeal {
@@ -118,7 +179,7 @@ export const landDealsApi = {
 
   // Fetch all land deals for the current user
   getUserLandDeals: async (): Promise<ApiResponse<LandDeal[]>> => {
-    const response = await api.get('/data/properties/list/');
+    const response = await api.get('/auth/properties/list/');
     // Transform the response to match our interface
     const transformedData = response.data.map((property: any) => ({
       id: property.id.toString(),
@@ -140,7 +201,7 @@ export const landDealsApi = {
 
   // Fetch details of a specific land deal
   getLandDealById: async (dealId: string): Promise<ApiResponse<LandDeal>> => {
-    const response = await api.get(`/data/properties/${dealId}/`);
+    const response = await api.get(`/auth/properties/${dealId}/`);
     // Transform the response to match our interface
     const property = response.data;
     const transformedData = {
@@ -201,7 +262,7 @@ export const landDealsApi = {
 
   // Delete a land deal
   deleteLandDeal: async (dealId: string): Promise<ApiResponse<{ id: string }>> => {
-    const response = await api.delete(`/data/properties/${dealId}/delete/`);
+    const response = await api.delete(`/auth/properties/${dealId}/delete/`);
     return {
       success: true,
       data: { id: dealId }
