@@ -20,6 +20,8 @@ const SubmitDeal = () => {
   const dispatch = useAppDispatch();
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState([]);
+  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
+
   const { utilities, landTypes, accessTypes, loading: formOptionsLoading } = useAppSelector((state) => state.formOptions);
   const [formData, setFormData] = useState({
     address: '',
@@ -40,7 +42,7 @@ const SubmitDeal = () => {
   useEffect(() => {
     // Check if user is authenticated
     const userToken = localStorage.getItem('userToken');
-    if (!userToken) {
+    if (!isAuthenticated) {
       navigate('/user/login');
       return;
     }
@@ -48,6 +50,8 @@ const SubmitDeal = () => {
     // Load form options
     dispatch(fetchAllFormOptions());
   }, [navigate, dispatch]);
+
+
 
   // Transform API data for select components
   const formOptions = {
