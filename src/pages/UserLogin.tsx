@@ -16,6 +16,7 @@ const UserLogin = () => {
     username: '',
     password: ''
   });
+  console.log(import.meta.env.VITE_API_URL, "dwdwdwddwd");
 
   const dispatch = useAppDispatch();
   const navigate = useNavigate();

@@ -27,7 +27,10 @@ import AdminDealDetail from "./pages/AdminDealDetail";
 const queryClient = new QueryClient();
 
 const App = () => (
+
+  
   <Provider store={store}>
+    
     <PersistGate loading={null} persistor={persistor}>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
