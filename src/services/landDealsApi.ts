@@ -118,7 +118,7 @@ export const landDealsApi = {
 
   // Fetch all land deals for the current user
   getUserLandDeals: async (): Promise<ApiResponse<LandDeal[]>> => {
-    const response = await api.get('/auth/properties/list/');
+    const response = await api.get('/data/properties/list/');
     // Transform the response to match our interface
     const transformedData = response.data.map((property: any) => ({
       id: property.id.toString(),
@@ -140,7 +140,7 @@ export const landDealsApi = {
 
   // Fetch details of a specific land deal
   getLandDealById: async (dealId: string): Promise<ApiResponse<LandDeal>> => {
-    const response = await api.get(`/auth/properties/${dealId}/`);
+    const response = await api.get(`/data/properties/${dealId}/`);
     // Transform the response to match our interface
     const property = response.data;
     const transformedData = {
@@ -201,7 +201,7 @@ export const landDealsApi = {
 
   // Delete a land deal
   deleteLandDeal: async (dealId: string): Promise<ApiResponse<{ id: string }>> => {
-    const response = await api.delete(`/auth/properties/${dealId}/delete/`);
+    const response = await api.delete(`/data/properties/${dealId}/delete/`);
     return {
       success: true,
       data: { id: dealId }
