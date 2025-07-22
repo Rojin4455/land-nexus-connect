@@ -116,23 +116,22 @@ const SubmitDeal = () => {
       const photos = uploadedFiles.filter(f => f.type.startsWith('image/')).map(f => f.file);
       const documents = uploadedFiles.filter(f => !f.type.startsWith('image/')).map(f => f.file);
 
-      // Prepare API data with ALL form fields
+      // Prepare API data with ALL form fields in backend expected format
       const dealData = {
-        address: formData.address,
-        landType: formData.landType,
+        address: formData.address || '',
+        landType: formData.landType || '', // Single ID as string
         acreage: parseFloat(formData.acreage) || 0,
-        zoning: formData.zoning,
-        askingPrice: parseFloat(formData.askingPrice) || 0,
-        estimatedAEV: parseFloat(formData.estimatedAEV) || 0,
-        developmentCosts: parseFloat(formData.developmentCosts) || 0,
-        utilities: formData.utilities ? [formData.utilities] : [], // Convert single selection to array
-        accessType: formData.accessType,
-        topography: formData.topography,
-        environmentalFactors: formData.environmentalFactors,
-        nearestAttraction: formData.nearestAttraction,
-        description: formData.description,
-        photos,
-        documents
+        zoning: formData.zoning || '',
+        askingPrice: parseFloat(formData.askingPrice) || 0, // Number
+        estimatedAEV: formData.estimatedAEV || '0', // String representation
+        developmentCosts: formData.developmentCosts || '0', // String representation
+        utilities: formData.utilities || '', // Single ID as string
+        accessType: formData.accessType || '', // Single ID as string
+        topography: formData.topography || '',
+        environmentalFactors: formData.environmentalFactors || '',
+        nearestAttraction: formData.nearestAttraction || '',
+        description: formData.description || '',
+        files: [...photos, ...documents] // Backend expects 'files' not separate photos/documents
       };
 
       // Log the complete form data for verification

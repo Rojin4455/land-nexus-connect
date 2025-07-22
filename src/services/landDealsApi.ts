@@ -62,9 +62,14 @@ export interface CreateLandDealData {
   description?: string;
   acreage?: number;
   zoning?: string;
-  utilities?: string[];
-  photos?: File[];
-  documents?: File[];
+  utilities?: string; // Single ID as string to match backend
+  accessType?: string;
+  estimatedAEV?: string;
+  developmentCosts?: string;
+  topography?: string;
+  environmentalFactors?: string;
+  nearestAttraction?: string;
+  files?: File[]; // Combined files array for backend
 }
 
 export interface ApiResponse<T> {
@@ -81,22 +86,19 @@ export const landDealsApi = {
     
     // Append basic fields
     Object.entries(dealData).forEach(([key, value]) => {
-      if (key === 'photos' || key === 'documents') {
-        // Handle file uploads
+      if (key === 'files') {
+        // Handle file uploads - backend expects 'files' key
         if (Array.isArray(value)) {
           value.forEach((file) => {
-            formData.append(key, file);
+            formData.append('files', file);
           });
         }
-      } else if (Array.isArray(value)) {
-        // Handle arrays (like utilities)
-        formData.append(key, JSON.stringify(value));
-      } else if (value !== undefined) {
+      } else if (value !== undefined && value !== null && value !== '') {
         formData.append(key, String(value));
       }
     });
 
-    const response = await api.post('/data/properties/', formData, {
+    const response = await api.post('/api/auth/properties/', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
