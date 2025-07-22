@@ -8,6 +8,7 @@ import { toast } from '@/hooks/use-toast';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { logoutUser } from '@/store/authSlice';
+import { landDealsApi } from '@/services/landDealsApi';
 import { 
   Users, 
   FileText, 
@@ -20,7 +21,10 @@ import {
   Calendar,
   DollarSign,
   MapPin,
-  Settings
+  Settings,
+  ArrowLeft,
+  ChevronDown,
+  Edit
 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -28,7 +32,12 @@ const AdminDashboard = () => {
   const dispatch = useAppDispatch();
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
   const [deals, setDeals] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [userDeals, setUserDeals] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [view, setView] = useState('deals'); // 'deals' or 'users'
+  const [loading, setLoading] = useState(false);
   const adminEmail = user?.email || localStorage.getItem('adminEmail') || 'admin@example.com';
 
   useEffect(() => {
@@ -44,25 +53,83 @@ const AdminDashboard = () => {
       return;
     }
 
-    // Load all deals from localStorage
-    const savedDeals = localStorage.getItem('userDeals');
-    if (savedDeals) {
-      const parsedDeals = JSON.parse(savedDeals);
-      console.log('Loaded deals:', parsedDeals);
-      // Ensure all deals have required fields
-      const safeDeals = parsedDeals.map(deal => ({
-        ...deal,
-        lotAddress: deal.lotAddress || deal.address || '',
-        id: deal.id || `deal-${Date.now()}-${Math.random()}`,
-        landType: deal.landType || '',
-        status: deal.status || 'pending',
-        askingPrice: deal.askingPrice || 0,
-        submittedOn: deal.submittedOn || new Date().toISOString(),
-        lotSize: deal.lotSize || deal.acreage || 'N/A'
-      }));
-      setDeals(safeDeals);
-    }
+    loadInitialData();
   }, [isAuthenticated, user, navigate]);
+
+  const loadInitialData = async () => {
+    setLoading(true);
+    try {
+      // Load all deals
+      const dealsResponse = await landDealsApi.admin.getAllDeals();
+      if (dealsResponse.success) {
+        setDeals(dealsResponse.data);
+      }
+
+      // Load all users
+      const usersResponse = await landDealsApi.admin.getUsers();
+      if (usersResponse.success) {
+        setUsers(usersResponse.data);
+      }
+    } catch (error) {
+      console.error('Failed to load admin data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load admin data",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadUserDeals = async (userId) => {
+    setLoading(true);
+    try {
+      const response = await landDealsApi.admin.getUserDeals(userId);
+      if (response.success) {
+        setUserDeals(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to load user deals:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load user deals",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateDealStatus = async (dealId, newStatus) => {
+    try {
+      const response = await landDealsApi.admin.updateDealStatus(dealId, newStatus);
+      if (response.success) {
+        // Update local state
+        if (selectedUser) {
+          setUserDeals(prev => prev.map(deal => 
+            deal.id === dealId ? { ...deal, status: newStatus } : deal
+          ));
+        } else {
+          setDeals(prev => prev.map(deal => 
+            deal.id === dealId ? { ...deal, status: newStatus } : deal
+          ));
+        }
+        
+        toast({
+          title: "Success",
+          description: `Deal status updated to ${newStatus}`,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to update deal status:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update deal status",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -113,10 +180,19 @@ const AdminDashboard = () => {
     }
   };
 
-  const filteredDeals = deals.filter(deal =>
-    (deal.lotAddress || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+  const currentDeals = selectedUser ? userDeals : deals;
+  
+  const filteredDeals = currentDeals.filter(deal =>
+    (deal.address || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (deal.id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (deal.landType || '').toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredUsers = users.filter(user =>
+    (user.username || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (user.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (user.first_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (user.last_name || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const totalValue = deals.reduce((sum, deal) => sum + (deal.askingPrice || 0), 0);
@@ -139,6 +215,36 @@ const AdminDashboard = () => {
             </div>
             
             <div className="flex items-center space-x-4">
+              {selectedUser && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedUser(null);
+                    setUserDeals([]);
+                    setView('deals');
+                  }}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to All Deals
+                </Button>
+              )}
+              <Button
+                variant={view === 'users' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setView('users')}
+              >
+                <Users className="h-4 w-4 mr-2" />
+                Users
+              </Button>
+              <Button
+                variant={view === 'deals' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setView('deals')}
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                All Deals
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
@@ -209,23 +315,25 @@ const AdminDashboard = () => {
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-foreground">12</div>
+                <div className="text-2xl font-bold text-foreground">{users.length}</div>
                 <p className="text-xs text-muted-foreground">Registered users</p>
               </CardContent>
             </Card>
           </div>
 
-          {/* Search and Filters */}
+          {/* Main Content */}
           <Card className="card-elevated">
             <CardHeader>
-              <CardTitle>All Deal Submissions</CardTitle>
+              <CardTitle>
+                {view === 'users' ? 'All Users' : selectedUser ? `Deals for ${selectedUser.username}` : 'All Deal Submissions'}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center space-x-4 mb-6">
                 <div className="relative flex-1 max-w-md">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search deals by address, ID, or type..."
+                    placeholder={view === 'users' ? "Search users..." : "Search deals by address, ID, or type..."}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
@@ -233,90 +341,169 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
-              {/* Deals Table */}
-              {filteredDeals.length === 0 ? (
+              {loading ? (
                 <div className="text-center py-12">
-                  <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-foreground mb-2">
-                    {searchTerm ? 'No deals found' : 'No deals submitted yet'}
-                  </h3>
-                  <p className="text-muted-foreground">
-                    {searchTerm ? 'Try adjusting your search terms' : 'Deal submissions will appear here'}
-                  </p>
+                  <div className="text-lg text-muted-foreground">Loading...</div>
                 </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-border">
-                        <th className="text-left p-4 font-medium text-muted-foreground">Deal ID</th>
-                        <th className="text-left p-4 font-medium text-muted-foreground">Location</th>
-                        <th className="text-left p-4 font-medium text-muted-foreground">Type</th>
-                        <th className="text-left p-4 font-medium text-muted-foreground">Value</th>
-                        <th className="text-left p-4 font-medium text-muted-foreground">Submitted</th>
-                        <th className="text-left p-4 font-medium text-muted-foreground">Status</th>
-                        <th className="text-left p-4 font-medium text-muted-foreground">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredDeals.map((deal) => (
-                        <tr key={deal.id} className="border-b border-border hover:bg-secondary/30 transition-colors">
-                          <td className="p-4">
-                            <span className="font-mono text-sm font-medium text-primary">{deal.id}</span>
-                          </td>
-                          <td className="p-4">
-                            <div className="flex items-start space-x-2">
-                              <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                              <div>
-                                <p className="font-medium text-foreground text-sm line-clamp-1">{deal.lotAddress || 'No address'}</p>
-                                <p className="text-xs text-muted-foreground">{deal.lotSize || deal.acreage || 'N/A'}</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="p-4">
-                            <span className="text-sm text-foreground capitalize">{deal.landType}</span>
-                          </td>
-                          <td className="p-4">
-                            <span className="text-sm font-medium text-foreground">
-                              {formatCurrency(deal.askingPrice || 0)}
-                            </span>
-                          </td>
-                          <td className="p-4">
-                            <div className="flex items-center space-x-2">
-                              <Calendar className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-sm text-foreground">{deal.submittedOn ? formatDate(deal.submittedOn) : 'N/A'}</span>
-                            </div>
-                          </td>
-                          <td className="p-4">
-                            <Badge className={`${getStatusVariant(deal.status)} text-xs`}>
-                              {deal.status}
-                            </Badge>
-                          </td>
-                          <td className="p-4">
-                            <div className="flex items-center space-x-2">
+              ) : view === 'users' ? (
+                // Users Table
+                filteredUsers.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-foreground mb-2">No users found</h3>
+                    <p className="text-muted-foreground">Try adjusting your search terms</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b border-border">
+                          <th className="text-left p-4 font-medium text-muted-foreground">User ID</th>
+                          <th className="text-left p-4 font-medium text-muted-foreground">Username</th>
+                          <th className="text-left p-4 font-medium text-muted-foreground">Email</th>
+                          <th className="text-left p-4 font-medium text-muted-foreground">Name</th>
+                          <th className="text-left p-4 font-medium text-muted-foreground">Joined</th>
+                          <th className="text-left p-4 font-medium text-muted-foreground">Status</th>
+                          <th className="text-left p-4 font-medium text-muted-foreground">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredUsers.map((user) => (
+                          <tr key={user.id} className="border-b border-border hover:bg-secondary/30 transition-colors">
+                            <td className="p-4">
+                              <span className="font-mono text-sm font-medium text-primary">{user.id}</span>
+                            </td>
+                            <td className="p-4">
+                              <span className="text-sm font-medium text-foreground">{user.username}</span>
+                            </td>
+                            <td className="p-4">
+                              <span className="text-sm text-foreground">{user.email}</span>
+                            </td>
+                            <td className="p-4">
+                              <span className="text-sm text-foreground">
+                                {user.first_name || user.last_name ? `${user.first_name} ${user.last_name}`.trim() : 'N/A'}
+                              </span>
+                            </td>
+                            <td className="p-4">
+                              <span className="text-sm text-foreground">{formatDate(user.date_joined)}</span>
+                            </td>
+                            <td className="p-4">
+                              <Badge className={user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                                {user.is_active ? 'Active' : 'Inactive'}
+                              </Badge>
+                            </td>
+                            <td className="p-4">
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => navigate(`/admin/deal/${deal.id}`)}
+                                onClick={() => {
+                                  setSelectedUser(user);
+                                  setView('deals');
+                                  loadUserDeals(user.id);
+                                }}
                                 className="hover:bg-primary hover:text-primary-foreground"
                               >
                                 <Eye className="h-4 w-4 mr-1" />
-                                Review
+                                View Deals
                               </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="hover:bg-accent hover:text-accent-foreground"
-                              >
-                                <MessageSquare className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </td>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )
+              ) : (
+                // Deals Table
+                filteredDeals.length === 0 ? (
+                  <div className="text-center py-12">
+                    <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-foreground mb-2">
+                      {searchTerm ? 'No deals found' : selectedUser ? 'No deals for this user' : 'No deals submitted yet'}
+                    </h3>
+                    <p className="text-muted-foreground">
+                      {searchTerm ? 'Try adjusting your search terms' : 'Deal submissions will appear here'}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b border-border">
+                          <th className="text-left p-4 font-medium text-muted-foreground">Deal ID</th>
+                          <th className="text-left p-4 font-medium text-muted-foreground">Location</th>
+                          <th className="text-left p-4 font-medium text-muted-foreground">Type</th>
+                          <th className="text-left p-4 font-medium text-muted-foreground">Value</th>
+                          <th className="text-left p-4 font-medium text-muted-foreground">Submitted</th>
+                          <th className="text-left p-4 font-medium text-muted-foreground">Status</th>
+                          <th className="text-left p-4 font-medium text-muted-foreground">Actions</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody>
+                        {filteredDeals.map((deal) => (
+                          <tr key={deal.id} className="border-b border-border hover:bg-secondary/30 transition-colors">
+                            <td className="p-4">
+                              <span className="font-mono text-sm font-medium text-primary">{deal.id}</span>
+                            </td>
+                            <td className="p-4">
+                              <div className="flex items-start space-x-2">
+                                <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                                <div>
+                                  <p className="font-medium text-foreground text-sm line-clamp-1">{deal.address || 'No address'}</p>
+                                  <p className="text-xs text-muted-foreground">{deal.acreage || 'N/A'} acres</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="p-4">
+                              <span className="text-sm text-foreground capitalize">{deal.landType}</span>
+                            </td>
+                            <td className="p-4">
+                              <span className="text-sm font-medium text-foreground">
+                                {formatCurrency(deal.askingPrice || 0)}
+                              </span>
+                            </td>
+                            <td className="p-4">
+                              <div className="flex items-center space-x-2">
+                                <Calendar className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-sm text-foreground">{deal.submittedOn ? formatDate(deal.submittedOn) : 'N/A'}</span>
+                              </div>
+                            </td>
+                            <td className="p-4">
+                              <div className="flex items-center space-x-2">
+                                <Badge className={`${getStatusVariant(deal.status)} text-xs`}>
+                                  {deal.status}
+                                </Badge>
+                                <select
+                                  value={deal.status}
+                                  onChange={(e) => updateDealStatus(deal.id, e.target.value)}
+                                  className="text-xs border border-border rounded px-2 py-1 bg-background"
+                                >
+                                  <option value="submitted">Submitted</option>
+                                  <option value="under_review">Under Review</option>
+                                  <option value="approved">Approved</option>
+                                  <option value="rejected">Rejected</option>
+                                </select>
+                              </div>
+                            </td>
+                            <td className="p-4">
+                              <div className="flex items-center space-x-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => navigate(`/deal/${deal.id}`)}
+                                  className="hover:bg-primary hover:text-primary-foreground"
+                                >
+                                  <Eye className="h-4 w-4 mr-1" />
+                                  View Details
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )
               )}
             </CardContent>
           </Card>
