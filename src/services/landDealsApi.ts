@@ -13,12 +13,15 @@ api.interceptors.request.use((config) => {
   // Check Redux store first, then fallback to localStorage
   const persistedState = localStorage.getItem('persist:root');
   let token = null;
+
+
   
   if (persistedState) {
     try {
       const parsed = JSON.parse(persistedState);
       const authData = JSON.parse(parsed.auth);
-      token = authData?.access;
+      token = authData?.accessToken;
+
     } catch (error) {
       console.warn('Failed to parse persisted auth state');
     }
@@ -93,7 +96,7 @@ export const landDealsApi = {
       }
     });
 
-    const response = await api.post('/land-deals', formData, {
+    const response = await api.post('/data/properties/', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
