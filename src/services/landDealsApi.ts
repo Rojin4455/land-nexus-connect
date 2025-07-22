@@ -118,14 +118,58 @@ export const landDealsApi = {
 
   // Fetch all land deals for the current user
   getUserLandDeals: async (): Promise<ApiResponse<LandDeal[]>> => {
-    const response = await api.get('/land-deals');
-    return response.data;
+    const response = await api.get('/auth/properties/list/');
+    // Transform the response to match our interface
+    const transformedData = response.data.map((property: any) => ({
+      id: property.id.toString(),
+      address: property.address,
+      submittedOn: property.created_at,
+      status: property.status,
+      coach: 'Assigned Coach', // Default value since not in response
+      askingPrice: parseFloat(property.asking_price),
+      landType: property.land_type_name,
+      acreage: parseFloat(property.acreage),
+      totalFilesCount: property.total_files_count
+    }));
+    
+    return {
+      success: true,
+      data: transformedData
+    };
   },
 
   // Fetch details of a specific land deal
   getLandDealById: async (dealId: string): Promise<ApiResponse<LandDeal>> => {
-    const response = await api.get(`/land-deals/${dealId}`);
-    return response.data;
+    const response = await api.get(`/auth/properties/${dealId}/`);
+    // Transform the response to match our interface
+    const property = response.data;
+    const transformedData = {
+      id: property.id.toString(),
+      address: property.address,
+      submittedOn: property.created_at,
+      status: property.status,
+      coach: 'Assigned Coach', // Default value since not in response
+      askingPrice: parseFloat(property.asking_price),
+      landType: property.land_type_detail?.display_name || property.land_type_name,
+      acreage: parseFloat(property.acreage),
+      zoning: property.zoning,
+      utilities: property.utilities_detail?.display_name ? [property.utilities_detail.display_name] : [],
+      photos: property.files?.filter((f: any) => f.file_type === 'image')?.map((f: any) => f.file_url) || [],
+      documents: property.files?.filter((f: any) => f.file_type !== 'image')?.map((f: any) => f.file_url) || [],
+      description: property.description,
+      estimatedAEV: property.estimated_aev,
+      developmentCosts: property.development_costs,
+      topography: property.topography,
+      environmentalFactors: property.environmental_factors,
+      nearestAttraction: property.nearest_attraction,
+      accessType: property.access_type_detail?.display_name,
+      files: property.files || []
+    };
+    
+    return {
+      success: true,
+      data: transformedData
+    };
   },
 
   // Update an existing land deal
@@ -157,8 +201,11 @@ export const landDealsApi = {
 
   // Delete a land deal
   deleteLandDeal: async (dealId: string): Promise<ApiResponse<{ id: string }>> => {
-    const response = await api.delete(`/land-deals/${dealId}`);
-    return response.data;
+    const response = await api.delete(`/auth/properties/${dealId}/delete/`);
+    return {
+      success: true,
+      data: { id: dealId }
+    };
   },
 
   // Upload additional documents or photos
