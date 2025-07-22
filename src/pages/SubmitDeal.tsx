@@ -149,6 +149,7 @@ const SubmitDeal = () => {
         toast({
           title: "Deal submitted successfully!",
           description: `Your deal has been submitted for review.`,
+          variant: "default",
         });
         navigate('/dashboard');
       } else {
