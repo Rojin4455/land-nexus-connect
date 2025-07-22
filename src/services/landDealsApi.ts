@@ -84,19 +84,27 @@ export const landDealsApi = {
   createLandDeal: async (dealData: CreateLandDealData): Promise<ApiResponse<LandDeal>> => {
     const formData = new FormData();
     
-    // Append basic fields
-    Object.entries(dealData).forEach(([key, value]) => {
-      if (key === 'files') {
-        // Handle file uploads - backend expects 'files' key
-        if (Array.isArray(value)) {
-          value.forEach((file) => {
-            formData.append('files', file);
-          });
-        }
-      } else if (value !== undefined && value !== null && value !== '') {
-        formData.append(key, String(value));
-      }
-    });
+    // Append fields with correct types as per backend requirements
+    if (dealData.address) formData.append('address', dealData.address);
+    if (dealData.landType) formData.append('landType', dealData.landType);
+    if (dealData.acreage) formData.append('acreage', dealData.acreage.toString());
+    if (dealData.zoning) formData.append('zoning', dealData.zoning);
+    if (dealData.askingPrice) formData.append('askingPrice', dealData.askingPrice.toString());
+    if (dealData.estimatedAEV) formData.append('estimatedAEV', dealData.estimatedAEV);
+    if (dealData.developmentCosts) formData.append('developmentCosts', dealData.developmentCosts);
+    if (dealData.utilities) formData.append('utilities', dealData.utilities);
+    if (dealData.accessType) formData.append('accessType', dealData.accessType);
+    if (dealData.topography) formData.append('topography', dealData.topography);
+    if (dealData.environmentalFactors) formData.append('environmentalFactors', dealData.environmentalFactors);
+    if (dealData.nearestAttraction) formData.append('nearestAttraction', dealData.nearestAttraction);
+    if (dealData.description) formData.append('description', dealData.description);
+    
+    // Handle file uploads
+    if (dealData.files && Array.isArray(dealData.files)) {
+      dealData.files.forEach((file) => {
+        formData.append('files', file);
+      });
+    }
 
 
     const response = await api.post('/data/properties/', formData, {
