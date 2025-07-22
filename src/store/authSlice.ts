@@ -55,7 +55,7 @@ export const loginUser = createAsyncThunk(
   'auth/loginUser',
   async (credentials: LoginCredentials, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/api/auth/login/`, credentials);
+      const response = await axios.post(`${API_BASE_URL}/auth/login/`, credentials);
       
       // Transform the response to match our expected AuthResponse interface
       const transformedResponse: AuthResponse = {
