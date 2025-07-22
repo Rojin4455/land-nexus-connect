@@ -7,6 +7,7 @@ interface DocumentsSectionProps {
 }
 
 const DocumentsSection = ({ deal }: DocumentsSectionProps) => {
+  console.log("deal:", deal)
   return (
     <Card className="card-elevated">
       <CardHeader>
@@ -23,9 +24,9 @@ const DocumentsSection = ({ deal }: DocumentsSectionProps) => {
                 <div className="flex items-center space-x-3">
                   <FileText className="h-4 w-4 text-muted-foreground" />
                   <div>
-                    <p className="text-sm font-medium">{file.name}</p>
+                    <p className="text-sm font-medium">{file.original_name}</p>
                     <p className="text-xs text-muted-foreground">
-                      {(file.size / 1024 / 1024).toFixed(2)} MB
+                      {(file.file_size / 1024 / 1024).toFixed(2)} MB
                     </p>
                   </div>
                 </div>
