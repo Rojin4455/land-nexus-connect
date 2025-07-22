@@ -98,7 +98,7 @@ export const landDealsApi = {
       }
     });
 
-    const response = await api.post('/api/auth/properties/', formData, {
+    const response = await api.post('/api/data/properties/', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
