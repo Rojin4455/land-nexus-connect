@@ -8,8 +8,14 @@ interface AdminDocumentsSectionProps {
 
 const AdminDocumentsSection = ({ deal }: AdminDocumentsSectionProps) => {
   const handleDownload = (file: any) => {
-    // Open the file URL in a new tab for download
-    window.open(file.file_url, '_blank');
+    // Create a temporary link element to trigger download
+    const link = document.createElement('a');
+    link.href = file.file_url;
+    link.download = file.original_name || 'document';
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
