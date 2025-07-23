@@ -7,15 +7,31 @@ interface AdminDocumentsSectionProps {
 }
 
 const AdminDocumentsSection = ({ deal }: AdminDocumentsSectionProps) => {
-  const handleDownload = (file: any) => {
-    // Create a temporary link element to trigger download
-    const link = document.createElement('a');
-    link.href = file.file_url;
-    link.download = file.original_name || 'document';
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownload = async (file: any) => {
+    try {
+      const response = await fetch(file.file_url, {
+        mode: 'cors', // make sure CORS is enabled on the server
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to fetch file');
+      }
+  
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+  
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = file.original_name || 'downloaded_file';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+  
+      // Clean up the blob URL
+      URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error('Download error:', error);
+    }
   };
 
   return (
