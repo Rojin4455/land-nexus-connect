@@ -3,6 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { 
@@ -13,7 +24,8 @@ import {
   Plus,
   TrendingUp,
   FileText,
-  Clock
+  Clock,
+  Trash2
 } from 'lucide-react';
 import { landDealsApi, handleApiError } from '@/services/landDealsApi';
 import { toast } from '@/hooks/use-toast';
@@ -117,6 +129,27 @@ const UserDashboard = () => {
       currency: 'USD',
       minimumFractionDigits: 0
     }).format(amount);
+  };
+
+  const handleDeleteDeal = async (dealId: string) => {
+    try {
+      const response = await landDealsApi.deleteLandDeal(dealId);
+      if (response.success) {
+        // Remove the deleted deal from the state
+        setDeals(deals.filter(deal => deal.id !== dealId));
+        toast({
+          title: "Deal deleted",
+          description: "The property deal has been successfully deleted.",
+        });
+      }
+    } catch (error) {
+      const errorMessage = handleApiError(error);
+      toast({
+        title: "Error deleting deal",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    }
   };
 
   if (isLoading) {
@@ -255,15 +288,48 @@ const UserDashboard = () => {
                           <span className="text-sm text-foreground">{deal.coach}</span>
                         </td>
                         <td className="p-4">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => navigate(`/deal/${deal.id}`)}
-                            className="hover:bg-primary hover:text-primary-foreground"
-                          >
-                            <Eye className="h-4 w-4 mr-1" />
-                            View
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => navigate(`/deal/${deal.id}`)}
+                              className="hover:bg-primary hover:text-primary-foreground"
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              View
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="hover:bg-destructive hover:text-destructive-foreground"
+                                >
+                                  <Trash2 className="h-4 w-4 mr-1" />
+                                  Delete
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Property Deal</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete this property deal? This action cannot be undone.
+                                    <br /><br />
+                                    <strong>Property:</strong> {deal.address}
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDeleteDeal(deal.id)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Delete Property
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
                         </td>
                       </tr>
                     ))}
