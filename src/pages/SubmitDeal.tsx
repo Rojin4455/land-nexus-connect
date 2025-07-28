@@ -154,7 +154,7 @@ const SubmitDeal = () => {
 
       const response = await landDealsApi.createLandDeal(dealData);
       
-      if (response.success) {
+      if (response) {
         toast({
           title: "Deal submitted successfully!",
           description: `Your deal has been submitted for review.`,
