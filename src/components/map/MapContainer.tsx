@@ -1,17 +1,22 @@
 import React, { useEffect, useRef, useState } from 'react';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { MapPin, AlertCircle } from 'lucide-react';
+
+// Extend the Window interface to include google
+declare global {
+  interface Window {
+    google: any;
+  }
+}
 
 interface MapContainerProps {
   address?: string;
   latitude?: number;
   longitude?: number;
   showAddressInput?: boolean;
-  onAddressChange?: (address: string, coords: { lat: number; lng: number } | null) => void;
+  onAddressChange?: (address: string, coords: { lat: number; lng: number; placeId?: string } | null) => void;
   height?: string;
 }
 
@@ -23,128 +28,216 @@ const MapContainer: React.FC<MapContainerProps> = ({
   onAddressChange,
   height = 'h-96'
 }) => {
-  const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
-  const marker = useRef<mapboxgl.Marker | null>(null);
-  const [mapboxToken, setMapboxToken] = useState<string>('');
-  const [isTokenSet, setIsTokenSet] = useState(false);
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<google.maps.Map | null>(null);
+  const markerRef = useRef<any>(null); // AdvancedMarkerElement
+  const geocoderRef = useRef<google.maps.Geocoder | null>(null);
+
+  const [googleApiKey, setGoogleApiKey] = useState<string>('');
+  const [isApiKeySet, setIsApiKeySet] = useState(false);
   const [currentAddress, setCurrentAddress] = useState(address);
   const [isGeocoding, setIsGeocoding] = useState(false);
 
-  // Check for token in localStorage on mount
+  // Check for API key on mount
   useEffect(() => {
-    const storedToken = localStorage.getItem('mapbox_token');
-    if (storedToken) {
-      setMapboxToken(storedToken);
-      setIsTokenSet(true);
+    const storedApiKey = import.meta.env.VITE_GOOGLE_API_KEY || localStorage.getItem('google_api_key');
+    if (storedApiKey) {
+      setGoogleApiKey(storedApiKey);
+      setIsApiKeySet(true);
     }
   }, []);
 
-  // Initialize map when token is available
+  // Main effect to initialize and update map
   useEffect(() => {
-    if (!isTokenSet || !mapContainer.current || map.current) return;
+    if (!isApiKeySet || !googleApiKey) return;
 
-    mapboxgl.accessToken = mapboxToken;
-
-    // Default coordinates (center of US)
-    const defaultLat = latitude || 39.8283;
-    const defaultLng = longitude || -98.5795;
-
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v11',
-      center: [defaultLng, defaultLat],
-      zoom: latitude && longitude ? 15 : 4
-    });
-
-    // Add navigation controls
-    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-
-    // Add marker if coordinates are provided
-    if (latitude && longitude) {
-      addMarker(latitude, longitude);
+    // Load Google Maps script if not already loaded
+    if (!window.google || !window.google.maps) {
+      const script = document.createElement('script');
+      // Important: Include 'marker' library for AdvancedMarkerElement
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${googleApiKey}&libraries=places,marker`;
+      script.async = true;
+      script.defer = true;
+      script.onload = initMap;
+      document.body.appendChild(script);
+    } else {
+      initMap();
     }
 
+    function initMap() {
+      if (!mapRef.current) return;
+
+      // Default coordinates (center of US) as fallback
+      const defaultLocation = { lat: 39.8283, lng: -98.5795 };
+      
+      // Determine initial location based on props
+      const hasValidCoords = typeof latitude === 'number' && Number.isFinite(latitude) &&
+                            typeof longitude === 'number' && Number.isFinite(longitude);
+      
+      const initialLocation = hasValidCoords 
+        ? { lat: latitude, lng: longitude }
+        : defaultLocation;
+
+      const initialZoom = hasValidCoords ? 15 : 4;
+
+      console.log('Initializing map with location:', initialLocation, 'zoom:', initialZoom);
+
+      const map = new window.google.maps.Map(mapRef.current, {
+        center: initialLocation,
+        zoom: initialZoom,
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: false,
+        // Map ID is required for AdvancedMarkerElement
+        mapId: 'DEMO_MAP_ID'
+      });
+
+      mapInstanceRef.current = map;
+      geocoderRef.current = new window.google.maps.Geocoder();
+
+      // Add marker if we have valid coordinates
+      if (hasValidCoords) {
+        console.log('Adding marker at:', latitude, longitude);
+        
+        // Remove existing marker
+        if (markerRef.current) {
+          markerRef.current.map = null;
+          markerRef.current = null;
+        }
+
+        // Check if AdvancedMarkerElement is available
+        if (window.google.maps.marker && window.google.maps.marker.AdvancedMarkerElement) {
+          // Use new AdvancedMarkerElement
+          markerRef.current = new window.google.maps.marker.AdvancedMarkerElement({
+            map: map,
+            position: { lat: latitude, lng: longitude },
+            title: `Location: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
+          });
+          console.log('AdvancedMarkerElement created successfully');
+        } else {
+          // Fallback to legacy Marker (should still work even if deprecated)
+          markerRef.current = new window.google.maps.Marker({
+            position: { lat: latitude, lng: longitude },
+            map: map,
+            title: `Location: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
+            icon: {
+              path: window.google.maps.SymbolPath.CIRCLE,
+              scale: 8,
+              fillColor: '#3b82f6',
+              fillOpacity: 1,
+              strokeColor: 'white',
+              strokeWeight: 2,
+            },
+          });
+          console.log('Legacy Marker created successfully');
+        }
+      } else {
+        // Remove marker if coordinates are invalid
+        if (markerRef.current) {
+          if (markerRef.current.map !== undefined) {
+            // AdvancedMarkerElement
+            markerRef.current.map = null;
+          } else {
+            // Legacy Marker
+            markerRef.current.setMap(null);
+          }
+          markerRef.current = null;
+        }
+      }
+    }
+
+    // Cleanup function
     return () => {
-      if (map.current) {
-        map.current.remove();
-        map.current = null;
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current = null;
+      }
+      if (markerRef.current) {
+        if (markerRef.current.map !== undefined) {
+          // AdvancedMarkerElement
+          markerRef.current.map = null;
+        } else {
+          // Legacy Marker
+          markerRef.current.setMap(null);
+        }
+        markerRef.current = null;
       }
     };
-  }, [isTokenSet, mapboxToken, latitude, longitude]);
-
-  // Update map when coordinates change
-  useEffect(() => {
-    if (map.current && latitude && longitude) {
-      map.current.flyTo({
-        center: [longitude, latitude],
-        zoom: 15,
-        duration: 1500
-      });
-      addMarker(latitude, longitude);
-    }
-  }, [latitude, longitude]);
-
-  const addMarker = (lat: number, lng: number) => {
-    if (!map.current) return;
-
-    // Remove existing marker
-    if (marker.current) {
-      marker.current.remove();
-    }
-
-    // Add new marker
-    marker.current = new mapboxgl.Marker({
-      color: '#3b82f6'
-    })
-      .setLngLat([lng, lat])
-      .addTo(map.current);
-  };
+  }, [isApiKeySet, googleApiKey, latitude, longitude]);
 
   const geocodeAddress = async (searchAddress: string) => {
-    if (!searchAddress.trim() || !mapboxToken) return;
+    if (!searchAddress.trim() || !geocoderRef.current || !mapInstanceRef.current) return;
 
     setIsGeocoding(true);
     try {
-      const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-          searchAddress
-        )}.json?access_token=${mapboxToken}&limit=1`
-      );
+      geocoderRef.current.geocode({ address: searchAddress }, (results, status) => {
+        if (status === window.google.maps.GeocoderStatus.OK && results && results.length > 0) {
+          const firstResult = results[0];
+          const lat = firstResult.geometry.location.lat();
+          const lng = firstResult.geometry.location.lng();
+          const formattedAddress = firstResult.formatted_address;
+          const placeId = firstResult.place_id;
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.features && data.features.length > 0) {
-          const [lng, lat] = data.features[0].center;
-          const formattedAddress = data.features[0].place_name;
-          
-          // Update map and marker
-          if (map.current) {
-            map.current.flyTo({
-              center: [lng, lat],
-              zoom: 15,
-              duration: 1500
+          // Update map center and zoom
+          mapInstanceRef.current!.setCenter({ lat, lng });
+          mapInstanceRef.current!.setZoom(15);
+
+          // Remove existing marker
+          if (markerRef.current) {
+            if (markerRef.current.map !== undefined) {
+              // AdvancedMarkerElement
+              markerRef.current.map = null;
+            } else {
+              // Legacy Marker
+              markerRef.current.setMap(null);
+            }
+            markerRef.current = null;
+          }
+
+          // Create new marker
+          if (window.google.maps.marker && window.google.maps.marker.AdvancedMarkerElement) {
+            markerRef.current = new window.google.maps.marker.AdvancedMarkerElement({
+              map: mapInstanceRef.current!,
+              position: { lat, lng },
+              title: formattedAddress,
             });
-            addMarker(lat, lng);
+          } else {
+            markerRef.current = new window.google.maps.Marker({
+              position: { lat, lng },
+              map: mapInstanceRef.current!,
+              title: formattedAddress,
+              icon: {
+                path: window.google.maps.SymbolPath.CIRCLE,
+                scale: 8,
+                fillColor: '#3b82f6',
+                fillOpacity: 1,
+                strokeColor: 'white',
+                strokeWeight: 2,
+              },
+            });
           }
 
           // Call callback with new address and coordinates
           if (onAddressChange) {
-            onAddressChange(formattedAddress, { lat, lng });
+            onAddressChange(formattedAddress, { lat, lng, placeId });
+          }
+        } else {
+          console.error('Geocoding error:', status);
+          if (onAddressChange) {
+            onAddressChange(searchAddress, null);
           }
         }
-      }
+        setIsGeocoding(false);
+      });
     } catch (error) {
-      console.error('Geocoding error:', error);
-    } finally {
+      console.error('Geocoding request error:', error);
       setIsGeocoding(false);
     }
   };
 
-  const handleTokenSubmit = () => {
-    if (mapboxToken.trim()) {
-      localStorage.setItem('mapbox_token', mapboxToken);
-      setIsTokenSet(true);
+  const handleApiKeySubmit = () => {
+    if (googleApiKey.trim()) {
+      localStorage.setItem('google_api_key', googleApiKey);
+      setIsApiKeySet(true);
     }
   };
 
@@ -159,41 +252,45 @@ const MapContainer: React.FC<MapContainerProps> = ({
     }
   };
 
-  if (!isTokenSet) {
+  if (!isApiKeySet) {
     return (
       <Card className="p-6">
         <div className="space-y-4">
           <div className="flex items-center space-x-2 text-amber-600">
             <AlertCircle className="h-5 w-5" />
-            <h3 className="font-medium">Mapbox Token Required</h3>
+            <h3 className="font-medium">Google Maps API Key Required</h3>
           </div>
           <p className="text-sm text-muted-foreground">
-            To display maps and enable address autocomplete, please enter your Mapbox public token.
+            To display maps and enable address search, please enter your Google Maps API Key.
             You can get one from{' '}
-            <a 
-              href="https://account.mapbox.com/access-tokens/" 
-              target="_blank" 
+            <a
+              href="https://console.cloud.google.com/projectselector2/apis/dashboard"
+              target="_blank"
               rel="noopener noreferrer"
               className="text-primary hover:underline"
             >
-              mapbox.com
+              Google Cloud Console
             </a>
+            . Ensure Maps JavaScript API and Geocoding API are enabled for your project.
+            <br />
+            <strong>Important:</strong> As of February 2024, Google deprecated the old Marker class. 
+            This component now uses AdvancedMarkerElement which requires the "marker" library.
           </p>
           <div className="space-y-2">
-            <Label htmlFor="mapbox-token">Mapbox Public Token</Label>
+            <Label htmlFor="google-api-key">Google Maps API Key</Label>
             <div className="flex space-x-2">
               <Input
-                id="mapbox-token"
+                id="google-api-key"
                 type="text"
-                placeholder="pk.eyJ1..."
-                value={mapboxToken}
-                onChange={(e) => setMapboxToken(e.target.value)}
+                placeholder="AIzaSy..."
+                value={googleApiKey}
+                onChange={(e) => setGoogleApiKey(e.target.value)}
                 className="flex-1"
               />
               <button
-                onClick={handleTokenSubmit}
+                onClick={handleApiKeySubmit}
                 className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-                disabled={!mapboxToken.trim()}
+                disabled={!googleApiKey.trim()}
               >
                 Save
               </button>
@@ -232,10 +329,29 @@ const MapContainer: React.FC<MapContainerProps> = ({
           </p>
         </div>
       )}
-      
+
       <Card className="overflow-hidden">
-        <div ref={mapContainer} className={`w-full ${height}`} />
+        <div 
+          ref={mapRef}
+          className={`w-full ${height} bg-gray-200 relative`}
+          style={{ minHeight: '400px' }}
+        >
+          <div className="absolute inset-0 flex items-center justify-center text-gray-500">
+            Loading map...
+          </div>
+        </div>
       </Card>
+      
+      {/* Debug info - remove in production */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="text-xs text-gray-500 mt-2">
+          Debug: Lat: {latitude}, Lng: {longitude}, API Key Set: {isApiKeySet.toString()}
+          <br />
+          Google Maps Available: {typeof window !== 'undefined' && window.google?.maps ? 'Yes' : 'No'}
+          <br />
+          AdvancedMarkerElement Available: {typeof window !== 'undefined' && window.google?.maps?.marker?.AdvancedMarkerElement ? 'Yes' : 'No'}
+        </div>
+      )}
     </div>
   );
 };

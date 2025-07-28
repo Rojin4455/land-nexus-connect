@@ -28,6 +28,7 @@ const SubmitDeal = () => {
     address: '',
     latitude: null,
     longitude: null,
+    place_id:null,
     landType: '',
     acreage: '',
     zoning: '',
@@ -119,9 +120,14 @@ const SubmitDeal = () => {
       const photos = uploadedFiles.filter(f => f.type.startsWith('image/')).map(f => f.file);
       const documents = uploadedFiles.filter(f => !f.type.startsWith('image/')).map(f => f.file);
 
+      console.log("formmmm dataL ", formData)
+
       // Prepare API data with ALL form fields in backend expected format
       const dealData = {
         address: formData.address || '',
+        latitude: formData.latitude || '',
+        longitude: formData.longitude || '',
+        place_id: formData.place_id || '',
         landType: formData.landType || '', // Single ID as string
         acreage: parseFloat(formData.acreage) || 0,
         zoning: formData.zoning || '',
@@ -195,7 +201,8 @@ const SubmitDeal = () => {
                       ...prev,
                       address,
                       latitude: coordinates?.lat,
-                      longitude: coordinates?.lng
+                      longitude: coordinates?.lng,
+                      place_id: coordinates?.place_id
                     }));
                   }}
                   placeholder="123 Main St, City, State, ZIP"

@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Configure base API instance
 const api = axios.create({
-  baseURL: import.meta.env.REACT_APP_API_URL || 'https://app.jvdealhub.com/api',
+  baseURL: import.meta.env.VITE_API_URL || 'https://app.jvdealhub.com/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -119,6 +119,9 @@ export interface LandDeal {
 export interface CreateLandDealData {
   address: string;
   askingPrice: number;
+  latitude: string;
+  longitude: string;
+  place_id: string;
   landType: string;
   description?: string;
   acreage?: number;
@@ -147,6 +150,9 @@ export const landDealsApi = {
     
     // Append fields with correct types as per backend requirements
     if (dealData.address) formData.append('address', dealData.address);
+    if (dealData.latitude) formData.append('latitude', dealData.latitude.toString());
+    if (dealData.longitude) formData.append('longitude', dealData.longitude.toString());
+    if (dealData.place_id) formData.append('place_id', dealData.place_id);
     if (dealData.landType) formData.append('landType', dealData.landType);
     if (dealData.acreage) formData.append('acreage', dealData.acreage.toString());
     if (dealData.zoning) formData.append('zoning', dealData.zoning);
@@ -159,6 +165,10 @@ export const landDealsApi = {
     if (dealData.environmentalFactors) formData.append('environmentalFactors', dealData.environmentalFactors);
     if (dealData.nearestAttraction) formData.append('nearestAttraction', dealData.nearestAttraction);
     if (dealData.description) formData.append('description', dealData.description);
+
+    
+    
+    
     
     // Handle file uploads
     if (dealData.files && Array.isArray(dealData.files)) {
@@ -207,6 +217,9 @@ export const landDealsApi = {
     const transformedData = {
       id: property.id.toString(),
       address: property.address,
+      latitude: property.latitude,
+      longitude: property.longitude,
+      place_id: property.place_id,
       submittedOn: property.created_at,
       status: property.status,
       coach: 'Assigned Coach', // Default value since not in response

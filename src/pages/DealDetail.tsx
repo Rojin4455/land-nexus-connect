@@ -17,6 +17,8 @@ const DealDetail = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('details');
 
+  console.log("deallll: ", deal)
+
   useEffect(() => {
     loadDealData();
   }, [id]);
