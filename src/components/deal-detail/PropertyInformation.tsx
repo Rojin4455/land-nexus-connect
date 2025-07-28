@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import MapContainer from '@/components/map/MapContainer';
 import { MapPin, DollarSign } from 'lucide-react';
 
 interface PropertyInformationProps {
@@ -11,6 +12,25 @@ const PropertyInformation = ({ deal, formatCurrency }: PropertyInformationProps)
 
   return (
     <div className="space-y-6">
+      {/* Map Section */}
+      {deal.address && (
+        <Card className="card-elevated">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MapPin className="h-5 w-5 text-primary" />
+              Property Location
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <MapContainer
+              address={deal.address}
+              latitude={deal.latitude}
+              longitude={deal.longitude}
+              height="h-80"
+            />
+          </CardContent>
+        </Card>
+      )}
       {/* Basic Information */}
       <Card className="card-elevated">
         <CardHeader>

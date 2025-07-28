@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
 import DashboardLayout from '@/components/DashboardLayout';
+import AddressAutocomplete from '@/components/map/AddressAutocomplete';
 import { Upload, X, FileText, Image, Video } from 'lucide-react';
 import { landDealsApi, handleApiError } from '@/services/landDealsApi';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
@@ -25,6 +26,8 @@ const SubmitDeal = () => {
   const { utilities, landTypes, accessTypes, loading: formOptionsLoading } = useAppSelector((state) => state.formOptions);
   const [formData, setFormData] = useState({
     address: '',
+    latitude: null,
+    longitude: null,
     landType: '',
     acreage: '',
     zoning: '',
@@ -185,14 +188,19 @@ const SubmitDeal = () => {
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="md:col-span-2 form-field">
                 <Label htmlFor="address" className="form-label">Lot Address / Location *</Label>
-                <Input
-                  id="address"
-                  name="address"
-                  placeholder="123 Main St, City, State, ZIP"
+                <AddressAutocomplete
                   value={formData.address}
-                  onChange={handleInputChange}
-                  className="form-input"
+                  onChange={(address, coordinates) => {
+                    setFormData(prev => ({
+                      ...prev,
+                      address,
+                      latitude: coordinates?.lat,
+                      longitude: coordinates?.lng
+                    }));
+                  }}
+                  placeholder="123 Main St, City, State, ZIP"
                   required
+                  className="form-input"
                 />
               </div>
 
