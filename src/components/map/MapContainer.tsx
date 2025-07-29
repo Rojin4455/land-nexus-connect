@@ -1,11 +1,11 @@
 "use client"
-
 import type React from "react"
 import { useEffect, useRef, useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { MapPin, AlertCircle } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { MapPin, AlertCircle, Map, Satellite } from "lucide-react"
 
 // Extend the Window interface to include google
 declare global {
@@ -22,27 +22,29 @@ interface MapContainerProps {
   showAddressInput?: boolean
   onAddressChange?: (address: string, coords: { lat: number; lng: number; placeId?: string } | null) => void
   height?: string
+  showMapTypeToggle?: boolean
 }
 
-const MapContainer: React.FC<MapContainerProps> = ({
+const AerialMapContainer: React.FC<MapContainerProps> = ({
   address = "",
   latitude,
   longitude,
   showAddressInput = false,
   onAddressChange,
   height = "h-96",
+  showMapTypeToggle = true,
 }) => {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<any | null>(null)
   const markerRef = useRef<any | null>(null)
   const geocoderRef = useRef<any | null>(null)
   const initAttemptedRef = useRef(false)
-
   const [googleApiKey, setGoogleApiKey] = useState<string>("")
   const [isApiKeySet, setIsApiKeySet] = useState(false)
   const [currentAddress, setCurrentAddress] = useState(address)
   const [isGeocoding, setIsGeocoding] = useState(false)
   const [mapStatus, setMapStatus] = useState<string>("Not started")
+  const [mapType, setMapType] = useState<"satellite" | "hybrid" | "roadmap" | "terrain">("hybrid")
 
   // Helper function to safely convert to number
   const toNumber = (value: number | string | undefined): number | null => {
@@ -56,23 +58,13 @@ const MapContainer: React.FC<MapContainerProps> = ({
     const numLat = toNumber(lat)
     const numLng = toNumber(lng)
 
-    console.log("=== COORDINATE VALIDATION ===")
-    console.log("Original values:", { lat, lng })
-    console.log("Original types:", { lat: typeof lat, lng: typeof lng })
-    console.log("Converted values:", { numLat, numLng })
-
     if (numLat === null || numLng === null) {
-      console.log("Validation failed: null values")
       return { isValid: false, lat: null, lng: null }
     }
 
     const isValidLat = numLat >= -90 && numLat <= 90
     const isValidLng = numLng >= -180 && numLng <= 180
-
-    console.log("Range validation:", { isValidLat, isValidLng })
-
     const isValid = isValidLat && isValidLng
-    console.log("Final validation result:", isValid)
 
     return {
       isValid,
@@ -92,24 +84,16 @@ const MapContainer: React.FC<MapContainerProps> = ({
 
   // Initialize map function
   const initializeMap = () => {
-    console.log("=== INITIALIZE MAP CALLED ===")
-    console.log("mapRef.current:", mapRef.current)
-    console.log("window.google:", window.google)
-    console.log("initAttemptedRef.current:", initAttemptedRef.current)
-
     if (initAttemptedRef.current) {
-      console.log("Init already attempted, skipping")
       return
     }
 
     if (!mapRef.current) {
-      console.error("Map container DOM element not found")
       setMapStatus("Error: No DOM element")
       return
     }
 
     if (!window.google?.maps) {
-      console.error("Google Maps not available")
       setMapStatus("Error: Google Maps not loaded")
       return
     }
@@ -124,34 +108,41 @@ const MapContainer: React.FC<MapContainerProps> = ({
       // Validate coordinates
       const coordValidation = validateCoordinates(latitude, longitude)
       const hasValidCoords = coordValidation.isValid
-
       const center =
         hasValidCoords && coordValidation.lat !== null && coordValidation.lng !== null
           ? { lat: coordValidation.lat, lng: coordValidation.lng }
           : defaultLocation
+      const zoom = hasValidCoords ? 18 : 12 // Higher zoom for aerial view
 
-      const zoom = hasValidCoords ? 15 : 10
-
-      console.log("Creating map with center:", center, "zoom:", zoom)
-
-      // Create the map
+      // Create the map with aerial view settings
       const map = new window.google.maps.Map(mapRef.current, {
         center: center,
         zoom: zoom,
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: false,
+        mapTypeId: window.google.maps.MapTypeId.HYBRID, // Default to hybrid aerial view
+        mapTypeControl: true,
+        mapTypeControlOptions: {
+          style: window.google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+          position: window.google.maps.ControlPosition.TOP_CENTER,
+          mapTypeIds: [
+            window.google.maps.MapTypeId.ROADMAP,
+            window.google.maps.MapTypeId.SATELLITE,
+            window.google.maps.MapTypeId.HYBRID,
+            window.google.maps.MapTypeId.TERRAIN,
+          ],
+        },
+        streetViewControl: true,
+        fullscreenControl: true,
+        zoomControl: true,
+        scaleControl: true,
+        rotateControl: true,
+        tilt: 0,
       })
 
       mapInstanceRef.current = map
       geocoderRef.current = new window.google.maps.Geocoder()
 
-      console.log("Map created successfully")
-
       // Add marker if we have valid coordinates
       if (hasValidCoords && coordValidation.lat !== null && coordValidation.lng !== null) {
-        console.log("Adding marker at:", coordValidation.lat, coordValidation.lng)
-
         // Clear existing marker
         if (markerRef.current) {
           markerRef.current.setMap(null)
@@ -163,24 +154,48 @@ const MapContainer: React.FC<MapContainerProps> = ({
           title: `Location: ${coordValidation.lat}, ${coordValidation.lng}`,
           icon: {
             path: window.google.maps.SymbolPath.CIRCLE,
-            scale: 10,
-            fillColor: "#4285F4",
-            fillOpacity: 1,
+            scale: 12,
+            fillColor: "#FF0000",
+            fillOpacity: 0.8,
             strokeColor: "#ffffff",
             strokeWeight: 3,
           },
         })
 
         markerRef.current = marker
-        setMapStatus("Map and marker created successfully")
-        console.log("Marker created successfully")
+        setMapStatus("Aerial map and marker created successfully")
       } else {
-        setMapStatus("Map created (no marker - invalid coordinates)")
-        console.log("No marker created - invalid coordinates")
+        setMapStatus("Aerial map created (no marker - invalid coordinates)")
       }
     } catch (error) {
       console.error("Error creating map:", error)
       setMapStatus(`Error: ${error}`)
+    }
+  }
+
+  // Change map type
+  const changeMapType = (newMapType: "satellite" | "hybrid" | "roadmap" | "terrain") => {
+    if (mapInstanceRef.current) {
+      let googleMapType
+      switch (newMapType) {
+        case "satellite":
+          googleMapType = window.google.maps.MapTypeId.SATELLITE
+          break
+        case "hybrid":
+          googleMapType = window.google.maps.MapTypeId.HYBRID
+          break
+        case "roadmap":
+          googleMapType = window.google.maps.MapTypeId.ROADMAP
+          break
+        case "terrain":
+          googleMapType = window.google.maps.MapTypeId.TERRAIN
+          break
+        default:
+          googleMapType = window.google.maps.MapTypeId.HYBRID
+      }
+
+      mapInstanceRef.current.setMapTypeId(googleMapType)
+      setMapType(newMapType)
     }
   }
 
@@ -191,17 +206,12 @@ const MapContainer: React.FC<MapContainerProps> = ({
       return
     }
 
-    console.log("=== LOADING GOOGLE MAPS SCRIPT ===")
     setMapStatus("Loading Google Maps...")
-
-    // Reset init attempted when coordinates change
     initAttemptedRef.current = false
 
     // Check if already loaded
     if (window.google?.maps) {
-      console.log("Google Maps already loaded")
       setMapStatus("Google Maps loaded")
-      // Use setTimeout to ensure DOM is ready
       setTimeout(initializeMap, 100)
       return
     }
@@ -209,20 +219,15 @@ const MapContainer: React.FC<MapContainerProps> = ({
     // Check if script already exists
     const existingScript = document.querySelector('script[src*="maps.googleapis.com"]')
     if (existingScript) {
-      console.log("Script already exists, waiting...")
       setMapStatus("Script exists, waiting...")
-
-      // Poll for availability
       const pollInterval = setInterval(() => {
         if (window.google?.maps) {
-          console.log("Google Maps became available")
           clearInterval(pollInterval)
           setMapStatus("Google Maps loaded")
           setTimeout(initializeMap, 100)
         }
       }, 100)
 
-      // Stop polling after 10 seconds
       setTimeout(() => {
         clearInterval(pollInterval)
         if (!window.google?.maps) {
@@ -233,12 +238,9 @@ const MapContainer: React.FC<MapContainerProps> = ({
     }
 
     // Create and load script
-    console.log("Creating new script element")
     const script = document.createElement("script")
 
-    // Set up global callback
     window.initGoogleMapsCallback = () => {
-      console.log("Global callback triggered")
       setMapStatus("Script loaded via callback")
       setTimeout(initializeMap, 100)
       delete window.initGoogleMapsCallback
@@ -247,9 +249,7 @@ const MapContainer: React.FC<MapContainerProps> = ({
     script.src = `https://maps.googleapis.com/maps/api/js?key=${googleApiKey}&libraries=places&callback=initGoogleMapsCallback`
     script.async = true
     script.defer = true
-
     script.onerror = () => {
-      console.error("Script failed to load")
       setMapStatus("Script load failed")
     }
 
@@ -257,7 +257,6 @@ const MapContainer: React.FC<MapContainerProps> = ({
     setMapStatus("Script added to DOM")
 
     return () => {
-      // Cleanup
       if (markerRef.current) {
         markerRef.current.setMap(null)
         markerRef.current = null
@@ -272,7 +271,6 @@ const MapContainer: React.FC<MapContainerProps> = ({
     if (!searchAddress.trim() || !geocoderRef.current || !mapInstanceRef.current) return
 
     setIsGeocoding(true)
-
     try {
       geocoderRef.current.geocode({ address: searchAddress }, (results, status) => {
         if (status === window.google.maps.GeocoderStatus.OK && results && results.length > 0) {
@@ -283,7 +281,7 @@ const MapContainer: React.FC<MapContainerProps> = ({
           const placeId = firstResult.place_id
 
           mapInstanceRef.current!.setCenter({ lat, lng })
-          mapInstanceRef.current!.setZoom(15)
+          mapInstanceRef.current!.setZoom(18) // Higher zoom for aerial detail
 
           if (markerRef.current) {
             markerRef.current.setMap(null)
@@ -295,9 +293,9 @@ const MapContainer: React.FC<MapContainerProps> = ({
             title: formattedAddress,
             icon: {
               path: window.google.maps.SymbolPath.CIRCLE,
-              scale: 10,
-              fillColor: "#4285F4",
-              fillOpacity: 1,
+              scale: 12,
+              fillColor: "#FF0000",
+              fillOpacity: 0.8,
               strokeColor: "#ffffff",
               strokeWeight: 3,
             },
@@ -347,7 +345,8 @@ const MapContainer: React.FC<MapContainerProps> = ({
             <h3 className="font-medium">Google Maps API Key Required</h3>
           </div>
           <p className="text-sm text-muted-foreground">
-            To display maps and enable address search, please enter your Google Maps API Key. You can get one from{" "}
+            To display aerial maps and enable address search, please enter your Google Maps API Key. You can get one
+            from{" "}
             <a
               href="https://console.cloud.google.com/projectselector2/apis/dashboard"
               target="_blank"
@@ -369,22 +368,15 @@ const MapContainer: React.FC<MapContainerProps> = ({
                 onChange={(e) => setGoogleApiKey(e.target.value)}
                 className="flex-1"
               />
-              <button
-                onClick={handleApiKeySubmit}
-                className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-                disabled={!googleApiKey.trim()}
-              >
+              <Button onClick={handleApiKeySubmit} disabled={!googleApiKey.trim()}>
                 Save
-              </button>
+              </Button>
             </div>
           </div>
         </div>
       </Card>
     )
   }
-
-  // Get current coordinate validation for debug display
-  const coordValidation = validateCoordinates(latitude, longitude)
 
   return (
     <div className="space-y-4">
@@ -413,44 +405,59 @@ const MapContainer: React.FC<MapContainerProps> = ({
         </div>
       )}
 
+      {showMapTypeToggle && (
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant={mapType === "hybrid" ? "default" : "outline"}
+            size="sm"
+            onClick={() => changeMapType("hybrid")}
+            className="flex items-center space-x-1"
+          >
+            <Satellite className="h-4 w-4" />
+            <span>Aerial View</span>
+          </Button>
+          <Button
+            variant={mapType === "satellite" ? "default" : "outline"}
+            size="sm"
+            onClick={() => changeMapType("satellite")}
+            className="flex items-center space-x-1"
+          >
+            <Satellite className="h-4 w-4" />
+            <span>Satellite Only</span>
+          </Button>
+          <Button
+            variant={mapType === "terrain" ? "default" : "outline"}
+            size="sm"
+            onClick={() => changeMapType("terrain")}
+            className="flex items-center space-x-1"
+          >
+            <Map className="h-4 w-4" />
+            <span>Terrain</span>
+          </Button>
+          <Button
+            variant={mapType === "roadmap" ? "default" : "outline"}
+            size="sm"
+            onClick={() => changeMapType("roadmap")}
+            className="flex items-center space-x-1"
+          >
+            <Map className="h-4 w-4" />
+            <span>Road Map</span>
+          </Button>
+        </div>
+      )}
+
       <Card className="overflow-hidden">
         <div ref={mapRef} className={`w-full ${height} bg-gray-200 relative`} style={{ minHeight: "400px" }}>
           <div className="absolute inset-0 flex items-center justify-center text-gray-500">
             <div className="text-center space-y-2">
-              <div>Loading map...</div>
+              <div>Loading aerial map...</div>
               <div className="text-xs">Status: {mapStatus}</div>
             </div>
           </div>
         </div>
       </Card>
-
-      {/* Enhanced Debug info */}
-      {/* <div className="text-xs text-gray-500 mt-2 p-2 bg-gray-50 rounded">
-        <strong>Debug Info:</strong>
-        <br />
-        Original Coordinates: Lat: {latitude || "undefined"} ({typeof latitude}), Lng: {longitude || "undefined"} (
-        {typeof longitude})<br />
-        Converted Coordinates:{" "}
-        {coordValidation.isValid
-          ? `${coordValidation.lat?.toFixed(6)}, ${coordValidation.lng?.toFixed(6)}`
-          : "Invalid coordinates"}
-        <br />
-        Coordinates Valid: {coordValidation.isValid.toString()}
-        <br />
-        API Key Set: {isApiKeySet.toString()}
-        <br />
-        Google Maps Loaded: {typeof window !== "undefined" && window.google?.maps ? "Yes" : "No"}
-        <br />
-        Map Instance: {mapInstanceRef.current ? "Created" : "Not created"}
-        <br />
-        Marker: {markerRef.current ? "Created" : "Not created"}
-        <br />
-        Status: {mapStatus}
-        <br />
-        Init Attempted: {initAttemptedRef.current.toString()}
-      </div> */}
     </div>
   )
 }
 
-export default MapContainer
+export default AerialMapContainer
