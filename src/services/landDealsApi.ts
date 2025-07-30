@@ -372,6 +372,10 @@ export const landDealsApi = {
       };
     },
 
+    updatePropertyDetails: async (id: string | number, data: any) => {
+      return await api.patch(`/data/properties/${id}/status/`, data); // assumes `api` is your Axios instance
+    },
+
     // Get all deals (admin view)
     getAllDeals: async (): Promise<ApiResponse<LandDeal[]>> => {
       const response = await api.get('/data/properties/list-all/');

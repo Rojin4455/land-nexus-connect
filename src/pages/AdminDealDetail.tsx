@@ -12,6 +12,7 @@ import { useAppSelector } from '@/hooks/useAppSelector';
 import { logoutUser } from '@/store/authSlice';
 import { landDealsApi, handleApiError } from '@/services/landDealsApi';
 import { toast } from '@/hooks/use-toast';
+import PropertyInformationAdmin from '@/components/deal-detail/PropertyInformationAdmin';
 
 const AdminDealDetail = () => {
   const { id } = useParams();
@@ -227,7 +228,8 @@ const AdminDealDetail = () => {
   const renderTabContent = () => {
     switch (activeTab) {
       case 'details':
-        return <PropertyInformation deal={deal} formatCurrency={formatCurrency} />;
+        console.log("dealll:", deal)
+        return <PropertyInformationAdmin deal={deal} formatCurrency={formatCurrency} />;
       case 'documents':
         return <AdminDocumentsSection deal={deal} />;
       case 'conversation':
