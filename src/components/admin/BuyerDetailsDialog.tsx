@@ -305,7 +305,7 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
           <div className="text-muted-foreground">No buyer selected.</div>
         ) : (
           <div className="flex flex-col flex-1 min-h-0">
-            <Tabs defaultValue="info" className="w-full flex flex-col flex-1">
+            <Tabs defaultValue="info" className="w-full flex flex-col flex-1 min-h-0">
               <TabsList className="mb-4 flex-shrink-0">
                 <TabsTrigger value="info">Buyer Info</TabsTrigger>
                 <TabsTrigger value="buybox">Buy Box Filters</TabsTrigger>
@@ -335,12 +335,12 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
                 </div>
               </TabsContent>
 
-              {/* Buy Box */}
-              <TabsContent value="buybox" className="flex-1 flex flex-col min-h-0">
+              {/* Buy Box - Fixed scrolling issue */}
+              <TabsContent value="buybox" className="flex-1 min-h-0 flex flex-col">
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 min-h-0">
-                    <div className="flex-1 overflow-y-auto pr-2">
-                      <div className="space-y-6 p-1">
+                    <ScrollArea className="flex-1 pr-4">
+                      <div className="space-y-6 p-1 pb-6">
                         {/* Top toggles */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <FormField
@@ -485,10 +485,13 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
                           )}
                         />
                       </div>
-                    </div>
+                    </ScrollArea>
                     
-                    <div className="flex justify-end pt-4 border-t mt-4 flex-shrink-0 bg-background">
-                      <Button type="submit" disabled={savingBuyBox}>{savingBuyBox ? "Saving..." : "Save Buy Box"}</Button>
+                    {/* Submit button - now always visible at bottom */}
+                    <div className="flex justify-end pt-4 mt-4 border-t bg-background flex-shrink-0">
+                      <Button type="submit" disabled={savingBuyBox}>
+                        {savingBuyBox ? "Saving..." : "Save Buy Box"}
+                      </Button>
                     </div>
                   </form>
                 </Form>
