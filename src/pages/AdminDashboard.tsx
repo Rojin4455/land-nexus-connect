@@ -33,6 +33,7 @@ const AdminDashboard = () => {
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
   const [deals, setDeals] = useState([]);
   const [users, setUsers] = useState([]);
+  const [buyers, setBuyers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [userDeals, setUserDeals] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -70,6 +71,11 @@ const AdminDashboard = () => {
       if (usersResponse.success) {
         setUsers(usersResponse.data);
       }
+      const buyersResponse = await landDealsApi.admin.getBuyers();
+      if (buyersResponse.success) {
+      setBuyers(buyersResponse.data);
+    }
+
     } catch (error) {
       console.error('Failed to load admin data:', error);
       toast({
@@ -195,6 +201,13 @@ const AdminDashboard = () => {
     (user.last_name || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const filteredBuyers = buyers.filter(buyer =>
+  (buyer.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+  (buyer.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+  (buyer.phone || '').toLowerCase().includes(searchTerm.toLowerCase())
+);
+
+
   const totalValue = deals.reduce((sum, deal) => sum + (deal.askingPrice || 0), 0);
   const pendingDeals = deals.filter(deal => (deal.status || '').toLowerCase().includes('pending') || (deal.status || '').toLowerCase().includes('review')).length;
 
@@ -229,6 +242,14 @@ const AdminDashboard = () => {
                   Back to All Deals
                 </Button>
               )}
+                <Button
+                  variant={view === 'buyers' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setView('buyers')}
+                >
+                  <Users className="h-4 w-4 mr-2" />
+                  Buyers
+                </Button>
               <Button
                 variant={view === 'users' ? 'default' : 'outline'}
                 size="sm"
@@ -325,7 +346,7 @@ const AdminDashboard = () => {
           <Card className="card-elevated">
             <CardHeader>
               <CardTitle>
-                {view === 'users' ? 'All Users' : selectedUser ? `Deals for ${selectedUser.username}` : 'All Deal Submissions'}
+                {view === 'users' ? 'All Users' : view === 'buyers' ? 'All Buyers' : selectedUser ? `Deals for ${selectedUser.username}` : 'All Deal Submissions'}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -413,7 +434,32 @@ const AdminDashboard = () => {
                     </table>
                   </div>
                 )
+              ) : view === 'buyers' ? (
+              // ✅ NEW: Buyers view block here
+              filteredBuyers.length === 0 ? (
+                <div className="text-center py-12">
+                  <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-foreground mb-2">No buyers found</h3>
+                  <p className="text-muted-foreground">Try adjusting your search terms</p>
+                </div>
               ) : (
+                <div className="p-4">
+                  <h2 className="text-lg font-semibold mb-4">Buyers</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {filteredBuyers.map((buyer) => (
+                      <div key={buyer.id} className="border p-4 rounded-lg shadow-sm bg-white">
+                        <h3 className="text-md font-bold">{buyer.name}</h3>
+                        <p className="text-sm text-muted-foreground">{buyer.email}</p>
+                        {buyer.phone && (
+                          <p className="text-sm text-muted-foreground">{buyer.phone}</p>
+                        )}
+                        {/* Add buttons or links to "View", "Edit", or "Match Score" if needed */}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            ) :(
                 // Deals Table
                 filteredDeals.length === 0 ? (
                   <div className="text-center py-12">

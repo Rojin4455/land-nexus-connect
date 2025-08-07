@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 interface User {
   id: number;
@@ -104,6 +104,7 @@ export const signupUser = createAsyncThunk(
       const response = await axios.post(`${API_BASE_URL}/auth/signup/`, signupData);
       return response.data as AuthResponse;
     } catch (error: any) {
+      console.error('Signup error:', error.response?.data);
       return rejectWithValue(error.response?.data?.message || 'Signup failed');
     }
   }

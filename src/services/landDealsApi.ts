@@ -351,6 +351,19 @@ export const landDealsApi = {
       };
     },
 
+    getBuyers: async (): Promise<ApiResponse<Array<{
+      id: number;
+      name: string;
+      email: string;
+      phone: string | null;
+    }>>> => {
+      const response = await api.get('/buyers/');
+      return {
+        success: true,
+        data: response.data
+      };
+    },
+
     // Get deals for a specific user
     getUserDeals: async (userId: number): Promise<ApiResponse<LandDeal[]>> => {
       const response = await api.get(`/data/properties/list/${userId}/`);
