@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "@/hooks/use-toast";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { landDealsApi } from "@/services/landDealsApi";
@@ -295,7 +296,7 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl">
+      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Buyer Details</DialogTitle>
         </DialogHeader>
@@ -303,7 +304,7 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
         {!buyer ? (
           <div className="text-muted-foreground">No buyer selected.</div>
         ) : (
-          <Tabs defaultValue="info" className="w-full">
+          <Tabs defaultValue="info" className="w-full flex flex-col flex-1">
             <TabsList className="mb-4">
               <TabsTrigger value="info">Buyer Info</TabsTrigger>
               <TabsTrigger value="buybox">Buy Box Filters</TabsTrigger>
@@ -332,154 +333,158 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
             </TabsContent>
 
             {/* Buy Box */}
-            <TabsContent value="buybox">
+            <TabsContent value="buybox" className="flex-1 flex flex-col">
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  {/* Top toggles */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="assetType"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Asset Type</FormLabel>
-                          <FormDescription>Select the main asset type</FormDescription>
-                          <div className="flex gap-2 flex-wrap">
-                            {assetTypeOptions.map((opt) => (
-                              <Badge
-                                key={opt}
-                                onClick={() => field.onChange(opt)}
-                                className={`${field.value === opt ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"} cursor-pointer`}
-                              >
-                                {opt}
-                              </Badge>
-                            ))}
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1">
+                  <ScrollArea className="flex-1 pr-6">
+                    <div className="space-y-6">
+                      {/* Top toggles */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="assetType"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Asset Type</FormLabel>
+                              <FormDescription>Select the main asset type</FormDescription>
+                              <div className="flex gap-2 flex-wrap">
+                                {assetTypeOptions.map((opt) => (
+                                  <Badge
+                                    key={opt}
+                                    onClick={() => field.onChange(opt)}
+                                    className={`${field.value === opt ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"} cursor-pointer`}
+                                  >
+                                    {opt}
+                                  </Badge>
+                                ))}
+                              </div>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-                    <FormField
-                      control={form.control}
-                      name="activeBuyer"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Active Buyer</FormLabel>
-                          <div className="flex items-center gap-4">
-                            {yesNoOptions.map((o) => (
-                              <label key={String(o.value)} className="flex items-center gap-2 cursor-pointer">
-                                <Checkbox checked={field.value === o.value} onCheckedChange={() => field.onChange(o.value)} />
-                                <span>{o.label}</span>
-                              </label>
-                            ))}
-                          </div>
-                        </FormItem>
-                      )}
-                    />
+                        <FormField
+                          control={form.control}
+                          name="activeBuyer"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Active Buyer</FormLabel>
+                              <div className="flex items-center gap-4">
+                                {yesNoOptions.map((o) => (
+                                  <label key={String(o.value)} className="flex items-center gap-2 cursor-pointer">
+                                    <Checkbox checked={field.value === o.value} onCheckedChange={() => field.onChange(o.value)} />
+                                    <span>{o.label}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            </FormItem>
+                          )}
+                        />
 
-                    <FormField
-                      control={form.control}
-                      name="blacklistStatus"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Blacklist</FormLabel>
-                          <div className="flex items-center gap-4">
-                            {yesNoOptions.map((o) => (
-                              <label key={String(o.value)} className="flex items-center gap-2 cursor-pointer">
-                                <Checkbox checked={field.value === o.value} onCheckedChange={() => field.onChange(o.value)} />
-                                <span>{o.label}</span>
-                              </label>
-                            ))}
-                          </div>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                        <FormField
+                          control={form.control}
+                          name="blacklistStatus"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Blacklist</FormLabel>
+                              <div className="flex items-center gap-4">
+                                {yesNoOptions.map((o) => (
+                                  <label key={String(o.value)} className="flex items-center gap-2 cursor-pointer">
+                                    <Checkbox checked={field.value === o.value} onCheckedChange={() => field.onChange(o.value)} />
+                                    <span>{o.label}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
 
-                  {/* Location preferences */}
-                  <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {csvField(form, "cities", "Cities (CSV)", "e.g., Phoenix, Tempe")}
-                    {csvField(form, "counties", "Counties (CSV)", "e.g., Maricopa, Pima")}
-                    {csvField(form, "states", "States (CSV)", "e.g., AZ, CA, TX")}
-                    {csvField(form, "zips", "ZIP codes (CSV)", "e.g., 85281, 85282")}
-                    <FormField
-                      control={form.control}
-                      name="radiusMiles"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Radius (miles)</FormLabel>
-                          <FormControl>
-                            <Input type="number" value={field.value ?? ""} onChange={(e) => field.onChange(numOrNull(e.target.value))} placeholder="Optional" />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </section>
+                      {/* Location preferences */}
+                      <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {csvField(form, "cities", "Cities (CSV)", "e.g., Phoenix, Tempe")}
+                        {csvField(form, "counties", "Counties (CSV)", "e.g., Maricopa, Pima")}
+                        {csvField(form, "states", "States (CSV)", "e.g., AZ, CA, TX")}
+                        {csvField(form, "zips", "ZIP codes (CSV)", "e.g., 85281, 85282")}
+                        <FormField
+                          control={form.control}
+                          name="radiusMiles"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Radius (miles)</FormLabel>
+                              <FormControl>
+                                <Input type="number" value={field.value ?? ""} onChange={(e) => field.onChange(numOrNull(e.target.value))} placeholder="Optional" />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      </section>
 
-                  {/* Strategies and desired types */}
-                  <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <CheckboxGroup
-                      form={form}
-                      name="strategiesHouses"
-                      label="Investment Strategy (Houses)"
-                      options={investmentStrategiesHouses}
-                    />
-                    <CheckboxGroup
-                      form={form}
-                      name="strategiesLand"
-                      label="Investment Strategy (Land)"
-                      options={investmentStrategiesLand}
-                    />
-                    <CheckboxGroup
-                      form={form}
-                      name="desiredTypesHouses"
-                      label="Desired Property Type (Houses)"
-                      options={desiredPropertyTypeHouses}
-                    />
-                    <CheckboxGroup
-                      form={form}
-                      name="desiredTypesLand"
-                      label="Desired Property Type (Land)"
-                      options={desiredPropertyTypeLand}
-                    />
-                  </section>
+                      {/* Strategies and desired types */}
+                      <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <CheckboxGroup
+                          form={form}
+                          name="strategiesHouses"
+                          label="Investment Strategy (Houses)"
+                          options={investmentStrategiesHouses}
+                        />
+                        <CheckboxGroup
+                          form={form}
+                          name="strategiesLand"
+                          label="Investment Strategy (Land)"
+                          options={investmentStrategiesLand}
+                        />
+                        <CheckboxGroup
+                          form={form}
+                          name="desiredTypesHouses"
+                          label="Desired Property Type (Houses)"
+                          options={desiredPropertyTypeHouses}
+                        />
+                        <CheckboxGroup
+                          form={form}
+                          name="desiredTypesLand"
+                          label="Desired Property Type (Land)"
+                          options={desiredPropertyTypeLand}
+                        />
+                      </section>
 
-                  {/* Ranges */}
-                  <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <RangeFields form={form} minName="priceMin" maxName="priceMax" label="Purchase Price ($)" />
-                    <RangeFields form={form} minName="lotSizeMin" maxName="lotSizeMax" label="Lot Size (acres) – Land only" />
-                    <RangeFields form={form} minName="livingAreaMin" maxName="livingAreaMax" label="Living Area (SqFt) – Houses" />
-                    <RangeFields form={form} minName="yearBuiltMin" maxName="yearBuiltMax" label="Year Built – Houses" />
-                    <RangeFields form={form} minName="bedsMin" maxName="bedsMax" label="Bedrooms – Houses" integer />
-                    <RangeFields form={form} minName="bathsMin" maxName="bathsMax" label="Bathrooms – Houses" />
-                  </section>
+                      {/* Ranges */}
+                      <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <RangeFields form={form} minName="priceMin" maxName="priceMax" label="Purchase Price ($)" />
+                        <RangeFields form={form} minName="lotSizeMin" maxName="lotSizeMax" label="Lot Size (acres) – Land only" />
+                        <RangeFields form={form} minName="livingAreaMin" maxName="livingAreaMax" label="Living Area (SqFt) – Houses" />
+                        <RangeFields form={form} minName="yearBuiltMin" maxName="yearBuiltMax" label="Year Built – Houses" />
+                        <RangeFields form={form} minName="bedsMin" maxName="bedsMax" label="Bedrooms – Houses" integer />
+                        <RangeFields form={form} minName="bathsMin" maxName="bathsMax" label="Bathrooms – Houses" />
+                      </section>
 
-                  {/* Rehab & requirements */}
-                  <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <CheckboxGroup form={form} name="restrictedRehabTypes" label="Restricted Rehab Types" options={rehabTypes} />
-                    <CheckboxGroup form={form} name="specialtyRehabAvoidance" label="Specialty Rehab Avoidance" options={rehabTypes} />
-                    <CheckboxGroup form={form} name="strictRequirements" label="Strict Requirements" options={strictRequirementOptions} />
-                    <CheckboxGroup form={form} name="locationCharacteristics" label="Location Characteristics" options={locationCharacteristicsOptions} />
-                    <CheckboxGroup form={form} name="propertyCharacteristics" label="Property Characteristics" options={propertyCharacteristicsOptions} />
-                  </section>
+                      {/* Rehab & requirements */}
+                      <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <CheckboxGroup form={form} name="restrictedRehabTypes" label="Restricted Rehab Types" options={rehabTypes} />
+                        <CheckboxGroup form={form} name="specialtyRehabAvoidance" label="Specialty Rehab Avoidance" options={rehabTypes} />
+                        <CheckboxGroup form={form} name="strictRequirements" label="Strict Requirements" options={strictRequirementOptions} />
+                        <CheckboxGroup form={form} name="locationCharacteristics" label="Location Characteristics" options={locationCharacteristicsOptions} />
+                        <CheckboxGroup form={form} name="propertyCharacteristics" label="Property Characteristics" options={propertyCharacteristicsOptions} />
+                      </section>
 
-                  {/* Notes */}
-                  <FormField
-                    control={form.control}
-                    name="notes"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Internal Notes</FormLabel>
-                        <FormDescription>Only visible to admins</FormDescription>
-                        <FormControl>
-                          <Textarea rows={4} placeholder="Unique conditions, communication prefs, pre-negotiated terms..." {...field} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-
-                  <div className="flex justify-end">
+                      {/* Notes */}
+                      <FormField
+                        control={form.control}
+                        name="notes"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Internal Notes</FormLabel>
+                            <FormDescription>Only visible to admins</FormDescription>
+                            <FormControl>
+                              <Textarea rows={4} placeholder="Unique conditions, communication prefs, pre-negotiated terms..." {...field} />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </ScrollArea>
+                  
+                  <div className="flex justify-end pt-4 border-t mt-4">
                     <Button type="submit" disabled={savingBuyBox}>{savingBuyBox ? "Saving..." : "Save Buy Box"}</Button>
                   </div>
                 </form>
