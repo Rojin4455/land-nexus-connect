@@ -454,6 +454,28 @@ export const landDealsApi = {
       const response = await api.delete(`/admin/form-options/${type}/${optionId}`);
       return response.data;
     },
+
+    // Buyer profile update
+    updateBuyer: async (buyerId: string, data: { name?: string; email?: string; phone?: string; }): Promise<ApiResponse<any>> => {
+      const response = await api.put(`/buyers/${buyerId}/`, data);
+      return { success: true, data: response.data };
+    },
+
+    // Buy Box endpoints
+    getBuyerBuyBox: async (buyerId: string): Promise<ApiResponse<any>> => {
+      const response = await api.get(`/buyers/${buyerId}/buy-box/view/`);
+      return { success: true, data: response.data };
+    },
+    updateBuyerBuyBox: async (buyerId: string, data: any): Promise<ApiResponse<any>> => {
+      const response = await api.put(`/buyers/${buyerId}/buy-box/`, data);
+      return { success: true, data: response.data };
+    },
+
+    // Match buyers for a property
+    matchBuyersForProperty: async (propertyId: string): Promise<ApiResponse<Array<{ id: number; score: number }>>> => {
+      const response = await api.get(`/properties/${propertyId}/match-buyers/`);
+      return { success: true, data: response.data };
+    },
   },
 
   // Conversation functions

@@ -11,6 +11,7 @@ import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { logoutUser } from '@/store/authSlice';
 import { landDealsApi } from '@/services/landDealsApi';
+import BuyerDetailsDialog from '@/components/admin/BuyerDetailsDialog';
 import { 
   Users, 
   FileText, 
@@ -431,22 +432,17 @@ const AdminDashboard = () => {
                 </DialogContent>
               </Dialog>
 
-              {/* Buyer Details Dialog */}
-              <Dialog open={buyerDetailsOpen} onOpenChange={setBuyerDetailsOpen}>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Buyer Details</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-2">
-                    <p><span className="font-medium">Name:</span> {selectedBuyer?.name}</p>
-                    <p><span className="font-medium">Email:</span> {selectedBuyer?.email}</p>
-                    <p><span className="font-medium">Phone:</span> {selectedBuyer?.phone || 'N/A'}</p>
-                  </div>
-                  <DialogFooter>
-                    <Button onClick={() => setBuyerDetailsOpen(false)}>Close</Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
+              <BuyerDetailsDialog
+                open={buyerDetailsOpen}
+                onOpenChange={setBuyerDetailsOpen}
+                buyer={selectedBuyer}
+                onUpdated={async () => {
+                  try {
+                    const buyersResponse = await landDealsApi.admin.getBuyers();
+                    if (buyersResponse.success) setBuyers(buyersResponse.data);
+                  } catch {}
+                }}
+              />
 
               {loading ? (
                 <div className="text-center py-12">
