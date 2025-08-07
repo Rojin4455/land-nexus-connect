@@ -626,33 +626,26 @@ function CheckboxGroup({ form, name, label, options }: { form: any; name: keyof 
     <FormField
       control={form.control}
       name={name as any}
-      render={() => (
+      render={({ field }) => (
         <FormItem>
           <FormLabel>{label}</FormLabel>
           <div className="grid grid-cols-2 gap-2">
-            {options.map((opt) => (
-              <FormField
-                key={opt}
-                control={form.control}
-                name={name as any}
-                render={({ field }) => {
-                  const checked = Array.isArray(field.value) && field.value.includes(opt);
-                  return (
-                    <label className="flex items-center gap-2 text-sm cursor-pointer">
-                      <Checkbox
-                        checked={checked}
-                        onCheckedChange={(isChecked) => {
-                          const val = new Set<string>(field.value || []);
-                          if (isChecked) val.add(opt); else val.delete(opt);
-                          field.onChange(Array.from(val));
-                        }}
-                      />
-                      <span>{opt}</span>
-                    </label>
-                  );
-                }}
-              />
-            ))}
+            {options.map((opt) => {
+              const checked = Array.isArray(field.value) && field.value.includes(opt);
+              return (
+                <label key={opt} className="flex items-center gap-2 text-sm cursor-pointer">
+                  <Checkbox
+                    checked={checked}
+                    onCheckedChange={(isChecked) => {
+                      const val = new Set<string>(field.value || []);
+                      if (isChecked) val.add(opt); else val.delete(opt);
+                      field.onChange(Array.from(val));
+                    }}
+                  />
+                  <span>{opt}</span>
+                </label>
+              );
+            })}
           </div>
         </FormItem>
       )}
