@@ -48,7 +48,7 @@ const AdminDashboard = () => {
   const [createBuyerOpen, setCreateBuyerOpen] = useState(false);
   const [newBuyerName, setNewBuyerName] = useState('');
   const [newBuyerEmail, setNewBuyerEmail] = useState('');
-  const [newBuyerPassword, setNewBuyerPassword] = useState('');
+  const [newBuyerPhone, setNewBuyerPhone] = useState('');
   const [buyerDetailsOpen, setBuyerDetailsOpen] = useState(false);
   const [selectedBuyer, setSelectedBuyer] = useState<any>(null);
 
@@ -154,14 +154,14 @@ const AdminDashboard = () => {
       const res = await landDealsApi.admin.createBuyer({
         name: newBuyerName,
         email: newBuyerEmail,
-        password: newBuyerPassword,
+        phone: newBuyerPhone,
       });
       if (res.success) {
         toast({ title: 'Buyer created', description: 'Buyer has been created successfully.' });
         setCreateBuyerOpen(false);
         setNewBuyerName('');
         setNewBuyerEmail('');
-        setNewBuyerPassword('');
+        setNewBuyerPhone('');
         const buyersResponse = await landDealsApi.admin.getBuyers();
         if (buyersResponse.success) setBuyers(buyersResponse.data);
       }
@@ -420,13 +420,13 @@ const AdminDashboard = () => {
                       <Input id="buyer-email" type="email" value={newBuyerEmail} onChange={(e) => setNewBuyerEmail(e.target.value)} placeholder="Enter email" />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="buyer-password">Password</Label>
-                      <Input id="buyer-password" type="password" value={newBuyerPassword} onChange={(e) => setNewBuyerPassword(e.target.value)} placeholder="Enter password" />
+                      <Label htmlFor="buyer-phone">Phone</Label>
+                      <Input id="buyer-phone" type="tel" value={newBuyerPhone} onChange={(e) => setNewBuyerPhone(e.target.value)} placeholder="Enter phone" />
                     </div>
                   </div>
                   <DialogFooter>
                     <Button variant="outline" onClick={() => setCreateBuyerOpen(false)}>Cancel</Button>
-                    <Button onClick={handleCreateBuyer} disabled={loading || !newBuyerName || !newBuyerEmail || !newBuyerPassword}>Create</Button>
+                    <Button onClick={handleCreateBuyer} disabled={loading || !newBuyerName || !newBuyerEmail || !newBuyerPhone}>Create</Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>

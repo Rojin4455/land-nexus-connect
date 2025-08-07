@@ -364,7 +364,7 @@ export const landDealsApi = {
       };
     },
 
-    createBuyer: async (data: { name: string; email: string; password: string; }): Promise<ApiResponse<{ id: number; name: string; email: string; phone: string | null }>> => {
+    createBuyer: async (data: { name: string; email: string; phone: string; }): Promise<ApiResponse<{ id: number; name: string; email: string; phone: string | null }>> => {
       const response = await api.post('/buyers/create/', data);
       return {
         success: true,
