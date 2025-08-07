@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
+import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { logoutUser } from '@/store/authSlice';
@@ -24,7 +26,8 @@ import {
   Settings,
   ArrowLeft,
   ChevronDown,
-  Edit
+  Edit,
+  Plus
 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -40,6 +43,14 @@ const AdminDashboard = () => {
   const [view, setView] = useState('deals'); // 'deals' or 'users'
   const [loading, setLoading] = useState(false);
   const adminEmail = user?.email || localStorage.getItem('adminEmail') || 'admin@example.com';
+
+  // Buyers UI state
+  const [createBuyerOpen, setCreateBuyerOpen] = useState(false);
+  const [newBuyerName, setNewBuyerName] = useState('');
+  const [newBuyerEmail, setNewBuyerEmail] = useState('');
+  const [newBuyerPassword, setNewBuyerPassword] = useState('');
+  const [buyerDetailsOpen, setBuyerDetailsOpen] = useState(false);
+  const [selectedBuyer, setSelectedBuyer] = useState<any>(null);
 
   useEffect(() => {
     // Check if user is authenticated
@@ -134,6 +145,31 @@ const AdminDashboard = () => {
         description: "Failed to update deal status",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleCreateBuyer = async () => {
+    try {
+      setLoading(true);
+      const res = await landDealsApi.admin.createBuyer({
+        name: newBuyerName,
+        email: newBuyerEmail,
+        password: newBuyerPassword,
+      });
+      if (res.success) {
+        toast({ title: 'Buyer created', description: 'Buyer has been created successfully.' });
+        setCreateBuyerOpen(false);
+        setNewBuyerName('');
+        setNewBuyerEmail('');
+        setNewBuyerPassword('');
+        const buyersResponse = await landDealsApi.admin.getBuyers();
+        if (buyersResponse.success) setBuyers(buyersResponse.data);
+      }
+    } catch (error) {
+      console.error('Failed to create buyer:', error);
+      toast({ title: 'Error', description: 'Failed to create buyer', variant: 'destructive' });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -350,17 +386,67 @@ const AdminDashboard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center space-x-4 mb-6">
+              <div className="flex items-center justify-between mb-6">
                 <div className="relative flex-1 max-w-md">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder={view === 'users' ? "Search users..." : "Search deals by address, ID, or type..."}
+                    placeholder={view === 'users' ? "Search users..." : view === 'buyers' ? "Search buyers..." : "Search deals by address, ID, or type..."}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
                   />
                 </div>
+                {view === 'buyers' && (
+                  <Button onClick={() => setCreateBuyerOpen(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Buyer
+                  </Button>
+                )}
               </div>
+
+              {/* Create Buyer Dialog */}
+              <Dialog open={createBuyerOpen} onOpenChange={setCreateBuyerOpen}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Create Buyer</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="buyer-name">Name</Label>
+                      <Input id="buyer-name" value={newBuyerName} onChange={(e) => setNewBuyerName(e.target.value)} placeholder="Enter name" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="buyer-email">Email</Label>
+                      <Input id="buyer-email" type="email" value={newBuyerEmail} onChange={(e) => setNewBuyerEmail(e.target.value)} placeholder="Enter email" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="buyer-password">Password</Label>
+                      <Input id="buyer-password" type="password" value={newBuyerPassword} onChange={(e) => setNewBuyerPassword(e.target.value)} placeholder="Enter password" />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setCreateBuyerOpen(false)}>Cancel</Button>
+                    <Button onClick={handleCreateBuyer} disabled={loading || !newBuyerName || !newBuyerEmail || !newBuyerPassword}>Create</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              {/* Buyer Details Dialog */}
+              <Dialog open={buyerDetailsOpen} onOpenChange={setBuyerDetailsOpen}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Buyer Details</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-2">
+                    <p><span className="font-medium">Name:</span> {selectedBuyer?.name}</p>
+                    <p><span className="font-medium">Email:</span> {selectedBuyer?.email}</p>
+                    <p><span className="font-medium">Phone:</span> {selectedBuyer?.phone || 'N/A'}</p>
+                  </div>
+                  <DialogFooter>
+                    <Button onClick={() => setBuyerDetailsOpen(false)}>Close</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
 
               {loading ? (
                 <div className="text-center py-12">
@@ -443,20 +529,37 @@ const AdminDashboard = () => {
                   <p className="text-muted-foreground">Try adjusting your search terms</p>
                 </div>
               ) : (
-                <div className="p-4">
-                  <h2 className="text-lg font-semibold mb-4">Buyers</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {filteredBuyers.map((buyer) => (
-                      <div key={buyer.id} className="border p-4 rounded-lg shadow-sm bg-white">
-                        <h3 className="text-md font-bold">{buyer.name}</h3>
-                        <p className="text-sm text-muted-foreground">{buyer.email}</p>
-                        {buyer.phone && (
-                          <p className="text-sm text-muted-foreground">{buyer.phone}</p>
-                        )}
-                        {/* Add buttons or links to "View", "Edit", or "Match Score" if needed */}
-                      </div>
-                    ))}
-                  </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="text-left p-4 font-medium text-muted-foreground">Name</th>
+                        <th className="text-left p-4 font-medium text-muted-foreground">Email</th>
+                        <th className="text-left p-4 font-medium text-muted-foreground">Phone</th>
+                        <th className="text-left p-4 font-medium text-muted-foreground">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredBuyers.map((buyer) => (
+                        <tr key={buyer.id} className="border-b border-border hover:bg-secondary/30 transition-colors">
+                          <td className="p-4"><span className="text-sm font-medium text-foreground">{buyer.name}</span></td>
+                          <td className="p-4"><span className="text-sm text-foreground">{buyer.email}</span></td>
+                          <td className="p-4"><span className="text-sm text-foreground">{buyer.phone || 'N/A'}</span></td>
+                          <td className="p-4">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => { setSelectedBuyer(buyer); setBuyerDetailsOpen(true); }}
+                              className="hover:bg-primary hover:text-primary-foreground"
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              View Details
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               )
             ) :(
