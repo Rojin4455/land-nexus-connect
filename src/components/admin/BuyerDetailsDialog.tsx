@@ -22,62 +22,98 @@ const yesNoOptions = [
   { label: "Yes", value: true },
   { label: "No", value: false },
 ];
+const blacklistOptions = [
+  { label: "Blacklisted", value: true },
+  { label: "Not Blacklisted", value: false },
+];
 
 const investmentStrategiesHouses = [
   "Fix & Flip",
+  "Buy & Hold (Rental)",
   "BRRRR",
-  "Buy & Hold",
-  "Wholetail",
-  "WholeSale",
+  "Airbnb / Short-Term Rental",
+  "Novation / Creative Finance",
 ] as const;
 
 const investmentStrategiesLand = [
-  "Flip Land",
-  "Entitlement",
-  "Subdivision",
-  "Buy & Hold Land",
+  "Infill Lot Development",
+  "Buy & Flip",
+  "Buy & Hold",
+  "Subdivide & Sell",
+  "Seller Financing",
+  "RV Lot / Tiny Home Lot / Mobile Home Lot",
+  "Entitlement / Rezoning",
 ] as const;
 
 const desiredPropertyTypeHouses = [
   "Single Family",
+  "Duplex / Triplex",
+  "Mobile Home with Land",
   "Townhouse",
   "Condo",
-  "Multi-family (2-4)",
 ] as const;
 
 const desiredPropertyTypeLand = [
-  "Residential Land",
-  "Infill Lot",
-  "Acreage (Rural)",
-  "Commercial Land",
+  "Residential Vacant",
+  "Agricultural",
+  "Commercial",
+  "Recreational",
+  "Timberland / Hunting",
+  "Waterfront",
+  "Subdividable",
 ] as const;
 
-const rehabTypes = [
-  "Cosmetic",
-  "Light",
-  "Heavy",
-  "Tear-down",
+const bedroomOptions = ["Any", "1+", "2+", "3+", "4+", "5+"] as const;
+const bathroomOptions = ["Any", "1+", "1.5+", "2+", "3+", "4+"] as const;
+
+const restrictedRehabTypes = [
+  "Major Foundation",
+  "Fire Damage",
+  "Mold",
+  "Full Gut",
+  "Termite",
+  "Roof Replacement",
+] as const;
+
+const specialtyRehabAvoidance = [
+  "Septic",
+  "Electrical Panel",
+  "Full Rewire",
+  "Unpermitted Additions",
+  "Historic Home",
 ] as const;
 
 const strictRequirementOptions = [
+  "Legal Access Required (Land)",
+  "Utilities at Road (Land)",
+  "No Flood Zone",
+  "Clear Title",
   "No HOA",
-  "No flood zone",
-  "Clear title",
-  "Paved road access",
+  "Paved Road Access",
+  "Mobile Home Allowed",
 ] as const;
 
 const locationCharacteristicsOptions = [
-  "Near schools",
-  "Near highways",
-  "Rural",
-  "Urban core",
+  "Flood Zone",
+  "Near Main Road",
+  "HOA Community",
+  "55+ Community",
+  "Near Commercial",
+  "Waterfront",
+  "Near Railroad",
 ] as const;
 
 const propertyCharacteristicsOptions = [
-  "Garage",
   "Pool",
-  "Corner lot",
-  "Cul-de-sac",
+  "Garage",
+  "Solar Panels",
+  "Wood Frame",
+  "Driveway",
+  "City Water",
+  "Well Water",
+  "Septic Tank",
+  "Power at Street (Land)",
+  "Perk Tested (Land)",
 ] as const;
 
 const BuyBoxSchema = z.object({
@@ -463,8 +499,8 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
 
                         {/* Rehab & requirements */}
                         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <CheckboxGroup form={form} name="restrictedRehabTypes" label="Restricted Rehab Types" options={rehabTypes} />
-                          <CheckboxGroup form={form} name="specialtyRehabAvoidance" label="Specialty Rehab Avoidance" options={rehabTypes} />
+                          <CheckboxGroup form={form} name="restrictedRehabTypes" label="Restricted Rehab Types" options={restrictedRehabTypes} />
+                          <CheckboxGroup form={form} name="specialtyRehabAvoidance" label="Specialty Rehab Avoidance" options={specialtyRehabAvoidance} />
                           <CheckboxGroup form={form} name="strictRequirements" label="Strict Requirements" options={strictRequirementOptions} />
                           <CheckboxGroup form={form} name="locationCharacteristics" label="Location Characteristics" options={locationCharacteristicsOptions} />
                           <CheckboxGroup form={form} name="propertyCharacteristics" label="Property Characteristics" options={propertyCharacteristicsOptions} />
