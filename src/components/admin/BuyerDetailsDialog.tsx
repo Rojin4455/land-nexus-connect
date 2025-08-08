@@ -177,6 +177,8 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
   const [propertyIdForMatch, setPropertyIdForMatch] = useState("");
   const [matchScore, setMatchScore] = useState<number | null>(null);
   const [buyBoxLoaded, setBuyBoxLoaded] = useState(false);
+  const [matchingStats, setMatchingStats] = useState<any>(null);
+  const [loadingMatchingStats, setLoadingMatchingStats] = useState(false);
 
   const form = useForm<BuyBoxFormValues>({
     resolver: zodResolver(BuyBoxSchema),
@@ -343,6 +345,25 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
   const handleTabChange = (value: string) => {
     if (value === "buybox" && !buyBoxLoaded) {
       loadBuyBox();
+    } else if (value === "match") {
+      loadMatchingStats();
+    }
+  };
+
+  // Load matching stats
+  const loadMatchingStats = async () => {
+    if (!buyer?.id || loadingMatchingStats) return;
+    
+    try {
+      setLoadingMatchingStats(true);
+      const res = await landDealsApi.admin.getBuyerMatchingStats(String(buyer.id));
+      if (res?.success) {
+        setMatchingStats(res.data);
+      }
+    } catch (e: any) {
+      toast({ title: "Failed to load matching stats", description: e?.message || "", variant: "destructive" });
+    } finally {
+      setLoadingMatchingStats(false);
     }
   };
 
@@ -670,24 +691,75 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
 
               {/* Match */}
               <TabsContent value="match" className="flex-1 overflow-y-auto">
-                <div className="space-y-4 p-1">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                    <div className="space-y-2 md:col-span-2">
-                      <Label htmlFor="match-property-id">Property ID</Label>
-                      <Input id="match-property-id" placeholder="Enter a property ID to check match" value={propertyIdForMatch} onChange={(e) => setPropertyIdForMatch(e.target.value)} />
+                <div className="space-y-6 p-1">
+                  {/* Check individual property match */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Check Property Match</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                      <div className="space-y-2 md:col-span-2">
+                        <Label htmlFor="match-property-id">Property ID</Label>
+                        <Input id="match-property-id" placeholder="Enter a property ID to check match" value={propertyIdForMatch} onChange={(e) => setPropertyIdForMatch(e.target.value)} />
+                      </div>
+                      <div className="flex md:justify-end">
+                        <Button onClick={checkMatch} disabled={!propertyIdForMatch || checkingMatch}>{checkingMatch ? "Checking..." : "Check Match"}</Button>
+                      </div>
                     </div>
-                    <div className="flex md:justify-end">
-                      <Button onClick={checkMatch} disabled={!propertyIdForMatch || checkingMatch}>{checkingMatch ? "Checking..." : "Check Match"}</Button>
-                    </div>
+
+                    {matchScore != null && (
+                      <div className="flex items-center gap-3">
+                        <Badge className="bg-secondary text-foreground">Score: {matchScore}</Badge>
+                        {likelihood && <Badge className={likelihood.color}>Likelihood: {likelihood.label}</Badge>}
+                      </div>
+                    )}
                   </div>
 
-                  {matchScore != null && (
-                    <div className="flex items-center gap-3">
-                      <Badge className="bg-secondary text-foreground">Score: {matchScore}</Badge>
-                      {likelihood && <Badge className={likelihood.color}>Likelihood: {likelihood.label}</Badge>}
-                    </div>
-                  )}
-                  <p className="text-sm text-muted-foreground">Match results are private to admins.</p>
+                  {/* Buyer matching stats */}
+                  <div className="space-y-4 border-t pt-6">
+                    <h3 className="text-lg font-semibold">Buyer Matching Stats</h3>
+                    {loadingMatchingStats ? (
+                      <div className="text-center py-4">Loading matching statistics...</div>
+                    ) : matchingStats ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {/* Stats cards */}
+                        {matchingStats.total_properties && (
+                          <div className="bg-card p-4 rounded-lg border">
+                            <div className="text-2xl font-bold text-primary">{matchingStats.total_properties}</div>
+                            <div className="text-sm text-muted-foreground">Total Properties Matched</div>
+                          </div>
+                        )}
+                        {matchingStats.average_score !== undefined && (
+                          <div className="bg-card p-4 rounded-lg border">
+                            <div className="text-2xl font-bold text-primary">{matchingStats.average_score.toFixed(1)}%</div>
+                            <div className="text-sm text-muted-foreground">Average Match Score</div>
+                          </div>
+                        )}
+                        {matchingStats.high_score_count !== undefined && (
+                          <div className="bg-card p-4 rounded-lg border">
+                            <div className="text-2xl font-bold text-green-600">{matchingStats.high_score_count}</div>
+                            <div className="text-sm text-muted-foreground">High Score Matches (70%+)</div>
+                          </div>
+                        )}
+                        {matchingStats.medium_score_count !== undefined && (
+                          <div className="bg-card p-4 rounded-lg border">
+                            <div className="text-2xl font-bold text-yellow-600">{matchingStats.medium_score_count}</div>
+                            <div className="text-sm text-muted-foreground">Medium Score Matches (40-69%)</div>
+                          </div>
+                        )}
+                        {matchingStats.low_score_count !== undefined && (
+                          <div className="bg-card p-4 rounded-lg border">
+                            <div className="text-2xl font-bold text-red-600">{matchingStats.low_score_count}</div>
+                            <div className="text-sm text-muted-foreground">Low Score Matches (&lt;40%)</div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-center py-4 text-muted-foreground">
+                        No matching statistics available. Make sure the buyer has buy box criteria set up.
+                      </div>
+                    )}
+                  </div>
+
+                  <p className="text-sm text-muted-foreground border-t pt-4">Match results are private to admins and calculated based on buy box criteria.</p>
                 </div>
               </TabsContent>
             </Tabs>
