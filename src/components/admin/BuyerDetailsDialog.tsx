@@ -175,56 +175,202 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
 
   const form = useForm<BuyBoxFormValues>({
     resolver: zodResolver(BuyBoxSchema),
-    defaultValues: BuyBoxSchema.parse({}),
+    defaultValues: {
+      assetType: "Both",
+      activeBuyer: true,
+      blacklistStatus: false,
+      cities: [],
+      counties: [],
+      states: [],
+      zips: [],
+      radiusMiles: undefined,
+      strategiesHouses: [],
+      strategiesLand: [],
+      desiredTypesHouses: [],
+      desiredTypesLand: [],
+      priceMin: undefined,
+      priceMax: undefined,
+      lotSizeMin: undefined,
+      lotSizeMax: undefined,
+      bedsMin: undefined,
+      bedsMax: undefined,
+      bathsMin: undefined,
+      bathsMax: undefined,
+      livingAreaMin: undefined,
+      livingAreaMax: undefined,
+      yearBuiltMin: undefined,
+      yearBuiltMax: undefined,
+      restrictedRehabTypes: [],
+      specialtyRehabAvoidance: [],
+      strictRequirements: [],
+      locationCharacteristics: [],
+      propertyCharacteristics: [],
+      notes: "",
+    },
   });
 
-  // Load existing buy box
+  // Load existing buy box when dialog opens
   useEffect(() => {
     async function loadBuyBox() {
       if (!buyer?.id) return;
+      
       try {
         const res = await landDealsApi.admin.getBuyerBuyBox(String(buyer.id));
-        if (res?.success) {
-          const data = res.data || {};
-          // Map API fields to form fields safely
-          const mapped: Partial<BuyBoxFormValues> = {
-            assetType: (data.assetType || data.asset_type || "Both") as any,
-            activeBuyer: Boolean(data.activeBuyer ?? data.active_buyer ?? true),
-            blacklistStatus: Boolean(data.blacklistStatus ?? data.blacklist_status ?? false),
-            cities: data.cities || [],
-            counties: data.counties || [],
-            states: data.states || [],
-            zips: data.zips || [],
-            radiusMiles: data.radiusMiles ?? data.radius_miles ?? undefined,
-            strategiesHouses: data.strategiesHouses || data.strategies_houses || [],
-            strategiesLand: data.strategiesLand || data.strategies_land || [],
-            desiredTypesHouses: data.desiredTypesHouses || data.desired_types_houses || [],
-            desiredTypesLand: data.desiredTypesLand || data.desired_types_land || [],
-            priceMin: numberOrNull(data.priceMin ?? data.price_min),
-            priceMax: numberOrNull(data.priceMax ?? data.price_max),
-            lotSizeMin: numberOrNull(data.lotSizeMin ?? data.lot_size_min),
-            lotSizeMax: numberOrNull(data.lotSizeMax ?? data.lot_size_max),
-            bedsMin: numberOrNull(data.bedsMin ?? data.beds_min),
-            bedsMax: numberOrNull(data.bedsMax ?? data.beds_max),
-            bathsMin: numberOrNull(data.bathsMin ?? data.baths_min),
-            bathsMax: numberOrNull(data.bathsMax ?? data.baths_max),
-            livingAreaMin: numberOrNull(data.livingAreaMin ?? data.living_area_min),
-            livingAreaMax: numberOrNull(data.livingAreaMax ?? data.living_area_max),
-            yearBuiltMin: numberOrNull(data.yearBuiltMin ?? data.year_built_min),
-            yearBuiltMax: numberOrNull(data.yearBuiltMax ?? data.year_built_max),
-            restrictedRehabTypes: data.restrictedRehabTypes || data.restricted_rehab_types || [],
-            specialtyRehabAvoidance: data.specialtyRehabAvoidance || data.specialty_rehab_avoidance || [],
-            strictRequirements: data.strictRequirements || data.strict_requirements || [],
-            locationCharacteristics: data.locationCharacteristics || data.location_characteristics || [],
-            propertyCharacteristics: data.propertyCharacteristics || data.property_characteristics || [],
-            notes: data.notes || "",
-          };
-          form.reset(mapped as BuyBoxFormValues);
+        if (res?.success && res.data) {
+          const data = res.data;
+          // Only load data if the response contains actual saved criteria
+          // Check if any meaningful data exists (not just default/empty values)
+          const hasExistingData = Object.keys(data).some(key => {
+            const value = data[key];
+            if (Array.isArray(value)) return value.length > 0;
+            if (typeof value === 'string') return value.trim() !== '';
+            if (typeof value === 'number') return value !== null && value !== undefined;
+            if (typeof value === 'boolean') return true; // booleans are always meaningful
+            return false;
+          });
+
+          if (hasExistingData) {
+            // Map API fields to form fields safely
+            const mapped: Partial<BuyBoxFormValues> = {
+              assetType: (data.assetType || data.asset_type || "Both") as any,
+              activeBuyer: Boolean(data.activeBuyer ?? data.active_buyer ?? true),
+              blacklistStatus: Boolean(data.blacklistStatus ?? data.blacklist_status ?? false),
+              cities: data.cities || [],
+              counties: data.counties || [],
+              states: data.states || [],
+              zips: data.zips || [],
+              radiusMiles: data.radiusMiles ?? data.radius_miles ?? undefined,
+              strategiesHouses: data.strategiesHouses || data.strategies_houses || [],
+              strategiesLand: data.strategiesLand || data.strategies_land || [],
+              desiredTypesHouses: data.desiredTypesHouses || data.desired_types_houses || [],
+              desiredTypesLand: data.desiredTypesLand || data.desired_types_land || [],
+              priceMin: numberOrNull(data.priceMin ?? data.price_min),
+              priceMax: numberOrNull(data.priceMax ?? data.price_max),
+              lotSizeMin: numberOrNull(data.lotSizeMin ?? data.lot_size_min),
+              lotSizeMax: numberOrNull(data.lotSizeMax ?? data.lot_size_max),
+              bedsMin: numberOrNull(data.bedsMin ?? data.beds_min),
+              bedsMax: numberOrNull(data.bedsMax ?? data.beds_max),
+              bathsMin: numberOrNull(data.bathsMin ?? data.baths_min),
+              bathsMax: numberOrNull(data.bathsMax ?? data.baths_max),
+              livingAreaMin: numberOrNull(data.livingAreaMin ?? data.living_area_min),
+              livingAreaMax: numberOrNull(data.livingAreaMax ?? data.living_area_max),
+              yearBuiltMin: numberOrNull(data.yearBuiltMin ?? data.year_built_min),
+              yearBuiltMax: numberOrNull(data.yearBuiltMax ?? data.year_built_max),
+              restrictedRehabTypes: data.restrictedRehabTypes || data.restricted_rehab_types || [],
+              specialtyRehabAvoidance: data.specialtyRehabAvoidance || data.specialty_rehab_avoidance || [],
+              strictRequirements: data.strictRequirements || data.strict_requirements || [],
+              locationCharacteristics: data.locationCharacteristics || data.location_characteristics || [],
+              propertyCharacteristics: data.propertyCharacteristics || data.property_characteristics || [],
+              notes: data.notes || "",
+            };
+            form.reset(mapped as BuyBoxFormValues);
+          } else {
+            // Reset to empty defaults for new buyer or buyer with no saved criteria
+            form.reset({
+              assetType: "Both",
+              activeBuyer: true,
+              blacklistStatus: false,
+              cities: [],
+              counties: [],
+              states: [],
+              zips: [],
+              radiusMiles: undefined,
+              strategiesHouses: [],
+              strategiesLand: [],
+              desiredTypesHouses: [],
+              desiredTypesLand: [],
+              priceMin: undefined,
+              priceMax: undefined,
+              lotSizeMin: undefined,
+              lotSizeMax: undefined,
+              bedsMin: undefined,
+              bedsMax: undefined,
+              bathsMin: undefined,
+              bathsMax: undefined,
+              livingAreaMin: undefined,
+              livingAreaMax: undefined,
+              yearBuiltMin: undefined,
+              yearBuiltMax: undefined,
+              restrictedRehabTypes: [],
+              specialtyRehabAvoidance: [],
+              strictRequirements: [],
+              locationCharacteristics: [],
+              propertyCharacteristics: [],
+              notes: "",
+            });
+          }
+        } else {
+          // No buy box data found - reset to empty defaults
+          form.reset({
+            assetType: "Both",
+            activeBuyer: true,
+            blacklistStatus: false,
+            cities: [],
+            counties: [],
+            states: [],
+            zips: [],
+            radiusMiles: undefined,
+            strategiesHouses: [],
+            strategiesLand: [],
+            desiredTypesHouses: [],
+            desiredTypesLand: [],
+            priceMin: undefined,
+            priceMax: undefined,
+            lotSizeMin: undefined,
+            lotSizeMax: undefined,
+            bedsMin: undefined,
+            bedsMax: undefined,
+            bathsMin: undefined,
+            bathsMax: undefined,
+            livingAreaMin: undefined,
+            livingAreaMax: undefined,
+            yearBuiltMin: undefined,
+            yearBuiltMax: undefined,
+            restrictedRehabTypes: [],
+            specialtyRehabAvoidance: [],
+            strictRequirements: [],
+            locationCharacteristics: [],
+            propertyCharacteristics: [],
+            notes: "",
+          });
         }
       } catch (e) {
-        // No buy box yet – that's ok
+        // No buy box yet or error - reset to empty defaults
+        form.reset({
+          assetType: "Both",
+          activeBuyer: true,
+          blacklistStatus: false,
+          cities: [],
+          counties: [],
+          states: [],
+          zips: [],
+          radiusMiles: undefined,
+          strategiesHouses: [],
+          strategiesLand: [],
+          desiredTypesHouses: [],
+          desiredTypesLand: [],
+          priceMin: undefined,
+          priceMax: undefined,
+          lotSizeMin: undefined,
+          lotSizeMax: undefined,
+          bedsMin: undefined,
+          bedsMax: undefined,
+          bathsMin: undefined,
+          bathsMax: undefined,
+          livingAreaMin: undefined,
+          livingAreaMax: undefined,
+          yearBuiltMin: undefined,
+          yearBuiltMax: undefined,
+          restrictedRehabTypes: [],
+          specialtyRehabAvoidance: [],
+          strictRequirements: [],
+          locationCharacteristics: [],
+          propertyCharacteristics: [],
+          notes: "",
+        });
       }
     }
+    
     if (open) {
       setMatchScore(null);
       setPropertyIdForMatch("");
