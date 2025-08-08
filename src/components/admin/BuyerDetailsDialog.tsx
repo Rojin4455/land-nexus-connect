@@ -16,129 +16,46 @@ import { toast } from "@/hooks/use-toast";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { landDealsApi } from "@/services/landDealsApi";
 
-// Options (can be later fetched from API if available)
-const assetTypeOptions = [
-  { label: "Land", value: "land" as const },
-  { label: "Houses", value: "houses" as const },
-  { label: "Both", value: "both" as const },
-];
-const yesNoOptions = [
-  { label: "Yes", value: true },
-  { label: "No", value: false },
-];
-const blacklistOptions = [
-  { label: "Blacklisted", value: true },
-  { label: "Not Blacklisted", value: false },
-];
-
-const investmentStrategiesHouses = [
-  "Fix & Flip",
-  "Buy & Hold (Rental)",
-  "BRRRR",
-  "Airbnb / Short-Term Rental",
-  "Novation / Creative Finance",
-] as const;
-
-const investmentStrategiesLand = [
-  "Infill Lot Development",
-  "Buy & Flip",
-  "Buy & Hold",
-  "Subdivide & Sell",
-  "Seller Financing",
-  "RV Lot / Tiny Home Lot / Mobile Home Lot",
-  "Entitlement / Rezoning",
-] as const;
-
-const desiredPropertyTypeHouses = [
-  "Single Family",
-  "Duplex / Triplex",
-  "Mobile Home with Land",
-  "Townhouse",
-  "Condo",
-] as const;
-
-const desiredPropertyTypeLand = [
-  "Residential Vacant",
-  "Agricultural",
-  "Commercial",
-  "Recreational",
-  "Timberland / Hunting",
-  "Waterfront",
-  "Subdividable",
-] as const;
-
-const bedroomOptions = ["Any", "1+", "2+", "3+", "4+", "5+"] as const;
-const bathroomOptions = ["Any", "1+", "1.5+", "2+", "3+", "4+"] as const;
-
-const restrictedRehabTypes = [
-  "Major Foundation",
-  "Fire Damage",
-  "Mold",
-  "Full Gut",
-  "Termite",
-  "Roof Replacement",
-] as const;
-
-const specialtyRehabAvoidance = [
-  "Septic",
-  "Electrical Panel",
-  "Full Rewire",
-  "Unpermitted Additions",
-  "Historic Home",
-] as const;
-
-const strictRequirementOptions = [
-  "Legal Access Required (Land)",
-  "Utilities at Road (Land)",
-  "No Flood Zone",
-  "Clear Title",
-  "No HOA",
-  "Paved Road Access",
-  "Mobile Home Allowed",
-] as const;
-
-const locationCharacteristicsOptions = [
-  "Flood Zone",
-  "Near Main Road",
-  "HOA Community",
-  "55+ Community",
-  "Near Commercial",
-  "Waterfront",
-  "Near Railroad",
-] as const;
-
-const propertyCharacteristicsOptions = [
-  "Pool",
-  "Garage",
-  "Solar Panels",
-  "Wood Frame",
-  "Driveway",
-  "City Water",
-  "Well Water",
-  "Septic Tank",
-  "Power at Street (Land)",
-  "Perk Tested (Land)",
-] as const;
+// Consolidated constants and schemas
+const CONSTANTS = {
+  assetTypes: [
+    { label: "Land", value: "land" as const },
+    { label: "Houses", value: "houses" as const },
+    { label: "Both", value: "both" as const },
+  ],
+  boolOptions: [
+    { label: "Yes", value: true },
+    { label: "No", value: false },
+  ],
+  strategies: {
+    houses: ["Fix & Flip", "Buy & Hold (Rental)", "BRRRR", "Airbnb / Short-Term Rental", "Novation / Creative Finance"],
+    land: ["Infill Lot Development", "Buy & Flip", "Buy & Hold", "Subdivide & Sell", "Seller Financing", "RV Lot / Tiny Home Lot / Mobile Home Lot", "Entitlement / Rezoning"],
+  },
+  propertyTypes: {
+    houses: ["Single Family", "Duplex / Triplex", "Mobile Home with Land", "Townhouse", "Condo"],
+    land: ["Residential Vacant", "Agricultural", "Commercial", "Recreational", "Timberland / Hunting", "Waterfront", "Subdividable"],
+  },
+  ranges: ["Any", "1+", "2+", "3+", "4+", "5+"],
+  restrictedRehab: ["Major Foundation", "Fire Damage", "Mold", "Full Gut", "Termite", "Roof Replacement"],
+  specialtyRehab: ["Septic", "Electrical Panel", "Full Rewire", "Unpermitted Additions", "Historic Home"],
+  strictRequirements: ["Legal Access Required (Land)", "Utilities at Road (Land)", "No Flood Zone", "Clear Title", "No HOA", "Paved Road Access", "Mobile Home Allowed"],
+  locationChars: ["Flood Zone", "Near Main Road", "HOA Community", "55+ Community", "Near Commercial", "Waterfront", "Near Railroad"],
+  propertyChars: ["Pool", "Garage", "Solar Panels", "Wood Frame", "Driveway", "City Water", "Well Water", "Septic Tank", "Power at Street (Land)", "Perk Tested (Land)"],
+} as const;
 
 const BuyBoxSchema = z.object({
   assetType: z.enum(["land", "houses", "both"]).default("both"),
   activeBuyer: z.boolean().default(true),
   blacklistStatus: z.boolean().default(false),
-
-  // Location preferences
   cities: z.array(z.string()).default([]),
   counties: z.array(z.string()).default([]),
   states: z.array(z.string()).default([]),
   zips: z.array(z.string()).default([]),
   radiusMiles: z.number().optional().nullable(),
-
-  // Strategies / property types
   strategiesHouses: z.array(z.string()).default([]),
   strategiesLand: z.array(z.string()).default([]),
   desiredTypesHouses: z.array(z.string()).default([]),
   desiredTypesLand: z.array(z.string()).default([]),
-
-  // Ranges
   priceMin: z.number().optional().nullable(),
   priceMax: z.number().optional().nullable(),
   lotSizeMin: z.number().optional().nullable(),
@@ -151,13 +68,11 @@ const BuyBoxSchema = z.object({
   livingAreaMax: z.number().optional().nullable(),
   yearBuiltMin: z.number().optional().nullable(),
   yearBuiltMax: z.number().optional().nullable(),
-
   restrictedRehabTypes: z.array(z.string()).default([]),
   specialtyRehabAvoidance: z.array(z.string()).default([]),
   strictRequirements: z.array(z.string()).default([]),
   locationCharacteristics: z.array(z.string()).default([]),
   propertyCharacteristics: z.array(z.string()).default([]),
-
   notes: z.string().optional().default(""),
 });
 
@@ -167,18 +82,21 @@ interface BuyerDetailsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   buyer: { id: number; name: string; email: string; phone?: string | null } | null;
-  onUpdated?: () => void; // callback to refresh listing
+  onUpdated?: () => void;
 }
 
 export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdated }: BuyerDetailsDialogProps) {
-  const [savingInfo, setSavingInfo] = useState(false);
-  const [savingBuyBox, setSavingBuyBox] = useState(false);
-  const [checkingMatch, setCheckingMatch] = useState(false);
-  const [propertyIdForMatch, setPropertyIdForMatch] = useState("");
-  const [matchScore, setMatchScore] = useState<number | null>(null);
-  const [buyBoxLoaded, setBuyBoxLoaded] = useState(false);
-  const [matchingStats, setMatchingStats] = useState<any>(null);
-  const [loadingMatchingStats, setLoadingMatchingStats] = useState(false);
+  // Consolidated state
+  const [state, setState] = useState({
+    savingInfo: false,
+    savingBuyBox: false,
+    checkingMatch: false,
+    propertyIdForMatch: "",
+    matchScore: null as number | null,
+    buyBoxLoaded: false,
+    matchingStats: null as any,
+    loadingMatchingStats: false,
+  });
 
   const form = useForm<BuyBoxFormValues>({
     resolver: zodResolver(BuyBoxSchema),
@@ -216,16 +134,41 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
     },
   });
 
-  // Watch the asset type to conditionally show/hide fields
   const assetType = form.watch("assetType");
 
-  function mapAssetType(value: any): "land" | "houses" | "both" {
+  const likelihood = useMemo(() => {
+    if (state.matchScore == null) return null;
+    if (state.matchScore >= 70) return { label: "High", color: "bg-green-100 text-green-800" };
+    if (state.matchScore >= 40) return { label: "Medium", color: "bg-yellow-100 text-yellow-800" };
+    return { label: "Low", color: "bg-red-100 text-red-800" };
+  }, [state.matchScore]);
+
+  // Utility functions
+  const updateState = (updates: Partial<typeof state>) => setState(prev => ({ ...prev, ...updates }));
+
+  const mapAssetType = (value: any): "land" | "houses" | "both" => {
     if (!value) return "both";
     const str = String(value).toLowerCase();
     if (str === "land") return "land";
     if (str === "houses") return "houses";
     return "both";
-  }
+  };
+
+  const csvToArray = (v: string): string[] => v.split(",").map(s => s.trim()).filter(Boolean);
+
+  const numOrNull = (v: string, integer = false): number | null => {
+    if (v === "") return null;
+    const n = Number(v);
+    if (Number.isNaN(n)) return null;
+    return integer ? Math.trunc(n) : n;
+  };
+
+  const numberOrNull = (v: any): number | null | undefined => {
+    if (v === undefined) return undefined;
+    if (v === null) return null;
+    const n = Number(v);
+    return Number.isNaN(n) ? undefined : n;
+  };
 
   const resetFormToEmpty = () => {
     form.reset({
@@ -262,122 +205,110 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
     });
   };
 
-  // Load existing buy box when tab is clicked
-  const loadBuyBox = async () => {
-    if (!buyer?.id || buyBoxLoaded) return;
-    
-    try {
-      const res = await landDealsApi.admin.getBuyerBuyBox(String(buyer.id));
-      if (res?.success && res.data) {
-        const data = res.data;
-        // Only load data if the response contains actual saved criteria
-        // Check if any meaningful data exists (not just default/empty values)
-        const hasExistingData = Object.keys(data).some(key => {
-          const value = data[key];
-          if (Array.isArray(value)) return value.length > 0;
-          if (typeof value === 'string') return value.trim() !== '';
-          if (typeof value === 'number') return value !== null && value !== undefined;
-          if (typeof value === 'boolean') return true; // booleans are always meaningful
-          return false;
-        });
+  // API functions
+const loadBuyBox = async () => {
+  if (!buyer?.id || state.buyBoxLoaded) return;
+  
+  try {
+    const res = await landDealsApi.admin.getBuyerBuyBox(String(buyer.id));
+    if (res?.success && res.data) {
+      const data = res.data;
+      
+      // Check if we have the buybox_criteria nested structure (like in your API response)
+      const buyBoxData = data.buybox_criteria || data;
+      
+      const hasExistingData = Object.keys(buyBoxData).some(key => {
+        const value = buyBoxData[key];
+        if (Array.isArray(value)) return value.length > 0;
+        if (typeof value === 'string') return value.trim() !== '';
+        if (typeof value === 'number') return value !== null && value !== undefined;
+        if (typeof value === 'boolean') return true;
+        return false;
+      });
 
-        if (hasExistingData) {
-          // Map API fields to form fields safely
-          const mapped: Partial<BuyBoxFormValues> = {
-            assetType: mapAssetType(data.assetType || data.asset_type) || "both",
-            activeBuyer: Boolean(data.activeBuyer ?? data.active_buyer ?? true),
-            blacklistStatus: Boolean(data.blacklistStatus ?? data.blacklist_status ?? false),
-            cities: data.preferred_cities || [],
-            counties: data.preferred_counties || [],
-            states: data.preferred_states || [],
-            zips: data.preferred_zip_codes || [],
-            radiusMiles: data.radiusMiles ?? data.radius_miles ?? undefined,
-            strategiesHouses: data.strategiesHouses || data.strategies_houses || [],
-            strategiesLand: data.strategiesLand || data.strategies_land || [],
-            desiredTypesHouses: data.desiredTypesHouses || data.desired_types_houses || [],
-            desiredTypesLand: data.desiredTypesLand || data.desired_types_land || [],
-            priceMin: numberOrNull(data.priceMin ?? data.price_min),
-            priceMax: numberOrNull(data.priceMax ?? data.price_max),
-            lotSizeMin: numberOrNull(data.lotSizeMin ?? data.lot_size_min),
-            lotSizeMax: numberOrNull(data.lotSizeMax ?? data.lot_size_max),
-            bedsMin: numberOrNull(data.bedsMin ?? data.beds_min),
-            bedsMax: numberOrNull(data.bedsMax ?? data.beds_max),
-            bathsMin: numberOrNull(data.bathsMin ?? data.baths_min),
-            bathsMax: numberOrNull(data.bathsMax ?? data.baths_max),
-            livingAreaMin: numberOrNull(data.livingAreaMin ?? data.living_area_min),
-            livingAreaMax: numberOrNull(data.livingAreaMax ?? data.living_area_max),
-            yearBuiltMin: numberOrNull(data.yearBuiltMin ?? data.year_built_min),
-            yearBuiltMax: numberOrNull(data.yearBuiltMax ?? data.year_built_max),
-            restrictedRehabTypes: data.restrictedRehabTypes || data.restricted_rehab_types || [],
-            specialtyRehabAvoidance: data.specialtyRehabAvoidance || data.specialty_rehab_avoidance || [],
-            strictRequirements: data.strictRequirements || data.strict_requirements || [],
-            locationCharacteristics: data.locationCharacteristics || data.location_characteristics || [],
-            propertyCharacteristics: data.propertyCharacteristics || data.property_characteristics || [],
-            notes: data.notes || "",
-          };
-          form.reset(mapped as BuyBoxFormValues);
-        } else {
-          // Reset to empty defaults for new buyer or buyer with no saved criteria
-          resetFormToEmpty();
-        }
+      if (hasExistingData) {
+        const mapped: Partial<BuyBoxFormValues> = {
+          assetType: mapAssetType(buyBoxData.asset_type) || "both",
+          activeBuyer: Boolean(buyBoxData.is_active_buyer ?? true),
+          blacklistStatus: Boolean(buyBoxData.is_blacklisted ?? false),
+          cities: buyBoxData.preferred_cities || [],
+          counties: buyBoxData.preferred_counties || [],
+          states: buyBoxData.preferred_states || [],
+          zips: buyBoxData.preferred_zip_codes || [],
+          radiusMiles: numberOrNull(buyBoxData.radius_miles),
+          strategiesHouses: buyBoxData.house_strategies || [], // Fix: was strategies_houses
+          strategiesLand: buyBoxData.land_strategies || [],   // Fix: was strategies_land
+          desiredTypesHouses: buyBoxData.house_property_types || [], // Fix: was desired_types_houses
+          desiredTypesLand: buyBoxData.land_property_types || [],   // Fix: was desired_types_land
+          priceMin: numberOrNull(buyBoxData.price_min),
+          priceMax: numberOrNull(buyBoxData.price_max),
+          lotSizeMin: numberOrNull(buyBoxData.lot_size_min),
+          lotSizeMax: numberOrNull(buyBoxData.lot_size_max),
+          bedsMin: numberOrNull(buyBoxData.bedroom_min),     // Fix: was beds_min
+          bedsMax: numberOrNull(buyBoxData.bedroom_max),     // Fix: was beds_max
+          bathsMin: numberOrNull(buyBoxData.bathroom_min),   // Fix: was baths_min
+          bathsMax: numberOrNull(buyBoxData.bathroom_max),   // Fix: was baths_max
+          livingAreaMin: numberOrNull(buyBoxData.sqft_min),  // Fix: was living_area_min
+          livingAreaMax: numberOrNull(buyBoxData.sqft_max),  // Fix: was living_area_max
+          yearBuiltMin: numberOrNull(buyBoxData.year_built_min),
+          yearBuiltMax: numberOrNull(buyBoxData.year_built_max),
+          restrictedRehabTypes: buyBoxData.restricted_rehabs || [], // Fix: was restricted_rehab_types
+          specialtyRehabAvoidance: buyBoxData.specialty_rehab_avoidance || [],
+          strictRequirements: buyBoxData.strict_requirements || [],
+          locationCharacteristics: buyBoxData.location_characteristics || [],
+          propertyCharacteristics: buyBoxData.property_characteristics || [],
+          notes: buyBoxData.notes || "",
+        };
+        form.reset(mapped as BuyBoxFormValues);
       } else {
-        // No buy box data found - reset to empty defaults
         resetFormToEmpty();
       }
-    } catch (e) {
-      // No buy box yet or error - reset to empty defaults
+    } else {
       resetFormToEmpty();
-    } finally {
-      setBuyBoxLoaded(true);
     }
-  };
+  } catch (e) {
+    console.error('Error loading buy box:', e); // Add for debugging
+    resetFormToEmpty();
+  } finally {
+    updateState({ buyBoxLoaded: true });
+  }
+};
 
-  // Reset buy box loaded state when dialog opens
-  useEffect(() => {
-    if (open) {
-      setBuyBoxLoaded(false);
-      setMatchScore(null);
-      setPropertyIdForMatch("");
-    }
-  }, [open, buyer?.id]);
-
-  // Handle tab change to load buy box data when clicking the tab
-  const handleTabChange = (value: string) => {
-    if (value === "buybox" && !buyBoxLoaded) {
-      loadBuyBox();
-    } else if (value === "match") {
-      loadMatchingStats();
-    }
-  };
-
-  // Load matching stats
   const loadMatchingStats = async () => {
-    if (!buyer?.id || loadingMatchingStats) return;
+    if (!buyer?.id || state.loadingMatchingStats) return;
     
     try {
-      setLoadingMatchingStats(true);
+      updateState({ loadingMatchingStats: true });
       const res = await landDealsApi.admin.getBuyerMatchingStats(String(buyer.id));
-      if (res?.success) {
-        setMatchingStats(res.data);
+      
+      if (res?.success && res.data) {
+        updateState({ matchingStats: res.data });
+      } else if (res?.data) {
+        updateState({ matchingStats: res.data });
+      } else {
+        updateState({ matchingStats: null });
+        toast({ 
+          title: "No matching data available", 
+          description: "This buyer doesn't have any matching statistics yet.",
+          variant: "default" 
+        });
       }
     } catch (e: any) {
-      toast({ title: "Failed to load matching stats", description: e?.message || "", variant: "destructive" });
+      updateState({ matchingStats: null });
+      toast({ 
+        title: "Failed to load matching stats", 
+        description: e?.message || "An error occurred while loading matching statistics", 
+        variant: "destructive" 
+      });
     } finally {
-      setLoadingMatchingStats(false);
+      updateState({ loadingMatchingStats: false });
     }
   };
 
-  const likelihood = useMemo(() => {
-    if (matchScore == null) return null;
-    if (matchScore >= 70) return { label: "High", color: "bg-green-100 text-green-800" };
-    if (matchScore >= 40) return { label: "Medium", color: "bg-yellow-100 text-yellow-800" };
-    return { label: "Low", color: "bg-red-100 text-red-800" };
-  }, [matchScore]);
-
-  async function saveBuyerInfo() {
+  const saveBuyerInfo = async () => {
     if (!buyer) return;
     try {
-      setSavingInfo(true);
+      updateState({ savingInfo: true });
       const payload = {
         name: (document.getElementById("buyer-info-name") as HTMLInputElement)?.value || buyer.name,
         email: (document.getElementById("buyer-info-email") as HTMLInputElement)?.value || buyer.email,
@@ -389,80 +320,355 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
     } catch (e: any) {
       toast({ title: "Failed to update buyer", description: e?.message || "", variant: "destructive" });
     } finally {
-      setSavingInfo(false);
+      updateState({ savingInfo: false });
     }
+  };
+
+const onSubmit = async (values: BuyBoxFormValues) => {
+  if (!buyer) return;
+  try {
+    updateState({ savingBuyBox: true });
+    const payload: any = {
+      asset_type: values.assetType.toLowerCase(),
+      is_active_buyer: values.activeBuyer,        // Fix: was active_buyer
+      is_blacklisted: values.blacklistStatus,     // Fix: was blacklist_status
+      preferred_cities: values.cities,
+      preferred_counties: values.counties,
+      preferred_states: values.states,
+      preferred_zip_codes: values.zips,
+      radius_miles: values.radiusMiles,
+      house_strategies: values.strategiesHouses,  // Fix: was strategies_houses
+      land_strategies: values.strategiesLand,     // Fix: was strategies_land
+      house_property_types: values.desiredTypesHouses, // Fix: was desired_types_houses
+      land_property_types: values.desiredTypesLand,    // Fix: was desired_types_land
+      price_min: values.priceMin,
+      price_max: values.priceMax,
+      lot_size_min: values.lotSizeMin,
+      lot_size_max: values.lotSizeMax,
+      bedroom_min: values.bedsMin,                // Fix: was beds_min
+      bedroom_max: values.bedsMax,                // Fix: was beds_max
+      bathroom_min: values.bathsMin,              // Fix: was baths_min
+      bathroom_max: values.bathsMax,              // Fix: was baths_max
+      sqft_min: values.livingAreaMin,             // Fix: was living_area_min
+      sqft_max: values.livingAreaMax,             // Fix: was living_area_max
+      year_built_min: values.yearBuiltMin,
+      year_built_max: values.yearBuiltMax,
+      restricted_rehabs: values.restrictedRehabTypes, // Fix: was restricted_rehab_types
+      specialty_rehab_avoidance: values.specialtyRehabAvoidance,
+      strict_requirements: values.strictRequirements,
+      location_characteristics: values.locationCharacteristics,
+      property_characteristics: values.propertyCharacteristics,
+      notes: values.notes,
+    };
+
+    const res = await landDealsApi.admin.updateBuyerBuyBox(String(buyer.id), payload);
+    if (res?.success) toast({ title: "Buy box saved" });
+    onUpdated?.();
+  } catch (e: any) {
+    toast({ title: "Failed to save buy box", description: e?.message || "", variant: "destructive" });
+  } finally {
+    updateState({ savingBuyBox: false });
   }
+};
 
-  async function onSubmit(values: BuyBoxFormValues) {
-    if (!buyer) return;
+  const checkMatch = async () => {
     try {
-      setSavingBuyBox(true);
-      // Normalize keys to snake_case to be backend friendly
-      const payload: any = {
-        asset_type: values.assetType.toLowerCase(),
-        active_buyer: values.activeBuyer,
-        blacklist_status: values.blacklistStatus,
-        preferred_cities: values.cities,
-        preferred_counties: values.counties,
-        preferred_states: values.states,
-        preferred_zip_codes: values.zips,
-        radius_miles: values.radiusMiles,
-        strategies_houses: values.strategiesHouses,
-        strategies_land: values.strategiesLand,
-        desired_types_houses: values.desiredTypesHouses,
-        desired_types_land: values.desiredTypesLand,
-        price_min: values.priceMin,
-        price_max: values.priceMax,
-        lot_size_min: values.lotSizeMin,
-        lot_size_max: values.lotSizeMax,
-        beds_min: values.bedsMin,
-        beds_max: values.bedsMax,
-        baths_min: values.bathsMin,
-        baths_max: values.bathsMax,
-        living_area_min: values.livingAreaMin,
-        living_area_max: values.livingAreaMax,
-        year_built_min: values.yearBuiltMin,
-        year_built_max: values.yearBuiltMax,
-        restricted_rehab_types: values.restrictedRehabTypes,
-        specialty_rehab_avoidance: values.specialtyRehabAvoidance,
-        strict_requirements: values.strictRequirements,
-        location_characteristics: values.locationCharacteristics,
-        property_characteristics: values.propertyCharacteristics,
-        notes: values.notes,
-      };
-
-      const res = await landDealsApi.admin.updateBuyerBuyBox(String(buyer.id), payload);
-      if (res?.success) toast({ title: "Buy box saved" });
-      onUpdated?.();
-    } catch (e: any) {
-      toast({ title: "Failed to save buy box", description: e?.message || "", variant: "destructive" });
-    } finally {
-      setSavingBuyBox(false);
-    }
-  }
-
-  async function checkMatch() {
-    try {
-      setCheckingMatch(true);
-      const propId = propertyIdForMatch.trim();
+      updateState({ checkingMatch: true });
+      const propId = state.propertyIdForMatch.trim();
       if (!propId) return;
       const res = await landDealsApi.admin.matchBuyersForProperty(propId);
       if (res?.success) {
         const list: any[] = (res.data as any) || [];
         const match = list.find((b: any) => String(b.id) === String(buyer?.id));
         if (match) {
-          setMatchScore(Number((match as any).score ?? (match as any).match_score ?? 0));
+          updateState({ matchScore: Number((match as any).score ?? (match as any).match_score ?? 0) });
         } else {
-          setMatchScore(null);
+          updateState({ matchScore: null });
           toast({ title: "No match found for this buyer on that property" });
         }
       }
     } catch (e: any) {
       toast({ title: "Failed to check match", description: e?.message || "", variant: "destructive" });
     } finally {
-      setCheckingMatch(false);
+      updateState({ checkingMatch: false });
     }
-  }
+  };
+
+  // Event handlers
+  const handleTabChange = (value: string) => {
+    if (value === "buybox" && !state.buyBoxLoaded) {
+      loadBuyBox();
+    } else if (value === "match") {
+      loadMatchingStats();
+    }
+  };
+
+  // Effects
+  useEffect(() => {
+    if (open) {
+      updateState({
+        buyBoxLoaded: false,
+        matchScore: null,
+        propertyIdForMatch: "",
+        matchingStats: null,
+      });
+    }
+  }, [open, buyer?.id]);
+
+  // Reusable components
+  const CsvField = ({ name, label, placeholder }: { name: keyof BuyBoxFormValues; label: string; placeholder?: string }) => (
+    <FormField
+      control={form.control}
+      name={name as any}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>{label}</FormLabel>
+          <FormControl>
+            <Input
+              value={(field.value || []).join(", ")}
+              onChange={(e) => field.onChange(csvToArray(e.target.value))}
+              placeholder={placeholder}
+            />
+          </FormControl>
+        </FormItem>
+      )}
+    />
+  );
+
+  const RangeFields = ({ minName, maxName, label, integer = false }: { minName: keyof BuyBoxFormValues; maxName: keyof BuyBoxFormValues; label: string; integer?: boolean }) => (
+    <div className="space-y-2">
+      <Label>{label}</Label>
+      <div className="grid grid-cols-2 gap-2">
+        <FormField
+          control={form.control}
+          name={minName as any}
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Input type="number" value={field.value ?? ""} onChange={(e) => field.onChange(numOrNull(e.target.value, integer))} placeholder="Min" />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name={maxName as any}
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Input type="number" value={field.value ?? ""} onChange={(e) => field.onChange(numOrNull(e.target.value, integer))} placeholder="Max" />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+      </div>
+    </div>
+  );
+
+  const CheckboxGroup = ({ name, label, options }: { name: keyof BuyBoxFormValues; label: string; options: readonly string[] }) => (
+    <FormField
+      control={form.control}
+      name={name as any}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>{label}</FormLabel>
+          <div className="grid grid-cols-2 gap-2">
+            {options.map((opt) => {
+              const currentValue = Array.isArray(field.value) ? field.value : [];
+              const checked = currentValue.includes(opt);
+              
+              return (
+                <label key={opt} className="flex items-center gap-2 text-sm cursor-pointer">
+                  <Checkbox
+                    checked={checked}
+                    onCheckedChange={(isChecked) => {
+                      const currentArray = Array.isArray(field.value) ? field.value : [];
+                      const val = new Set<string>(currentArray);
+                      if (isChecked) val.add(opt); else val.delete(opt);
+                      field.onChange(Array.from(val));
+                    }}
+                  />
+                  <span>{opt}</span>
+                </label>
+              );
+            })}
+          </div>
+        </FormItem>
+      )}
+    />
+  );
+
+  const MatchingStatsDisplay = () => (
+    <div className="space-y-6 p-1">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Buyer Matching Results</h3>
+        <Button 
+          onClick={loadMatchingStats} 
+          disabled={state.loadingMatchingStats}
+          variant="outline"
+          size="sm"
+        >
+          {state.loadingMatchingStats ? "Loading..." : "Refresh"}
+        </Button>
+      </div>
+
+      {state.loadingMatchingStats ? (
+        <div className="flex items-center justify-center p-8">
+          <div className="text-sm text-muted-foreground">Loading matching results...</div>
+        </div>
+      ) : state.matchingStats ? (
+        <div className="space-y-6">
+          <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
+            Debug: Buyer ID {state.matchingStats.buyer_id} - {state.matchingStats.buyer_name}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="border rounded p-4">
+              <h4 className="font-medium text-sm text-muted-foreground">Status</h4>
+              <div className="flex items-center gap-2 mt-1">
+                <Badge variant={state.matchingStats.buybox_status?.is_active ? "default" : "secondary"}>
+                  {state.matchingStats.buybox_status?.is_active ? "Active" : "Inactive"}
+                </Badge>
+                {state.matchingStats.buybox_status?.is_blacklisted && (
+                  <Badge variant="destructive">Blacklisted</Badge>
+                )}
+              </div>
+            </div>
+            <div className="border rounded p-4">
+              <h4 className="font-medium text-sm text-muted-foreground">Asset Type</h4>
+              <p className="text-lg font-semibold mt-1 capitalize">
+                {state.matchingStats.buybox_status?.asset_type || "Not Set"}
+              </p>
+            </div>
+            <div className="border rounded p-4">
+              <h4 className="font-medium text-sm text-muted-foreground">Match Rate (Last 30 Days)</h4>
+              <p className="text-lg font-semibold mt-1">
+                {state.matchingStats.recent_performance?.match_rate_percentage !== undefined 
+                  ? `${Number(state.matchingStats.recent_performance.match_rate_percentage).toFixed(1)}%`
+                  : "0%"
+                }
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <h4 className="font-medium text-base mb-3">Performance Overview</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="border rounded p-4">
+                <h5 className="font-medium text-sm text-muted-foreground">Recent Performance (30 Days)</h5>
+                <div className="space-y-2 mt-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm">Total Properties:</span>
+                    <span className="font-medium">{state.matchingStats.recent_performance?.total_properties_last_30_days || 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm">Total Matches:</span>
+                    <span className="font-medium">{state.matchingStats.recent_performance?.total_matches_last_30_days || 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm">Avg Score:</span>
+                    <span className="font-medium">
+                      {state.matchingStats.recent_performance?.avg_match_score !== undefined 
+                        ? `${Number(state.matchingStats.recent_performance.avg_match_score).toFixed(1)}%`
+                        : "0%"
+                      }
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className="border rounded p-4">
+                <h5 className="font-medium text-sm text-muted-foreground">All Time Performance</h5>
+                <div className="space-y-2 mt-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm">Total Properties:</span>
+                    <span className="font-medium">{state.matchingStats.all_time_performance?.total_properties || 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm">Total Matches:</span>
+                    <span className="font-medium">{state.matchingStats.all_time_performance?.total_matches || 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm">Avg Score:</span>
+                    <span className="font-medium">
+                      {state.matchingStats.all_time_performance?.avg_match_score !== undefined 
+                        ? `${Number(state.matchingStats.all_time_performance.avg_match_score).toFixed(1)}%`
+                        : "0%"
+                      }
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h4 className="font-medium text-base mb-3">Match Quality Breakdown</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="border rounded p-4 text-center">
+                <div className="text-2xl font-bold text-green-600">
+                  {state.matchingStats.likelihood_breakdown?.high_likelihood_count || 0}
+                </div>
+                <div className="text-sm text-muted-foreground">High Score Matches</div>
+                <div className="text-xs text-muted-foreground">(70%+ match)</div>
+              </div>
+              <div className="border rounded p-4 text-center">
+                <div className="text-2xl font-bold text-yellow-600">
+                  {state.matchingStats.likelihood_breakdown?.medium_likelihood_count || 0}
+                </div>
+                <div className="text-sm text-muted-foreground">Medium Score Matches</div>
+                <div className="text-xs text-muted-foreground">(40-69% match)</div>
+              </div>
+              <div className="border rounded p-4 text-center">
+                <div className="text-2xl font-bold text-red-600">
+                  {state.matchingStats.likelihood_breakdown?.low_likelihood_count || 0}
+                </div>
+                <div className="text-sm text-muted-foreground">Low Score Matches</div>
+                <div className="text-xs text-muted-foreground">(Below 40% match)</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t pt-6">
+            <h4 className="font-medium text-base mb-3">Test Property Match</h4>
+            <div className="flex gap-2 items-end">
+              <div className="flex-1">
+                <Label htmlFor="property-id">Property ID</Label>
+                <Input
+                  id="property-id"
+                  value={state.propertyIdForMatch}
+                  onChange={(e) => updateState({ propertyIdForMatch: e.target.value })}
+                  placeholder="Enter property ID to test match"
+                />
+              </div>
+              <Button onClick={checkMatch} disabled={state.checkingMatch || !state.propertyIdForMatch.trim()}>
+                {state.checkingMatch ? "Checking..." : "Check Match"}
+              </Button>
+            </div>
+            {state.matchScore !== null && (
+              <div className="mt-3 p-3 border rounded">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">Match Score:</span>
+                  <span className="text-lg font-bold">{state.matchScore}%</span>
+                  {likelihood && (
+                    <Badge className={likelihood.color}>{likelihood.label}</Badge>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center p-8 text-center">
+          <div className="text-sm text-muted-foreground mb-4">
+            No matching data available for this buyer
+          </div>
+          <Button onClick={loadMatchingStats} disabled={state.loadingMatchingStats}>
+            {state.loadingMatchingStats ? "Loading..." : "Load Matching Stats"}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -500,12 +706,14 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
                     </div>
                   </div>
                   <div className="flex justify-end">
-                    <Button onClick={saveBuyerInfo} disabled={savingInfo}>{savingInfo ? "Saving..." : "Save"}</Button>
+                    <Button onClick={saveBuyerInfo} disabled={state.savingInfo}>
+                      {state.savingInfo ? "Saving..." : "Save"}
+                    </Button>
                   </div>
                 </div>
               </TabsContent>
 
-              {/* Buy Box - Fixed scrolling issue */}
+              {/* Buy Box */}
               <TabsContent value="buybox" className="flex-1 min-h-0 flex flex-col">
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 min-h-0">
@@ -521,7 +729,7 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
                                 <FormLabel>Asset Type</FormLabel>
                                 <FormDescription>Select the main asset type</FormDescription>
                                 <div className="flex gap-2 flex-wrap">
-                                  {assetTypeOptions.map((opt) => (
+                                  {CONSTANTS.assetTypes.map((opt) => (
                                     <Badge
                                       key={opt.value}
                                       onClick={() => field.onChange(opt.value)}
@@ -543,7 +751,7 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
                               <FormItem>
                                 <FormLabel>Active Buyer</FormLabel>
                                 <div className="flex items-center gap-4">
-                                  {yesNoOptions.map((o) => (
+                                  {CONSTANTS.boolOptions.map((o) => (
                                     <label key={String(o.value)} className="flex items-center gap-2 cursor-pointer">
                                       <Checkbox checked={field.value === o.value} onCheckedChange={() => field.onChange(o.value)} />
                                       <span>{o.label}</span>
@@ -561,7 +769,7 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
                               <FormItem>
                                 <FormLabel>Blacklist</FormLabel>
                                 <div className="flex items-center gap-4">
-                                  {yesNoOptions.map((o) => (
+                                  {CONSTANTS.boolOptions.map((o) => (
                                     <label key={String(o.value)} className="flex items-center gap-2 cursor-pointer">
                                       <Checkbox checked={field.value === o.value} onCheckedChange={() => field.onChange(o.value)} />
                                       <span>{o.label}</span>
@@ -575,10 +783,10 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
 
                         {/* Location preferences */}
                         <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {csvField(form, "cities", "Cities (CSV)", "e.g., Phoenix, Tempe")}
-                          {csvField(form, "counties", "Counties (CSV)", "e.g., Maricopa, Pima")}
-                          {csvField(form, "states", "States (CSV)", "e.g., AZ, CA, TX")}
-                          {csvField(form, "zips", "ZIP codes (CSV)", "e.g., 85281, 85282")}
+                          <CsvField name="cities" label="Cities (CSV)" placeholder="e.g., Phoenix, Tempe" />
+                          <CsvField name="counties" label="Counties (CSV)" placeholder="e.g., Maricopa, Pima" />
+                          <CsvField name="states" label="States (CSV)" placeholder="e.g., AZ, CA, TX" />
+                          <CsvField name="zips" label="ZIP codes (CSV)" placeholder="e.g., 85281, 85282" />
                           <FormField
                             control={form.control}
                             name="radiusMiles"
@@ -597,69 +805,65 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
                         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           {(assetType === "houses" || assetType === "both") && (
                             <CheckboxGroup
-                              form={form}
                               name="strategiesHouses"
                               label="Investment Strategy (Houses)"
-                              options={investmentStrategiesHouses}
+                              options={CONSTANTS.strategies.houses}
                             />
                           )}
                           {(assetType === "land" || assetType === "both") && (
                             <CheckboxGroup
-                              form={form}
                               name="strategiesLand"
                               label="Investment Strategy (Land)"
-                              options={investmentStrategiesLand}
+                              options={CONSTANTS.strategies.land}
                             />
                           )}
                           {(assetType === "houses" || assetType === "both") && (
                             <CheckboxGroup
-                              form={form}
                               name="desiredTypesHouses"
                               label="Desired Property Type (Houses)"
-                              options={desiredPropertyTypeHouses}
+                              options={CONSTANTS.propertyTypes.houses}
                             />
                           )}
                           {(assetType === "land" || assetType === "both") && (
                             <CheckboxGroup
-                              form={form}
                               name="desiredTypesLand"
                               label="Desired Property Type (Land)"
-                              options={desiredPropertyTypeLand}
+                              options={CONSTANTS.propertyTypes.land}
                             />
                           )}
                         </section>
 
                         {/* Ranges */}
                         <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <RangeFields form={form} minName="priceMin" maxName="priceMax" label="Purchase Price ($)" />
+                          <RangeFields minName="priceMin" maxName="priceMax" label="Purchase Price ($)" />
                           {(assetType === "land" || assetType === "both") && (
-                            <RangeFields form={form} minName="lotSizeMin" maxName="lotSizeMax" label="Lot Size (acres) – Land only" />
+                            <RangeFields minName="lotSizeMin" maxName="lotSizeMax" label="Lot Size (acres) – Land only" />
                           )}
                           {(assetType === "houses" || assetType === "both") && (
-                            <RangeFields form={form} minName="livingAreaMin" maxName="livingAreaMax" label="Living Area (SqFt) – Houses" />
+                            <RangeFields minName="livingAreaMin" maxName="livingAreaMax" label="Living Area (SqFt) – Houses" />
                           )}
                           {(assetType === "houses" || assetType === "both") && (
-                            <RangeFields form={form} minName="yearBuiltMin" maxName="yearBuiltMax" label="Year Built – Houses" />
+                            <RangeFields minName="yearBuiltMin" maxName="yearBuiltMax" label="Year Built – Houses" />
                           )}
                           {(assetType === "houses" || assetType === "both") && (
-                            <RangeFields form={form} minName="bedsMin" maxName="bedsMax" label="Bedrooms – Houses" integer />
+                            <RangeFields minName="bedsMin" maxName="bedsMax" label="Bedrooms – Houses" integer />
                           )}
                           {(assetType === "houses" || assetType === "both") && (
-                            <RangeFields form={form} minName="bathsMin" maxName="bathsMax" label="Bathrooms – Houses" />
+                            <RangeFields minName="bathsMin" maxName="bathsMax" label="Bathrooms – Houses" />
                           )}
                         </section>
 
                         {/* Rehab & requirements */}
                         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           {(assetType === "houses" || assetType === "both") && (
-                            <CheckboxGroup form={form} name="restrictedRehabTypes" label="Restricted Rehab Types" options={restrictedRehabTypes} />
+                            <CheckboxGroup name="restrictedRehabTypes" label="Restricted Rehab Types" options={CONSTANTS.restrictedRehab} />
                           )}
                           {(assetType === "houses" || assetType === "both") && (
-                            <CheckboxGroup form={form} name="specialtyRehabAvoidance" label="Specialty Rehab Avoidance" options={specialtyRehabAvoidance} />
+                            <CheckboxGroup name="specialtyRehabAvoidance" label="Specialty Rehab Avoidance" options={CONSTANTS.specialtyRehab} />
                           )}
-                          <CheckboxGroup form={form} name="strictRequirements" label="Strict Requirements" options={strictRequirementOptions} />
-                          <CheckboxGroup form={form} name="locationCharacteristics" label="Location Characteristics" options={locationCharacteristicsOptions} />
-                          <CheckboxGroup form={form} name="propertyCharacteristics" label="Property Characteristics" options={propertyCharacteristicsOptions} />
+                          <CheckboxGroup name="strictRequirements" label="Strict Requirements" options={CONSTANTS.strictRequirements} />
+                          <CheckboxGroup name="locationCharacteristics" label="Location Characteristics" options={CONSTANTS.locationChars} />
+                          <CheckboxGroup name="propertyCharacteristics" label="Property Characteristics" options={CONSTANTS.propertyChars} />
                         </section>
 
                         {/* Notes */}
@@ -679,10 +883,9 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
                       </div>
                     </ScrollArea>
                     
-                    {/* Submit button - now always visible at bottom */}
                     <div className="flex justify-end pt-4 mt-4 border-t bg-background flex-shrink-0">
-                      <Button type="submit" disabled={savingBuyBox}>
-                        {savingBuyBox ? "Saving..." : "Save Buy Box"}
+                      <Button type="submit" disabled={state.savingBuyBox}>
+                        {state.savingBuyBox ? "Saving..." : "Save Buy Box"}
                       </Button>
                     </div>
                   </form>
@@ -691,112 +894,7 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
 
               {/* Match Score */}
               <TabsContent value="match" className="flex-1 overflow-y-auto">
-                <div className="space-y-6 p-1">
-                  <h3 className="text-lg font-semibold">Buyer Matching Results</h3>
-                  {loadingMatchingStats ? (
-                    <div className="text-sm text-muted-foreground">Loading matching results...</div>
-                  ) : matchingStats ? (
-                    <div className="space-y-6">
-                      {/* Status */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="border rounded p-4">
-                          <h4 className="font-medium text-sm text-muted-foreground">Status</h4>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge variant={matchingStats.buybox_status?.is_active ? "default" : "secondary"}>
-                              {matchingStats.buybox_status?.is_active ? "Active" : "Inactive"}
-                            </Badge>
-                            {matchingStats.buybox_status?.is_blacklisted && (
-                              <Badge variant="destructive">Blacklisted</Badge>
-                            )}
-                          </div>
-                        </div>
-                        <div className="border rounded p-4">
-                          <h4 className="font-medium text-sm text-muted-foreground">Asset Type</h4>
-                          <p className="text-lg font-semibold mt-1 capitalize">
-                            {matchingStats.buybox_status?.asset_type || "Not Set"}
-                          </p>
-                        </div>
-                        <div className="border rounded p-4">
-                          <h4 className="font-medium text-sm text-muted-foreground">Match Rate (Last 30 Days)</h4>
-                          <p className="text-lg font-semibold mt-1">
-                            {matchingStats.recent_performance?.match_rate_percentage?.toFixed(1) || 0}%
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Performance Stats */}
-                      <div>
-                        <h4 className="font-medium text-base mb-3">Performance Overview</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="border rounded p-4">
-                            <h5 className="font-medium text-sm text-muted-foreground">Recent Performance (30 Days)</h5>
-                            <div className="space-y-2 mt-2">
-                              <div className="flex justify-between">
-                                <span className="text-sm">Total Properties:</span>
-                                <span className="font-medium">{matchingStats.recent_performance?.total_properties_last_30_days || 0}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-sm">Total Matches:</span>
-                                <span className="font-medium">{matchingStats.recent_performance?.total_matches_last_30_days || 0}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-sm">Avg Score:</span>
-                                <span className="font-medium">{matchingStats.recent_performance?.avg_match_score?.toFixed(1) || 0}%</span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="border rounded p-4">
-                            <h5 className="font-medium text-sm text-muted-foreground">All Time Performance</h5>
-                            <div className="space-y-2 mt-2">
-                              <div className="flex justify-between">
-                                <span className="text-sm">Total Properties:</span>
-                                <span className="font-medium">{matchingStats.all_time_performance?.total_properties || 0}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-sm">Total Matches:</span>
-                                <span className="font-medium">{matchingStats.all_time_performance?.total_matches || 0}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-sm">Avg Score:</span>
-                                <span className="font-medium">{matchingStats.all_time_performance?.avg_match_score?.toFixed(1) || 0}%</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Match Quality Breakdown */}
-                      <div>
-                        <h4 className="font-medium text-base mb-3">Match Quality Breakdown</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div className="border rounded p-4 text-center">
-                            <div className="text-2xl font-bold text-green-600">
-                              {matchingStats.likelihood_breakdown?.high_likelihood_count || 0}
-                            </div>
-                            <div className="text-sm text-muted-foreground">High Score Matches</div>
-                            <div className="text-xs text-muted-foreground">(70%+ match)</div>
-                          </div>
-                          <div className="border rounded p-4 text-center">
-                            <div className="text-2xl font-bold text-yellow-600">
-                              {matchingStats.likelihood_breakdown?.medium_likelihood_count || 0}
-                            </div>
-                            <div className="text-sm text-muted-foreground">Medium Score Matches</div>
-                            <div className="text-xs text-muted-foreground">(40-69% match)</div>
-                          </div>
-                          <div className="border rounded p-4 text-center">
-                            <div className="text-2xl font-bold text-red-600">
-                              {matchingStats.likelihood_breakdown?.low_likelihood_count || 0}
-                            </div>
-                            <div className="text-sm text-muted-foreground">Low Score Matches</div>
-                            <div className="text-xs text-muted-foreground">(Below 40% match)</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-sm text-muted-foreground">No matching data available for this buyer</div>
-                  )}
-                </div>
+                <MatchingStatsDisplay />
               </TabsContent>
             </Tabs>
           </div>
@@ -808,116 +906,4 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
       </DialogContent>
     </Dialog>
   );
-}
-
-// Helpers
-function csvField(form: any, name: keyof BuyBoxFormValues, label: string, placeholder?: string) {
-  return (
-    <FormField
-      control={form.control}
-      name={name as any}
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>{label}</FormLabel>
-          <FormControl>
-            <Input
-              value={(field.value || []).join(", ")}
-              onChange={(e) => field.onChange(csvToArray(e.target.value))}
-              placeholder={placeholder}
-            />
-          </FormControl>
-        </FormItem>
-      )}
-    />
-  );
-}
-
-function RangeFields({ form, minName, maxName, label, integer = false }: { form: any; minName: keyof BuyBoxFormValues; maxName: keyof BuyBoxFormValues; label: string; integer?: boolean; }) {
-  return (
-    <div className="space-y-2">
-      <Label>{label}</Label>
-      <div className="grid grid-cols-2 gap-2">
-        <FormField
-          control={form.control}
-          name={minName as any}
-          render={({ field }) => (
-            <FormItem>
-              <FormControl>
-                <Input type="number" value={field.value ?? ""} onChange={(e) => field.onChange(numOrNull(e.target.value, integer))} placeholder="Min" />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name={maxName as any}
-          render={({ field }) => (
-            <FormItem>
-              <FormControl>
-                <Input type="number" value={field.value ?? ""} onChange={(e) => field.onChange(numOrNull(e.target.value, integer))} placeholder="Max" />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-      </div>
-    </div>
-  );
-}
-
-function CheckboxGroup({ form, name, label, options }: { form: any; name: keyof BuyBoxFormValues; label: string; options: readonly string[]; }) {
-  return (
-    <FormField
-      control={form.control}
-      name={name as any}
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>{label}</FormLabel>
-          <div className="grid grid-cols-2 gap-2">
-            {options.map((opt) => {
-              // Ensure field.value is always treated as an array
-              const currentValue = Array.isArray(field.value) ? field.value : [];
-              const checked = currentValue.includes(opt);
-              
-              return (
-                <label key={opt} className="flex items-center gap-2 text-sm cursor-pointer">
-                  <Checkbox
-                    checked={checked}
-                    onCheckedChange={(isChecked) => {
-                      // Ensure we're always working with an array
-                      const currentArray = Array.isArray(field.value) ? field.value : [];
-                      const val = new Set<string>(currentArray);
-                      if (isChecked) val.add(opt); else val.delete(opt);
-                      field.onChange(Array.from(val));
-                    }}
-                  />
-                  <span>{opt}</span>
-                </label>
-              );
-            })}
-          </div>
-        </FormItem>
-      )}
-    />
-  );
-}
-
-function csvToArray(v: string): string[] {
-  return v
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
-}
-
-function numOrNull(v: string, integer = false): number | null {
-  if (v === "") return null;
-  const n = Number(v);
-  if (Number.isNaN(n)) return null;
-  return integer ? Math.trunc(n) : n;
-}
-
-function numberOrNull(v: any): number | null | undefined {
-  if (v === undefined) return undefined;
-  if (v === null) return null;
-  const n = Number(v);
-  return Number.isNaN(n) ? undefined : n;
 }
