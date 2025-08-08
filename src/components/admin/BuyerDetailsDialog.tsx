@@ -689,77 +689,113 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
                 </Form>
               </TabsContent>
 
-              {/* Match */}
+              {/* Match Score */}
               <TabsContent value="match" className="flex-1 overflow-y-auto">
                 <div className="space-y-6 p-1">
-                  {/* Check individual property match */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Check Property Match</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                      <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="match-property-id">Property ID</Label>
-                        <Input id="match-property-id" placeholder="Enter a property ID to check match" value={propertyIdForMatch} onChange={(e) => setPropertyIdForMatch(e.target.value)} />
+                  <h3 className="text-lg font-semibold">Buyer Matching Results</h3>
+                  {loadingMatchingStats ? (
+                    <div className="text-sm text-muted-foreground">Loading matching results...</div>
+                  ) : matchingStats ? (
+                    <div className="space-y-6">
+                      {/* Status */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="border rounded p-4">
+                          <h4 className="font-medium text-sm text-muted-foreground">Status</h4>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge variant={matchingStats.buybox_status?.is_active ? "default" : "secondary"}>
+                              {matchingStats.buybox_status?.is_active ? "Active" : "Inactive"}
+                            </Badge>
+                            {matchingStats.buybox_status?.is_blacklisted && (
+                              <Badge variant="destructive">Blacklisted</Badge>
+                            )}
+                          </div>
+                        </div>
+                        <div className="border rounded p-4">
+                          <h4 className="font-medium text-sm text-muted-foreground">Asset Type</h4>
+                          <p className="text-lg font-semibold mt-1 capitalize">
+                            {matchingStats.buybox_status?.asset_type || "Not Set"}
+                          </p>
+                        </div>
+                        <div className="border rounded p-4">
+                          <h4 className="font-medium text-sm text-muted-foreground">Match Rate (Last 30 Days)</h4>
+                          <p className="text-lg font-semibold mt-1">
+                            {matchingStats.recent_performance?.match_rate_percentage?.toFixed(1) || 0}%
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex md:justify-end">
-                        <Button onClick={checkMatch} disabled={!propertyIdForMatch || checkingMatch}>{checkingMatch ? "Checking..." : "Check Match"}</Button>
+
+                      {/* Performance Stats */}
+                      <div>
+                        <h4 className="font-medium text-base mb-3">Performance Overview</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="border rounded p-4">
+                            <h5 className="font-medium text-sm text-muted-foreground">Recent Performance (30 Days)</h5>
+                            <div className="space-y-2 mt-2">
+                              <div className="flex justify-between">
+                                <span className="text-sm">Total Properties:</span>
+                                <span className="font-medium">{matchingStats.recent_performance?.total_properties_last_30_days || 0}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-sm">Total Matches:</span>
+                                <span className="font-medium">{matchingStats.recent_performance?.total_matches_last_30_days || 0}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-sm">Avg Score:</span>
+                                <span className="font-medium">{matchingStats.recent_performance?.avg_match_score?.toFixed(1) || 0}%</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="border rounded p-4">
+                            <h5 className="font-medium text-sm text-muted-foreground">All Time Performance</h5>
+                            <div className="space-y-2 mt-2">
+                              <div className="flex justify-between">
+                                <span className="text-sm">Total Properties:</span>
+                                <span className="font-medium">{matchingStats.all_time_performance?.total_properties || 0}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-sm">Total Matches:</span>
+                                <span className="font-medium">{matchingStats.all_time_performance?.total_matches || 0}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-sm">Avg Score:</span>
+                                <span className="font-medium">{matchingStats.all_time_performance?.avg_match_score?.toFixed(1) || 0}%</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Match Quality Breakdown */}
+                      <div>
+                        <h4 className="font-medium text-base mb-3">Match Quality Breakdown</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="border rounded p-4 text-center">
+                            <div className="text-2xl font-bold text-green-600">
+                              {matchingStats.likelihood_breakdown?.high_likelihood_count || 0}
+                            </div>
+                            <div className="text-sm text-muted-foreground">High Score Matches</div>
+                            <div className="text-xs text-muted-foreground">(70%+ match)</div>
+                          </div>
+                          <div className="border rounded p-4 text-center">
+                            <div className="text-2xl font-bold text-yellow-600">
+                              {matchingStats.likelihood_breakdown?.medium_likelihood_count || 0}
+                            </div>
+                            <div className="text-sm text-muted-foreground">Medium Score Matches</div>
+                            <div className="text-xs text-muted-foreground">(40-69% match)</div>
+                          </div>
+                          <div className="border rounded p-4 text-center">
+                            <div className="text-2xl font-bold text-red-600">
+                              {matchingStats.likelihood_breakdown?.low_likelihood_count || 0}
+                            </div>
+                            <div className="text-sm text-muted-foreground">Low Score Matches</div>
+                            <div className="text-xs text-muted-foreground">(Below 40% match)</div>
+                          </div>
+                        </div>
                       </div>
                     </div>
-
-                    {matchScore != null && (
-                      <div className="flex items-center gap-3">
-                        <Badge className="bg-secondary text-foreground">Score: {matchScore}</Badge>
-                        {likelihood && <Badge className={likelihood.color}>Likelihood: {likelihood.label}</Badge>}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Buyer matching stats */}
-                  <div className="space-y-4 border-t pt-6">
-                    <h3 className="text-lg font-semibold">Buyer Matching Stats</h3>
-                    {loadingMatchingStats ? (
-                      <div className="text-center py-4">Loading matching statistics...</div>
-                    ) : matchingStats ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {/* Stats cards */}
-                        {matchingStats.total_properties && (
-                          <div className="bg-card p-4 rounded-lg border">
-                            <div className="text-2xl font-bold text-primary">{matchingStats.total_properties}</div>
-                            <div className="text-sm text-muted-foreground">Total Properties Matched</div>
-                          </div>
-                        )}
-                        {matchingStats.average_score !== undefined && (
-                          <div className="bg-card p-4 rounded-lg border">
-                            <div className="text-2xl font-bold text-primary">{matchingStats.average_score.toFixed(1)}%</div>
-                            <div className="text-sm text-muted-foreground">Average Match Score</div>
-                          </div>
-                        )}
-                        {matchingStats.high_score_count !== undefined && (
-                          <div className="bg-card p-4 rounded-lg border">
-                            <div className="text-2xl font-bold text-green-600">{matchingStats.high_score_count}</div>
-                            <div className="text-sm text-muted-foreground">High Score Matches (70%+)</div>
-                          </div>
-                        )}
-                        {matchingStats.medium_score_count !== undefined && (
-                          <div className="bg-card p-4 rounded-lg border">
-                            <div className="text-2xl font-bold text-yellow-600">{matchingStats.medium_score_count}</div>
-                            <div className="text-sm text-muted-foreground">Medium Score Matches (40-69%)</div>
-                          </div>
-                        )}
-                        {matchingStats.low_score_count !== undefined && (
-                          <div className="bg-card p-4 rounded-lg border">
-                            <div className="text-2xl font-bold text-red-600">{matchingStats.low_score_count}</div>
-                            <div className="text-sm text-muted-foreground">Low Score Matches (&lt;40%)</div>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="text-center py-4 text-muted-foreground">
-                        No matching statistics available. Make sure the buyer has buy box criteria set up.
-                      </div>
-                    )}
-                  </div>
-
-                  <p className="text-sm text-muted-foreground border-t pt-4">Match results are private to admins and calculated based on buy box criteria.</p>
+                  ) : (
+                    <div className="text-sm text-muted-foreground">No matching data available for this buyer</div>
+                  )}
                 </div>
               </TabsContent>
             </Tabs>
