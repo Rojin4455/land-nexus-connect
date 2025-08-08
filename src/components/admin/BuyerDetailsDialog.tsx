@@ -265,7 +265,7 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
       setSavingBuyBox(true);
       // Normalize keys to snake_case to be backend friendly
       const payload: any = {
-        asset_type: values.assetType,
+        asset_type: values.assetType.toLowerCase(),
         active_buyer: values.activeBuyer,
         blacklist_status: values.blacklistStatus,
         cities: values.cities,
@@ -631,13 +631,18 @@ function CheckboxGroup({ form, name, label, options }: { form: any; name: keyof 
           <FormLabel>{label}</FormLabel>
           <div className="grid grid-cols-2 gap-2">
             {options.map((opt) => {
-              const checked = Array.isArray(field.value) && field.value.includes(opt);
+              // Ensure field.value is always treated as an array
+              const currentValue = Array.isArray(field.value) ? field.value : [];
+              const checked = currentValue.includes(opt);
+              
               return (
                 <label key={opt} className="flex items-center gap-2 text-sm cursor-pointer">
                   <Checkbox
                     checked={checked}
                     onCheckedChange={(isChecked) => {
-                      const val = new Set<string>(field.value || []);
+                      // Ensure we're always working with an array
+                      const currentArray = Array.isArray(field.value) ? field.value : [];
+                      const val = new Set<string>(currentArray);
                       if (isChecked) val.add(opt); else val.delete(opt);
                       field.onChange(Array.from(val));
                     }}
