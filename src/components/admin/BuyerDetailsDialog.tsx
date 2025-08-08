@@ -863,8 +863,8 @@ const onSubmit = async (values: BuyBoxFormValues) => {
               </TabsContent>
 
               {/* Match Score */}
-              <TabsContent value="match" className="flex-1 overflow-y-auto mt-0">
-                <div className="space-y-4 p-1">
+              <TabsContent value="match" className="flex-1 overflow-y-auto p-0 h-full">
+                <div className="h-full">
                   <MatchingStatsDisplay />
                 </div>
               </TabsContent>
