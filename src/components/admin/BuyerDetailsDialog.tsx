@@ -499,7 +499,7 @@ const onSubmit = async (values: BuyBoxFormValues) => {
   );
 
   const MatchingStatsDisplay = () => (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 h-full">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Buyer Matching Results</h3>
         <Button 
@@ -864,7 +864,9 @@ const onSubmit = async (values: BuyBoxFormValues) => {
 
               {/* Match Score */}
               <TabsContent value="match" className="flex-1 overflow-y-auto">
-                <MatchingStatsDisplay />
+                <div className="p-1">
+                  <MatchingStatsDisplay />
+                </div>
               </TabsContent>
             </Tabs>
           </div>
