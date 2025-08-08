@@ -463,7 +463,7 @@ export const landDealsApi = {
 
     // Buy Box endpoints
     getBuyerBuyBox: async (buyerId: string): Promise<ApiResponse<any>> => {
-      const response = await api.get(`/buyers/${buyerId}/buy-box/view/`);
+      const response = await api.get(`/buyers/${buyerId}/buy-box/`);
       return { success: true, data: response.data };
     },
     updateBuyerBuyBox: async (buyerId: string, data: any): Promise<ApiResponse<any>> => {

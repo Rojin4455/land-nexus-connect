@@ -17,7 +17,11 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { landDealsApi } from "@/services/landDealsApi";
 
 // Options (can be later fetched from API if available)
-const assetTypeOptions = ["Land", "Houses", "Both"] as const;
+const assetTypeOptions = [
+  { label: "Land", value: "land" as const },
+  { label: "Houses", value: "houses" as const },
+  { label: "Both", value: "both" as const },
+];
 const yesNoOptions = [
   { label: "Yes", value: true },
   { label: "No", value: false },
@@ -117,7 +121,7 @@ const propertyCharacteristicsOptions = [
 ] as const;
 
 const BuyBoxSchema = z.object({
-  assetType: z.enum(["Land", "Houses", "Both"]).default("Both"),
+  assetType: z.enum(["land", "houses", "both"]).default("both"),
   activeBuyer: z.boolean().default(true),
   blacklistStatus: z.boolean().default(false),
 
@@ -176,7 +180,7 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
   const form = useForm<BuyBoxFormValues>({
     resolver: zodResolver(BuyBoxSchema),
     defaultValues: {
-      assetType: "Both",
+      assetType: "both",
       activeBuyer: true,
       blacklistStatus: false,
       cities: [],
@@ -212,6 +216,13 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
   // Watch the asset type to conditionally show/hide fields
   const assetType = form.watch("assetType");
 
+  function mapAssetType(value: any): "land" | "houses" | "both" {
+  if (!value) return "both";
+  const str = String(value).toLowerCase();
+  if (str === "land") return "land";
+  if (str === "houses") return "houses";
+  return "both";
+}
   // Load existing buy box when dialog opens
   useEffect(() => {
     async function loadBuyBox() {
@@ -235,13 +246,13 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
           if (hasExistingData) {
             // Map API fields to form fields safely
             const mapped: Partial<BuyBoxFormValues> = {
-              assetType: (data.assetType || data.asset_type || "Both") as any,
+              assetType: mapAssetType(data.assetType || data.asset_type) || "both",
               activeBuyer: Boolean(data.activeBuyer ?? data.active_buyer ?? true),
               blacklistStatus: Boolean(data.blacklistStatus ?? data.blacklist_status ?? false),
-              cities: data.cities || [],
-              counties: data.counties || [],
-              states: data.states || [],
-              zips: data.zips || [],
+              cities: data.preferred_cities || [],
+              counties: data.preferred_counties || [],
+              states: data.preferred_states || [],
+              zips: data.preferred_zip_codes || [],
               radiusMiles: data.radiusMiles ?? data.radius_miles ?? undefined,
               strategiesHouses: data.strategiesHouses || data.strategies_houses || [],
               strategiesLand: data.strategiesLand || data.strategies_land || [],
@@ -270,7 +281,7 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
           } else {
             // Reset to empty defaults for new buyer or buyer with no saved criteria
             form.reset({
-              assetType: "Both",
+              assetType: "both",
               activeBuyer: true,
               blacklistStatus: false,
               cities: [],
@@ -305,7 +316,7 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
         } else {
           // No buy box data found - reset to empty defaults
           form.reset({
-            assetType: "Both",
+            assetType: "both",
             activeBuyer: true,
             blacklistStatus: false,
             cities: [],
@@ -340,7 +351,7 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
       } catch (e) {
         // No buy box yet or error - reset to empty defaults
         form.reset({
-          assetType: "Both",
+          assetType: "both",
           activeBuyer: true,
           blacklistStatus: false,
           cities: [],
@@ -417,10 +428,10 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
         asset_type: values.assetType.toLowerCase(),
         active_buyer: values.activeBuyer,
         blacklist_status: values.blacklistStatus,
-        cities: values.cities,
-        counties: values.counties,
-        states: values.states,
-        zips: values.zips,
+        preferred_cities: values.cities,
+        preferred_counties: values.counties,
+        preferred_states: values.states,
+        preferred_zip_codes: values.zips,
         radius_miles: values.radiusMiles,
         strategies_houses: values.strategiesHouses,
         strategies_land: values.strategiesLand,
@@ -538,11 +549,11 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
                                 <div className="flex gap-2 flex-wrap">
                                   {assetTypeOptions.map((opt) => (
                                     <Badge
-                                      key={opt}
-                                      onClick={() => field.onChange(opt)}
-                                      className={`${field.value === opt ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"} cursor-pointer`}
+                                      key={opt.value}
+                                      onClick={() => field.onChange(opt.value)}
+                                      className={`${field.value === opt.value ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"} cursor-pointer`} // ✅ Compare values
                                     >
-                                      {opt}
+                                      {opt.label}
                                     </Badge>
                                   ))}
                                 </div>
@@ -610,7 +621,7 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
 
                         {/* Strategies and desired types */}
                         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          {(assetType === "Houses" || assetType === "Both") && (
+                          {(assetType === "houses" || assetType === "both") && (
                             <CheckboxGroup
                               form={form}
                               name="strategiesHouses"
@@ -618,7 +629,7 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
                               options={investmentStrategiesHouses}
                             />
                           )}
-                          {(assetType === "Land" || assetType === "Both") && (
+                          {(assetType === "land" || assetType === "both") && (
                             <CheckboxGroup
                               form={form}
                               name="strategiesLand"
@@ -626,7 +637,7 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
                               options={investmentStrategiesLand}
                             />
                           )}
-                          {(assetType === "Houses" || assetType === "Both") && (
+                          {(assetType === "houses" || assetType === "both") && (
                             <CheckboxGroup
                               form={form}
                               name="desiredTypesHouses"
@@ -634,7 +645,7 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
                               options={desiredPropertyTypeHouses}
                             />
                           )}
-                          {(assetType === "Land" || assetType === "Both") && (
+                          {(assetType === "land" || assetType === "both") && (
                             <CheckboxGroup
                               form={form}
                               name="desiredTypesLand"
@@ -647,29 +658,29 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
                         {/* Ranges */}
                         <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <RangeFields form={form} minName="priceMin" maxName="priceMax" label="Purchase Price ($)" />
-                          {(assetType === "Land" || assetType === "Both") && (
+                          {(assetType === "land" || assetType === "both") && (
                             <RangeFields form={form} minName="lotSizeMin" maxName="lotSizeMax" label="Lot Size (acres) – Land only" />
                           )}
-                          {(assetType === "Houses" || assetType === "Both") && (
+                          {(assetType === "houses" || assetType === "both") && (
                             <RangeFields form={form} minName="livingAreaMin" maxName="livingAreaMax" label="Living Area (SqFt) – Houses" />
                           )}
-                          {(assetType === "Houses" || assetType === "Both") && (
+                          {(assetType === "houses" || assetType === "both") && (
                             <RangeFields form={form} minName="yearBuiltMin" maxName="yearBuiltMax" label="Year Built – Houses" />
                           )}
-                          {(assetType === "Houses" || assetType === "Both") && (
+                          {(assetType === "houses" || assetType === "both") && (
                             <RangeFields form={form} minName="bedsMin" maxName="bedsMax" label="Bedrooms – Houses" integer />
                           )}
-                          {(assetType === "Houses" || assetType === "Both") && (
+                          {(assetType === "houses" || assetType === "both") && (
                             <RangeFields form={form} minName="bathsMin" maxName="bathsMax" label="Bathrooms – Houses" />
                           )}
                         </section>
 
                         {/* Rehab & requirements */}
                         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          {(assetType === "Houses" || assetType === "Both") && (
+                          {(assetType === "houses" || assetType === "both") && (
                             <CheckboxGroup form={form} name="restrictedRehabTypes" label="Restricted Rehab Types" options={restrictedRehabTypes} />
                           )}
-                          {(assetType === "Houses" || assetType === "Both") && (
+                          {(assetType === "houses" || assetType === "both") && (
                             <CheckboxGroup form={form} name="specialtyRehabAvoidance" label="Specialty Rehab Avoidance" options={specialtyRehabAvoidance} />
                           )}
                           <CheckboxGroup form={form} name="strictRequirements" label="Strict Requirements" options={strictRequirementOptions} />
