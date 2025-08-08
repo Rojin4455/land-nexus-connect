@@ -209,6 +209,9 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
     },
   });
 
+  // Watch the asset type to conditionally show/hide fields
+  const assetType = form.watch("assetType");
+
   // Load existing buy box when dialog opens
   useEffect(() => {
     async function loadBuyBox() {
@@ -607,46 +610,68 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
 
                         {/* Strategies and desired types */}
                         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <CheckboxGroup
-                            form={form}
-                            name="strategiesHouses"
-                            label="Investment Strategy (Houses)"
-                            options={investmentStrategiesHouses}
-                          />
-                          <CheckboxGroup
-                            form={form}
-                            name="strategiesLand"
-                            label="Investment Strategy (Land)"
-                            options={investmentStrategiesLand}
-                          />
-                          <CheckboxGroup
-                            form={form}
-                            name="desiredTypesHouses"
-                            label="Desired Property Type (Houses)"
-                            options={desiredPropertyTypeHouses}
-                          />
-                          <CheckboxGroup
-                            form={form}
-                            name="desiredTypesLand"
-                            label="Desired Property Type (Land)"
-                            options={desiredPropertyTypeLand}
-                          />
+                          {(assetType === "Houses" || assetType === "Both") && (
+                            <CheckboxGroup
+                              form={form}
+                              name="strategiesHouses"
+                              label="Investment Strategy (Houses)"
+                              options={investmentStrategiesHouses}
+                            />
+                          )}
+                          {(assetType === "Land" || assetType === "Both") && (
+                            <CheckboxGroup
+                              form={form}
+                              name="strategiesLand"
+                              label="Investment Strategy (Land)"
+                              options={investmentStrategiesLand}
+                            />
+                          )}
+                          {(assetType === "Houses" || assetType === "Both") && (
+                            <CheckboxGroup
+                              form={form}
+                              name="desiredTypesHouses"
+                              label="Desired Property Type (Houses)"
+                              options={desiredPropertyTypeHouses}
+                            />
+                          )}
+                          {(assetType === "Land" || assetType === "Both") && (
+                            <CheckboxGroup
+                              form={form}
+                              name="desiredTypesLand"
+                              label="Desired Property Type (Land)"
+                              options={desiredPropertyTypeLand}
+                            />
+                          )}
                         </section>
 
                         {/* Ranges */}
                         <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <RangeFields form={form} minName="priceMin" maxName="priceMax" label="Purchase Price ($)" />
-                          <RangeFields form={form} minName="lotSizeMin" maxName="lotSizeMax" label="Lot Size (acres) – Land only" />
-                          <RangeFields form={form} minName="livingAreaMin" maxName="livingAreaMax" label="Living Area (SqFt) – Houses" />
-                          <RangeFields form={form} minName="yearBuiltMin" maxName="yearBuiltMax" label="Year Built – Houses" />
-                          <RangeFields form={form} minName="bedsMin" maxName="bedsMax" label="Bedrooms – Houses" integer />
-                          <RangeFields form={form} minName="bathsMin" maxName="bathsMax" label="Bathrooms – Houses" />
+                          {(assetType === "Land" || assetType === "Both") && (
+                            <RangeFields form={form} minName="lotSizeMin" maxName="lotSizeMax" label="Lot Size (acres) – Land only" />
+                          )}
+                          {(assetType === "Houses" || assetType === "Both") && (
+                            <RangeFields form={form} minName="livingAreaMin" maxName="livingAreaMax" label="Living Area (SqFt) – Houses" />
+                          )}
+                          {(assetType === "Houses" || assetType === "Both") && (
+                            <RangeFields form={form} minName="yearBuiltMin" maxName="yearBuiltMax" label="Year Built – Houses" />
+                          )}
+                          {(assetType === "Houses" || assetType === "Both") && (
+                            <RangeFields form={form} minName="bedsMin" maxName="bedsMax" label="Bedrooms – Houses" integer />
+                          )}
+                          {(assetType === "Houses" || assetType === "Both") && (
+                            <RangeFields form={form} minName="bathsMin" maxName="bathsMax" label="Bathrooms – Houses" />
+                          )}
                         </section>
 
                         {/* Rehab & requirements */}
                         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <CheckboxGroup form={form} name="restrictedRehabTypes" label="Restricted Rehab Types" options={restrictedRehabTypes} />
-                          <CheckboxGroup form={form} name="specialtyRehabAvoidance" label="Specialty Rehab Avoidance" options={specialtyRehabAvoidance} />
+                          {(assetType === "Houses" || assetType === "Both") && (
+                            <CheckboxGroup form={form} name="restrictedRehabTypes" label="Restricted Rehab Types" options={restrictedRehabTypes} />
+                          )}
+                          {(assetType === "Houses" || assetType === "Both") && (
+                            <CheckboxGroup form={form} name="specialtyRehabAvoidance" label="Specialty Rehab Avoidance" options={specialtyRehabAvoidance} />
+                          )}
                           <CheckboxGroup form={form} name="strictRequirements" label="Strict Requirements" options={strictRequirementOptions} />
                           <CheckboxGroup form={form} name="locationCharacteristics" label="Location Characteristics" options={locationCharacteristicsOptions} />
                           <CheckboxGroup form={form} name="propertyCharacteristics" label="Property Characteristics" options={propertyCharacteristicsOptions} />
