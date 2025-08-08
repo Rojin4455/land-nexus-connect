@@ -216,6 +216,7 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
   // Watch the asset type to conditionally show/hide fields
   const assetType = form.watch("assetType");
 
+<<<<<<< HEAD
   function mapAssetType(value: any): "land" | "houses" | "both" {
   if (!value) return "both";
   const str = String(value).toLowerCase();
@@ -230,6 +231,16 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
       
       try {
         const res = await landDealsApi.admin.getBuyerBuyBox(String(buyer.id));
+=======
+  // Load existing buy box when tab is clicked
+  const [buyBoxLoaded, setBuyBoxLoaded] = useState(false);
+  
+  const loadBuyBox = async () => {
+    if (!buyer?.id || buyBoxLoaded) return;
+    
+    try {
+      const res = await landDealsApi.admin.getBuyerBuyBox(String(buyer.id));
+>>>>>>> 761c54db3f88c9db7bfbab59bed645bef9b27e52
         if (res?.success && res.data) {
           const data = res.data;
           // Only load data if the response contains actual saved criteria
@@ -315,6 +326,7 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
           }
         } else {
           // No buy box data found - reset to empty defaults
+<<<<<<< HEAD
           form.reset({
             assetType: "both",
             activeBuyer: true,
@@ -382,16 +394,68 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
           propertyCharacteristics: [],
           notes: "",
         });
+=======
+          resetFormToEmpty();
+        }
+      } catch (e) {
+        // No buy box yet or error - reset to empty defaults
+        resetFormToEmpty();
+      } finally {
+        setBuyBoxLoaded(true);
+>>>>>>> 761c54db3f88c9db7bfbab59bed645bef9b27e52
       }
-    }
-    
+    };
+
+  const resetFormToEmpty = () => {
+    form.reset({
+      assetType: "Both",
+      activeBuyer: true,
+      blacklistStatus: false,
+      cities: [],
+      counties: [],
+      states: [],
+      zips: [],
+      radiusMiles: undefined,
+      strategiesHouses: [],
+      strategiesLand: [],
+      desiredTypesHouses: [],
+      desiredTypesLand: [],
+      priceMin: undefined,
+      priceMax: undefined,
+      lotSizeMin: undefined,
+      lotSizeMax: undefined,
+      bedsMin: undefined,
+      bedsMax: undefined,
+      bathsMin: undefined,
+      bathsMax: undefined,
+      livingAreaMin: undefined,
+      livingAreaMax: undefined,
+      yearBuiltMin: undefined,
+      yearBuiltMax: undefined,
+      restrictedRehabTypes: [],
+      specialtyRehabAvoidance: [],
+      strictRequirements: [],
+      locationCharacteristics: [],
+      propertyCharacteristics: [],
+      notes: "",
+    });
+  };
+
+  // Reset buy box loaded state when dialog opens
+  useEffect(() => {
     if (open) {
+      setBuyBoxLoaded(false);
       setMatchScore(null);
       setPropertyIdForMatch("");
+    }
+  }, [open, buyer?.id]);
+
+  // Handle tab change to load buy box data when clicking the tab
+  const handleTabChange = (value: string) => {
+    if (value === "buybox" && !buyBoxLoaded) {
       loadBuyBox();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, buyer?.id]);
+  };
 
   const likelihood = useMemo(() => {
     if (matchScore == null) return null;
@@ -501,7 +565,7 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
           <div className="text-muted-foreground">No buyer selected.</div>
         ) : (
           <div className="flex flex-col flex-1 min-h-0">
-            <Tabs defaultValue="info" className="w-full flex flex-col flex-1 min-h-0">
+            <Tabs defaultValue="info" className="w-full flex flex-col flex-1 min-h-0" onValueChange={handleTabChange}>
               <TabsList className="mb-4 flex-shrink-0">
                 <TabsTrigger value="info">Buyer Info</TabsTrigger>
                 <TabsTrigger value="buybox">Buy Box Filters</TabsTrigger>
