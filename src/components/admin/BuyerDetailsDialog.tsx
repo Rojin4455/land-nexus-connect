@@ -14,7 +14,6 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "@/hooks/use-toast";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { getBuyerMatchingStats } from "@/services/landDealsApi";
 import { landDealsApi } from "@/services/landDealsApi";
 
 // Consolidated constants and schemas
@@ -280,8 +279,20 @@ const loadBuyBox = async () => {
     
     try {
       updateState({ loadingMatchingStats: true });
-      const data = await getBuyerMatchingStats(buyer.id);
-      updateState({ matchingStats: data });
+      const res = await landDealsApi.admin.getBuyerMatchingStats(String(buyer.id));
+      
+      if (res?.success && res.data) {
+        updateState({ matchingStats: res.data });
+      } else if (res?.data) {
+        updateState({ matchingStats: res.data });
+      } else {
+        updateState({ matchingStats: null });
+        toast({ 
+          title: "No matching data available", 
+          description: "This buyer doesn't have any matching statistics yet.",
+          variant: "default" 
+        });
+      }
     } catch (e: any) {
       updateState({ matchingStats: null });
       toast({ 
@@ -488,53 +499,144 @@ const onSubmit = async (values: BuyBoxFormValues) => {
   );
 
   const MatchingStatsDisplay = () => (
-    <div className="space-y-6 p-6 h-full">
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Property Match Checker</h3>
-        <p className="text-sm text-muted-foreground">
-          Enter a property ID to check this buyer's match score for that specific property.
-        </p>
-        
-        <div className="flex gap-3">
-          <Input
-            value={state.propertyIdForMatch}
-            onChange={(e) => updateState({ propertyIdForMatch: e.target.value })}
-            placeholder="Enter Property ID"
-            className="flex-1"
-          />
-          <Button onClick={checkMatch} disabled={state.checkingMatch || !state.propertyIdForMatch.trim()}>
-            {state.checkingMatch ? "Checking..." : "Check Match"}
-          </Button>
-        </div>
+    <div className="space-y-6 p-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Buyer Matching Results</h3>
+        <Button 
+          onClick={loadMatchingStats} 
+          disabled={state.loadingMatchingStats}
+          variant="outline"
+          size="sm"
+        >
+          {state.loadingMatchingStats ? "Loading..." : "Refresh"}
+        </Button>
+      </div>
 
-        {state.matchScore !== null && (
-          <div className="border rounded-lg p-6 bg-card">
-            <div className="text-center space-y-4">
-              <div>
-                <div className="text-4xl font-bold mb-2">
-                  {state.matchScore}%
-                </div>
-                <div className="text-sm text-muted-foreground mb-3">Match Score</div>
-                {likelihood && (
-                  <Badge className={likelihood.color}>
-                    {likelihood.label} Likelihood
-                  </Badge>
+      {state.loadingMatchingStats ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-sm text-muted-foreground">Loading matching results...</div>
+        </div>
+      ) : state.matchingStats ? (
+        <div className="space-y-8">
+          {/* Status Section */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="border rounded-lg p-4 bg-card">
+              <h4 className="font-medium text-sm text-muted-foreground mb-2">Status</h4>
+              <div className="flex items-center gap-2">
+                <Badge variant={state.matchingStats.buybox_status?.is_active ? "default" : "secondary"}>
+                  {state.matchingStats.buybox_status?.is_active ? "Active" : "Inactive"}
+                </Badge>
+                {state.matchingStats.buybox_status?.is_blacklisted && (
+                  <Badge variant="destructive">Blacklisted</Badge>
                 )}
               </div>
-              <div className="text-xs text-muted-foreground">
-                For Property ID: {state.propertyIdForMatch}
+            </div>
+            <div className="border rounded-lg p-4 bg-card">
+              <h4 className="font-medium text-sm text-muted-foreground mb-2">Asset Type</h4>
+              <p className="text-lg font-semibold capitalize">
+                {state.matchingStats.buybox_status?.asset_type || "Not Set"}
+              </p>
+            </div>
+            <div className="border rounded-lg p-4 bg-card">
+              <h4 className="font-medium text-sm text-muted-foreground mb-2">Match Rate (Last 30 Days)</h4>
+              <p className="text-lg font-semibold">
+                {state.matchingStats.recent_performance?.match_rate_percentage !== undefined 
+                  ? `${Number(state.matchingStats.recent_performance.match_rate_percentage).toFixed(1)}%`
+                  : "0%"
+                }
+              </p>
+            </div>
+          </div>
+
+          {/* Performance Overview */}
+          <div>
+            <h4 className="font-medium text-lg mb-4">Performance Overview</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="border rounded-lg p-6 bg-card">
+                <h5 className="font-semibold text-sm text-muted-foreground mb-4">Recent Performance (30 Days)</h5>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Total Properties:</span>
+                    <span className="font-semibold text-lg">{state.matchingStats.recent_performance?.total_properties_last_30_days || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Total Matches:</span>
+                    <span className="font-semibold text-lg">{state.matchingStats.recent_performance?.total_matches_last_30_days || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Avg Score:</span>
+                    <span className="font-semibold text-lg">
+                      {state.matchingStats.recent_performance?.avg_match_score !== undefined 
+                        ? `${Number(state.matchingStats.recent_performance.avg_match_score).toFixed(1)}%`
+                        : "0%"
+                      }
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className="border rounded-lg p-6 bg-card">
+                <h5 className="font-semibold text-sm text-muted-foreground mb-4">All Time Performance</h5>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Total Properties:</span>
+                    <span className="font-semibold text-lg">{state.matchingStats.all_time_performance?.total_properties || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Total Matches:</span>
+                    <span className="font-semibold text-lg">{state.matchingStats.all_time_performance?.total_matches || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Avg Score:</span>
+                    <span className="font-semibold text-lg">
+                      {state.matchingStats.all_time_performance?.avg_match_score !== undefined 
+                        ? `${Number(state.matchingStats.all_time_performance.avg_match_score).toFixed(1)}%`
+                        : "0%"
+                      }
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        )}
-        
-        <div className="text-xs text-muted-foreground border-t pt-4">
-          <p className="mb-2"><strong>Match Score Ranges:</strong></p>
-          <p>• <span className="text-green-600">High (70%+)</span>: Excellent match for buyer criteria</p>
-          <p>• <span className="text-yellow-600">Medium (40-69%)</span>: Good potential match</p>
-          <p>• <span className="text-red-600">Low (&lt;40%)</span>: Poor match for buyer criteria</p>
+
+          {/* Match Quality Breakdown */}
+          <div>
+            <h4 className="font-medium text-lg mb-4">Match Quality Breakdown</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="border rounded-lg p-6 text-center bg-card">
+                <div className="text-3xl font-bold text-green-600 mb-2">
+                  {state.matchingStats.likelihood_breakdown?.high_likelihood_count || 0}
+                </div>
+                <div className="text-sm font-medium text-muted-foreground">High Score Matches</div>
+                <div className="text-xs text-muted-foreground mt-1">(70%+ match)</div>
+              </div>
+              <div className="border rounded-lg p-6 text-center bg-card">
+                <div className="text-3xl font-bold text-yellow-600 mb-2">
+                  {state.matchingStats.likelihood_breakdown?.medium_likelihood_count || 0}
+                </div>
+                <div className="text-sm font-medium text-muted-foreground">Medium Score Matches</div>
+                <div className="text-xs text-muted-foreground mt-1">(40-69% match)</div>
+              </div>
+              <div className="border rounded-lg p-6 text-center bg-card">
+                <div className="text-3xl font-bold text-red-600 mb-2">
+                  {state.matchingStats.likelihood_breakdown?.low_likelihood_count || 0}
+                </div>
+                <div className="text-sm font-medium text-muted-foreground">Low Score Matches</div>
+                <div className="text-xs text-muted-foreground mt-1">(Below 40% match)</div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <div className="text-sm text-muted-foreground mb-4">
+            No matching data available for this buyer
+          </div>
+          <Button onClick={loadMatchingStats} disabled={state.loadingMatchingStats}>
+            {state.loadingMatchingStats ? "Loading..." : "Load Matching Stats"}
+          </Button>
+        </div>
+      )}
     </div>
   );
 
