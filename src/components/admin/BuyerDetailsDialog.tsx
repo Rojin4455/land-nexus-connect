@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "@/hooks/use-toast";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { getBuyerMatchingStats } from "@/services/landDealsApi";
 import { landDealsApi } from "@/services/landDealsApi";
 
 // Consolidated constants and schemas
@@ -279,14 +280,8 @@ const loadBuyBox = async () => {
     
     try {
       updateState({ loadingMatchingStats: true });
-      // Note: Using property matching endpoint since buyer-specific stats endpoint was removed
-      // This function now serves as a placeholder for future implementation
-      updateState({ matchingStats: null });
-      toast({ 
-        title: "Matching functionality updated", 
-        description: "Use the property ID search below to check buyer matches for specific properties.",
-        variant: "default" 
-      });
+      const data = await getBuyerMatchingStats(buyer.id);
+      updateState({ matchingStats: data });
     } catch (e: any) {
       updateState({ matchingStats: null });
       toast({ 

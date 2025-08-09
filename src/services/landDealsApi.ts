@@ -517,6 +517,11 @@ export const landDealsApi = {
 };
 
 // Error handling utility
+export const getBuyerMatchingStats = async (buyerId: number): Promise<any> => {
+  const response = await api.get(`/buyers/${buyerId}/matching-stats/`);
+  return response.data;
+};
+
 export const handleApiError = (error: any): string => {
   if (error.response?.data?.message) {
     return error.response.data.message;
