@@ -477,11 +477,7 @@ export const landDealsApi = {
       return { success: true, data: response.data };
     },
 
-    // Get buyer matching stats
-    getBuyerMatchingStats: async (buyerId: string): Promise<ApiResponse<any>> => {
-      const response = await api.get(`/buyers/${buyerId}/matching-stats/`);
-      return { success: true, data: response.data };
-    },
+    // Get buyer matching stats (removed - endpoint no longer exists)
   },
 
   // Conversation functions
