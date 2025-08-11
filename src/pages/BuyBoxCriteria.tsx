@@ -14,7 +14,7 @@ const BuyBoxCriteria = () => {
     queryFn: getPublicBuyBoxCriteria,
   });
 
-  const criteriaArray = Array.isArray(criteria) ? criteria : [];
+  const criteriaArray = (criteria as any)?.buy_box_criteria || [];
 
   if (isLoading) {
     return (
@@ -88,59 +88,88 @@ const BuyBoxCriteria = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Home className="h-5 w-5 text-primary" />
-                    {criterion.buyer_name || `Buyer ${criterion.buyer}`}
+                    {criterion.asset_type || 'Mixed'} Buyer #{criterion.id}
                   </CardTitle>
                   <CardDescription>
-                    Active since {new Date(criterion.created_at).toLocaleDateString()}
+                    Updated {new Date(criterion.criteria_updated).toLocaleDateString()}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  {/* Asset Type */}
+                  {criterion.asset_type && (
+                    <div className="flex items-start gap-2">
+                      <Home className="h-4 w-4 text-muted-foreground mt-0.5" />
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">Asset Type</p>
+                        <p className="text-sm text-muted-foreground">
+                          {criterion.asset_type}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Location */}
-                  {(criterion.state || criterion.county || criterion.city) && (
+                  {(criterion.location_preferences?.states?.length > 0 || 
+                    criterion.location_preferences?.counties?.length > 0 || 
+                    criterion.location_preferences?.cities?.length > 0) && (
                     <div className="flex items-start gap-2">
                       <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
                       <div className="flex-1">
-                        <p className="font-medium text-sm">Location</p>
-                        <p className="text-sm text-muted-foreground">
-                          {[criterion.city, criterion.county, criterion.state].filter(Boolean).join(', ') || 'Any location'}
-                        </p>
+                        <p className="font-medium text-sm">Location Preferences</p>
+                        <div className="text-sm text-muted-foreground space-y-1">
+                          {criterion.location_preferences?.cities?.length > 0 && (
+                            <p>Cities: {criterion.location_preferences.cities.slice(0, 3).join(', ')}{criterion.location_preferences.cities.length > 3 && ` +${criterion.location_preferences.cities.length - 3} more`}</p>
+                          )}
+                          {criterion.location_preferences?.counties?.length > 0 && (
+                            <p>Counties: {criterion.location_preferences.counties.slice(0, 2).join(', ')}{criterion.location_preferences.counties.length > 2 && ` +${criterion.location_preferences.counties.length - 2} more`}</p>
+                          )}
+                          {criterion.location_preferences?.states?.length > 0 && (
+                            <p>States: {criterion.location_preferences.states.join(', ')}</p>
+                          )}
+                        </div>
                       </div>
                     </div>
                   )}
 
                   {/* Price Range */}
-                  {(criterion.min_price || criterion.max_price) && (
+                  {(criterion.price_range?.min || criterion.price_range?.max) && (
                     <div className="flex items-start gap-2">
                       <DollarSign className="h-4 w-4 text-muted-foreground mt-0.5" />
                       <div className="flex-1">
                         <p className="font-medium text-sm">Price Range</p>
                         <p className="text-sm text-muted-foreground">
-                          ${criterion.min_price?.toLocaleString() || '0'} - ${criterion.max_price?.toLocaleString() || 'No limit'}
+                          ${criterion.price_range?.min?.toLocaleString() || '0'} - ${criterion.price_range?.max?.toLocaleString() || 'No limit'}
                         </p>
                       </div>
                     </div>
                   )}
 
-                  {/* Acreage */}
-                  {(criterion.min_acreage || criterion.max_acreage) && (
+                  {/* Lot Size */}
+                  {(criterion.lot_size_range?.min || criterion.lot_size_range?.max) && (
                     <div className="flex items-start gap-2">
                       <Home className="h-4 w-4 text-muted-foreground mt-0.5" />
                       <div className="flex-1">
-                        <p className="font-medium text-sm">Acreage</p>
+                        <p className="font-medium text-sm">Lot Size</p>
                         <p className="text-sm text-muted-foreground">
-                          {criterion.min_acreage || '0'} - {criterion.max_acreage || 'No limit'} acres
+                          {criterion.lot_size_range?.min || '0'} - {criterion.lot_size_range?.max || 'No limit'} acres
                         </p>
                       </div>
                     </div>
                   )}
 
                   {/* Property Types */}
-                  {criterion.property_types && criterion.property_types.length > 0 && (
+                  {((criterion.property_types?.house_property_types?.length > 0) || 
+                    (criterion.property_types?.land_property_types?.length > 0)) && (
                     <div>
                       <p className="font-medium text-sm mb-2">Property Types</p>
                       <div className="flex flex-wrap gap-1">
-                        {criterion.property_types.map((type: string, index: number) => (
-                          <Badge key={index} variant="secondary" className="text-xs">
+                        {criterion.property_types?.house_property_types?.map((type: string, index: number) => (
+                          <Badge key={`house-${index}`} variant="secondary" className="text-xs">
+                            {type}
+                          </Badge>
+                        ))}
+                        {criterion.property_types?.land_property_types?.map((type: string, index: number) => (
+                          <Badge key={`land-${index}`} variant="outline" className="text-xs">
                             {type}
                           </Badge>
                         ))}
@@ -148,13 +177,23 @@ const BuyBoxCriteria = () => {
                     </div>
                   )}
 
-                  {/* Additional Info */}
-                  {criterion.additional_info && (
+                  {/* Investment Strategies */}
+                  {((criterion.investment_strategies?.house_strategies?.length > 0) || 
+                    (criterion.investment_strategies?.land_strategies?.length > 0)) && (
                     <div>
-                      <p className="font-medium text-sm mb-1">Additional Requirements</p>
-                      <p className="text-sm text-muted-foreground">
-                        {criterion.additional_info}
-                      </p>
+                      <p className="font-medium text-sm mb-2">Investment Strategies</p>
+                      <div className="flex flex-wrap gap-1">
+                        {criterion.investment_strategies?.house_strategies?.map((strategy: string, index: number) => (
+                          <Badge key={`house-strategy-${index}`} variant="secondary" className="text-xs">
+                            {strategy}
+                          </Badge>
+                        ))}
+                        {criterion.investment_strategies?.land_strategies?.map((strategy: string, index: number) => (
+                          <Badge key={`land-strategy-${index}`} variant="outline" className="text-xs">
+                            {strategy}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </CardContent>
