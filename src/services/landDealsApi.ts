@@ -520,6 +520,12 @@ export const landDealsApi = {
   },
 };
 
+// Public API functions for non-authenticated users
+export const getPublicBuyBoxCriteria = async (): Promise<Array<any>> => {
+  const response = await api.get('/public/buybox-criteria/');
+  return response.data;
+};
+
 // Error handling utility
 export const handleApiError = (error: any): string => {
   if (error.response?.data?.message) {

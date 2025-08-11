@@ -43,6 +43,7 @@ const DashboardLayout = ({ children, activeTab = 'dashboard' }) => {
   const navigationItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/dashboard' },
     { id: 'submit', label: 'Submit Deal', icon: Plus, path: '/submit-deal' },
+    { id: 'criteria', label: 'Buy Box Criteria', icon: FileText, path: '/criteria' },
     { id: 'profile', label: 'Profile', icon: User, path: '/profile' }
   ];
 
