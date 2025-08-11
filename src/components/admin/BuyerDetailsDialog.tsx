@@ -519,7 +519,7 @@ const onSubmit = async (values: BuyBoxFormValues) => {
       ) : state.matchingStats ? (
         <div className="space-y-8">
           {/* Buyer Profile & Status */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="border rounded-lg p-4 bg-card">
               <h4 className="font-medium text-sm text-muted-foreground mb-2">Status</h4>
               <div className="flex flex-col gap-2">
@@ -537,174 +537,7 @@ const onSubmit = async (values: BuyBoxFormValues) => {
                 {state.matchingStats.buybox_criteria?.asset_type || "Not Set"}
               </p>
             </div>
-            <div className="border rounded-lg p-4 bg-card">
-              <h4 className="font-medium text-sm text-muted-foreground mb-2">Price Range</h4>
-              <p className="text-sm font-medium">
-                {state.matchingStats.buybox_criteria?.price_range?.min && state.matchingStats.buybox_criteria?.price_range?.max 
-                  ? `$${state.matchingStats.buybox_criteria.price_range.min.toLocaleString()} - $${state.matchingStats.buybox_criteria.price_range.max.toLocaleString()}`
-                  : "Not Set"
-                }
-              </p>
-            </div>
-            <div className="border rounded-lg p-4 bg-card">
-              <h4 className="font-medium text-sm text-muted-foreground mb-2">Lot Size (Acres)</h4>
-              <p className="text-sm font-medium">
-                {state.matchingStats.buybox_criteria?.lot_size_acres?.min !== null && state.matchingStats.buybox_criteria?.lot_size_acres?.max !== null
-                  ? `${state.matchingStats.buybox_criteria.lot_size_acres.min} - ${state.matchingStats.buybox_criteria.lot_size_acres.max}`
-                  : "Not Set"
-                }
-              </p>
-            </div>
           </div>
-
-          {/* Location Preferences */}
-          {state.matchingStats.buybox_criteria?.location_preferences && (
-            <div className="border rounded-lg p-6 bg-card">
-              <h4 className="font-medium text-lg mb-4">Location Preferences</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {state.matchingStats.buybox_criteria.location_preferences.states?.length > 0 && (
-                  <div>
-                    <h5 className="font-medium text-sm text-muted-foreground mb-2">States</h5>
-                    <div className="flex flex-wrap gap-1">
-                      {state.matchingStats.buybox_criteria.location_preferences.states.map((state: string, idx: number) => (
-                        <Badge key={idx} variant="outline" className="text-xs">{state}</Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {state.matchingStats.buybox_criteria.location_preferences.counties?.length > 0 && (
-                  <div>
-                    <h5 className="font-medium text-sm text-muted-foreground mb-2">Counties</h5>
-                    <div className="flex flex-wrap gap-1">
-                      {state.matchingStats.buybox_criteria.location_preferences.counties.map((county: string, idx: number) => (
-                        <Badge key={idx} variant="outline" className="text-xs">{county}</Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {state.matchingStats.buybox_criteria.location_preferences.cities?.length > 0 && (
-                  <div>
-                    <h5 className="font-medium text-sm text-muted-foreground mb-2">Cities</h5>
-                    <div className="flex flex-wrap gap-1">
-                      {state.matchingStats.buybox_criteria.location_preferences.cities.map((city: string, idx: number) => (
-                        <Badge key={idx} variant="outline" className="text-xs">{city}</Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {state.matchingStats.buybox_criteria.location_preferences.zip_codes?.length > 0 && (
-                  <div>
-                    <h5 className="font-medium text-sm text-muted-foreground mb-2">Zip Codes</h5>
-                    <div className="flex flex-wrap gap-1">
-                      {state.matchingStats.buybox_criteria.location_preferences.zip_codes.map((zip: string, idx: number) => (
-                        <Badge key={idx} variant="outline" className="text-xs">{zip}</Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Property Types & Investment Strategies */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {state.matchingStats.buybox_criteria?.property_types && (
-              <div className="border rounded-lg p-6 bg-card">
-                <h4 className="font-medium text-lg mb-4">Property Types</h4>
-                <div className="space-y-3">
-                  {state.matchingStats.buybox_criteria.property_types.land_property_types?.length > 0 && (
-                    <div>
-                      <h5 className="font-medium text-sm text-muted-foreground mb-2">Land Types</h5>
-                      <div className="flex flex-wrap gap-1">
-                        {state.matchingStats.buybox_criteria.property_types.land_property_types.map((type: string, idx: number) => (
-                          <Badge key={idx} variant="secondary" className="text-xs">{type}</Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {state.matchingStats.buybox_criteria.property_types.house_property_types?.length > 0 && (
-                    <div>
-                      <h5 className="font-medium text-sm text-muted-foreground mb-2">House Types</h5>
-                      <div className="flex flex-wrap gap-1">
-                        {state.matchingStats.buybox_criteria.property_types.house_property_types.map((type: string, idx: number) => (
-                          <Badge key={idx} variant="secondary" className="text-xs">{type}</Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {state.matchingStats.buybox_criteria?.investment_strategies && (
-              <div className="border rounded-lg p-6 bg-card">
-                <h4 className="font-medium text-lg mb-4">Investment Strategies</h4>
-                <div className="space-y-3">
-                  {state.matchingStats.buybox_criteria.investment_strategies.land_strategies?.length > 0 && (
-                    <div>
-                      <h5 className="font-medium text-sm text-muted-foreground mb-2">Land Strategies</h5>
-                      <div className="flex flex-wrap gap-1">
-                        {state.matchingStats.buybox_criteria.investment_strategies.land_strategies.map((strategy: string, idx: number) => (
-                          <Badge key={idx} variant="secondary" className="text-xs">{strategy}</Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {state.matchingStats.buybox_criteria.investment_strategies.house_strategies?.length > 0 && (
-                    <div>
-                      <h5 className="font-medium text-sm text-muted-foreground mb-2">House Strategies</h5>
-                      <div className="flex flex-wrap gap-1">
-                        {state.matchingStats.buybox_criteria.investment_strategies.house_strategies.map((strategy: string, idx: number) => (
-                          <Badge key={idx} variant="secondary" className="text-xs">{strategy}</Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Requirements */}
-          {(state.matchingStats.buybox_criteria?.strict_requirements?.length > 0 || 
-            state.matchingStats.buybox_criteria?.location_characteristics?.length > 0 || 
-            state.matchingStats.buybox_criteria?.property_characteristics?.length > 0) && (
-            <div className="border rounded-lg p-6 bg-card">
-              <h4 className="font-medium text-lg mb-4">Requirements & Characteristics</h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {state.matchingStats.buybox_criteria.strict_requirements?.length > 0 && (
-                  <div>
-                    <h5 className="font-medium text-sm text-muted-foreground mb-2">Strict Requirements</h5>
-                    <div className="flex flex-wrap gap-1">
-                      {state.matchingStats.buybox_criteria.strict_requirements.map((req: string, idx: number) => (
-                        <Badge key={idx} variant="destructive" className="text-xs">{req}</Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {state.matchingStats.buybox_criteria.location_characteristics?.length > 0 && (
-                  <div>
-                    <h5 className="font-medium text-sm text-muted-foreground mb-2">Location Characteristics</h5>
-                    <div className="flex flex-wrap gap-1">
-                      {state.matchingStats.buybox_criteria.location_characteristics.map((char: string, idx: number) => (
-                        <Badge key={idx} variant="outline" className="text-xs">{char}</Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {state.matchingStats.buybox_criteria.property_characteristics?.length > 0 && (
-                  <div>
-                    <h5 className="font-medium text-sm text-muted-foreground mb-2">Property Characteristics</h5>
-                    <div className="flex flex-wrap gap-1">
-                      {state.matchingStats.buybox_criteria.property_characteristics.map((char: string, idx: number) => (
-                        <Badge key={idx} variant="outline" className="text-xs">{char}</Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
 
           {/* Performance Overview */}
           <div>
@@ -852,14 +685,6 @@ const onSubmit = async (values: BuyBoxFormValues) => {
                   </div>
                 </div>
               </div>
-            </div>
-          )}
-
-          {/* Notes */}
-          {state.matchingStats.buybox_criteria?.notes && (
-            <div className="border rounded-lg p-6 bg-card">
-              <h4 className="font-medium text-lg mb-3">Notes</h4>
-              <p className="text-sm text-muted-foreground">{state.matchingStats.buybox_criteria.notes}</p>
             </div>
           )}
         </div>
