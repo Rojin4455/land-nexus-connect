@@ -626,6 +626,44 @@ const onSubmit = async (values: BuyBoxFormValues) => {
               </div>
             </div>
           </div>
+
+          {/* Recent Matches */}
+          {state.matchingStats.matching_results?.recent_matches?.length > 0 && (
+            <div>
+              <h4 className="font-medium text-lg mb-4">Recent Matches</h4>
+              <div className="border rounded-lg overflow-hidden">
+                <div className="max-h-64 overflow-y-auto">
+                  <div className="grid gap-2 p-4">
+                    {state.matchingStats.matching_results.recent_matches.map((match: any) => (
+                      <div key={match.property_id} className="flex items-center justify-between p-3 border rounded-lg bg-card hover:bg-accent/50 transition-colors">
+                        <div className="flex-1 min-w-0">
+                          <h6 className="font-medium text-sm truncate">{match.display_name}</h6>
+                          <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                            <span>{match.land_type}</span>
+                            <span>{match.acreage} acres</span>
+                            <span>${match.asking_price?.toLocaleString()}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 flex-shrink-0">
+                          <Badge 
+                            variant={match.likelihood === 'High' ? 'default' : match.likelihood === 'Medium' ? 'secondary' : 'outline'}
+                            className={`text-xs ${
+                              match.likelihood === 'High' ? 'bg-green-100 text-green-800' : 
+                              match.likelihood === 'Medium' ? 'bg-yellow-100 text-yellow-800' : 
+                              'bg-red-100 text-red-800'
+                            }`}
+                          >
+                            {match.likelihood}
+                          </Badge>
+                          <span className="font-semibold text-sm">{match.match_score}%</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center py-12 text-center">
