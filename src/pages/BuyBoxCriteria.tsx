@@ -3,12 +3,16 @@ import { useQuery } from '@tanstack/react-query';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { MapPin, DollarSign, Home, Calendar, AlertCircle } from 'lucide-react';
+import { MapPin, DollarSign, Home, Calendar, AlertCircle, Send } from 'lucide-react';
 import { getPublicBuyBoxCriteria } from '@/services/landDealsApi';
+import SubmitDealModal from '@/components/SubmitDealModal';
 
 const BuyBoxCriteria = () => {
+  const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
+  
   const { data: criteria, isLoading, error } = useQuery({
     queryKey: ['public-buybox-criteria'],
     queryFn: getPublicBuyBoxCriteria,
@@ -197,6 +201,16 @@ const BuyBoxCriteria = () => {
                     </div>
                   )}
                 </CardContent>
+                <div className="p-6 pt-0">
+                  <Button 
+                    onClick={() => setIsSubmitModalOpen(true)}
+                    className="w-full"
+                    size="sm"
+                  >
+                    <Send className="h-4 w-4 mr-2" />
+                    Submit Deal
+                  </Button>
+                </div>
               </Card>
             ))}
           </div>
@@ -212,6 +226,11 @@ const BuyBoxCriteria = () => {
           </Card>
         )}
       </div>
+      
+      <SubmitDealModal 
+        open={isSubmitModalOpen}
+        onOpenChange={setIsSubmitModalOpen}
+      />
     </DashboardLayout>
   );
 };
