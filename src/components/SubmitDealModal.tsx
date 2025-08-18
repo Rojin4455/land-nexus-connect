@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from '@/hooks/use-toast';
 import AddressAutocomplete from '@/components/map/AddressAutocomplete';
 import { Upload, X, FileText, Image, Video } from 'lucide-react';
@@ -34,18 +35,31 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
     latitude: null,
     longitude: null,
     place_id: null,
-    landType: '',
+    land_type: '',
     acreage: '',
     zoning: '',
-    askingPrice: '',
-    estimatedAEV: '',
-    developmentCosts: '',
+    agreed_price: '',
+    estimated_aev: '',
+    development_costs: '',
     utilities: '',
-    accessType: '',
+    access_type: '',
     topography: '',
-    environmentalFactors: '',
-    nearestAttraction: '',
-    description: ''
+    environmental_factors: '',
+    nearest_attraction: '',
+    description: '',
+    property_characteristics: [],
+    location_characteristics: [],
+    llc_name: '',
+    first_name: '',
+    last_name: '',
+    phone_number: '',
+    email: '',
+    under_contract: '',
+    parcel_id: '',
+    lot_size: '',
+    lot_size_unit: 'acres',
+    exit_strategy: '',
+    extra_notes: ''
   });
 
   useEffect(() => {
@@ -62,6 +76,23 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
   const landTypesOptions = landTypes ? transformFormOptionsForSelect(landTypes) : [];
   const accessTypesOptions = accessTypes ? transformFormOptionsForSelect(accessTypes) : [];
 
+  const propertyCharacteristicsOptions = [
+    'Driveway', 'Wood Frame', 'City Water', 'Solar Panels', 'Pool', 'Garage', 'Fence'
+  ];
+
+  const locationCharacteristicsOptions = [
+    'Flood Zone', 'HOA Community', 'Near School', 'Near Shopping', 'Rural Area', 'Urban Area'
+  ];
+
+  const exitStrategyOptions = [
+    { value: 'infill', label: 'Infill Lot Development' },
+    { value: 'flip', label: 'Buy & Flip' },
+    { value: 'subdivide', label: 'Subdivide & Sell' },
+    { value: 'seller_financing', label: 'Seller Financing' },
+    { value: 'rezoning', label: 'Entitlement/Rezoning' },
+    { value: 'mobile_home', label: 'Mobile Home Lot' }
+  ];
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -74,6 +105,15 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
     setFormData(prev => ({
       ...prev,
       [name]: value
+    }));
+  };
+
+  const handleCheckboxChange = (fieldName, value, checked) => {
+    setFormData(prev => ({
+      ...prev,
+      [fieldName]: checked 
+        ? [...prev[fieldName], value]
+        : prev[fieldName].filter(item => item !== value)
     }));
   };
 
@@ -117,23 +157,43 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
         latitude: formData.latitude?.toString() || '',
         longitude: formData.longitude?.toString() || '',
         place_id: formData.place_id || '',
-        landType: formData.landType,
+        // New field names
+        land_type: formData.land_type,
+        agreed_price: parseFloat(formData.agreed_price) || 0,
+        estimated_aev: parseFloat(formData.estimated_aev) || 0,
+        development_costs: parseFloat(formData.development_costs) || 0,
+        access_type: formData.access_type,
+        environmental_factors: formData.environmental_factors,
+        nearest_attraction: formData.nearest_attraction,
+        property_characteristics: formData.property_characteristics,
+        location_characteristics: formData.location_characteristics,
+        llc_name: formData.llc_name,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        phone_number: formData.phone_number,
+        email: formData.email,
+        under_contract: formData.under_contract,
+        parcel_id: formData.parcel_id,
+        lot_size: parseFloat(formData.lot_size) || 0,
+        lot_size_unit: formData.lot_size_unit,
+        exit_strategy: formData.exit_strategy,
+        extra_notes: formData.extra_notes,
+        // Backward compatibility with old API
+        landType: formData.land_type,
+        askingPrice: parseFloat(formData.agreed_price) || 0,
+        estimatedAEV: formData.estimated_aev,
+        developmentCosts: formData.development_costs,
+        accessType: formData.access_type,
+        environmentalFactors: formData.environmental_factors,
+        nearestAttraction: formData.nearest_attraction,
+        // Common fields
         acreage: parseFloat(formData.acreage) || 0,
         zoning: formData.zoning,
-        askingPrice: parseFloat(formData.askingPrice) || 0,
-        estimatedAEV: formData.estimatedAEV,
-        developmentCosts: formData.developmentCosts,
         utilities: formData.utilities,
-        accessType: formData.accessType,
         topography: formData.topography,
-        environmentalFactors: formData.environmentalFactors,
-        nearestAttraction: formData.nearestAttraction,
         description: formData.description,
         files: uploadedFiles.map(f => f.file)
       };
-
-      const photos = uploadedFiles.filter(file => file.type.startsWith('image/')).map(file => file.file);
-      const documents = uploadedFiles.filter(file => !file.type.startsWith('image/')).map(file => file.file);
 
       await landDealsApi.createLandDeal(dealData);
       
@@ -148,18 +208,31 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
         latitude: null,
         longitude: null,
         place_id: null,
-        landType: '',
+        land_type: '',
         acreage: '',
         zoning: '',
-        askingPrice: '',
-        estimatedAEV: '',
-        developmentCosts: '',
+        agreed_price: '',
+        estimated_aev: '',
+        development_costs: '',
         utilities: '',
-        accessType: '',
+        access_type: '',
         topography: '',
-        environmentalFactors: '',
-        nearestAttraction: '',
-        description: ''
+        environmental_factors: '',
+        nearest_attraction: '',
+        description: '',
+        property_characteristics: [],
+        location_characteristics: [],
+        llc_name: '',
+        first_name: '',
+        last_name: '',
+        phone_number: '',
+        email: '',
+        under_contract: '',
+        parcel_id: '',
+        lot_size: '',
+        lot_size_unit: 'acres',
+        exit_strategy: '',
+        extra_notes: ''
       });
       setUploadedFiles([]);
       onOpenChange(false);
@@ -179,16 +252,87 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Submit New Deal</DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Contact Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Contact Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="first_name">First Name</Label>
+                  <Input
+                    id="first_name"
+                    name="first_name"
+                    placeholder="Enter first name"
+                    value={formData.first_name}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="last_name">Last Name</Label>
+                  <Input
+                    id="last_name"
+                    name="last_name"
+                    placeholder="Enter last name"
+                    value={formData.last_name}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="Enter email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone_number">Phone Number</Label>
+                  <Input
+                    id="phone_number"
+                    name="phone_number"
+                    placeholder="Enter phone number"
+                    value={formData.phone_number}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="llc_name">LLC Name</Label>
+                <Input
+                  id="llc_name"
+                  name="llc_name"
+                  placeholder="Enter LLC name"
+                  value={formData.llc_name}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Basic Information */}
           <Card>
             <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
+              <CardTitle>Property Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -207,10 +351,10 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="landType">Land Type</Label>
-                  <Select value={formData.landType} onValueChange={(value) => handleSelectChange('landType', value)}>
+                  <Label htmlFor="land_type">Land Type</Label>
+                  <Select value={formData.land_type} onValueChange={(value) => handleSelectChange('land_type', value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select land type" />
                     </SelectTrigger>
@@ -236,17 +380,71 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
                     onChange={handleInputChange}
                   />
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="zoning">Zoning</Label>
+                  <Input
+                    id="zoning"
+                    name="zoning"
+                    placeholder="Enter zoning information"
+                    value={formData.zoning}
+                    onChange={handleInputChange}
+                  />
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="zoning">Zoning</Label>
-                <Input
-                  id="zoning"
-                  name="zoning"
-                  placeholder="Enter zoning information"
-                  value={formData.zoning}
-                  onChange={handleInputChange}
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="lot_size">Lot Size</Label>
+                  <Input
+                    id="lot_size"
+                    name="lot_size"
+                    type="number"
+                    step="0.01"
+                    placeholder="Enter lot size"
+                    value={formData.lot_size}
+                    onChange={handleInputChange}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="lot_size_unit">Lot Size Unit</Label>
+                  <Select value={formData.lot_size_unit} onValueChange={(value) => handleSelectChange('lot_size_unit', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select unit" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="acres">Acres</SelectItem>
+                      <SelectItem value="sqft">Square Feet</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="parcel_id">Parcel ID (Optional)</Label>
+                  <Input
+                    id="parcel_id"
+                    name="parcel_id"
+                    placeholder="Enter parcel ID"
+                    value={formData.parcel_id}
+                    onChange={handleInputChange}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="under_contract">Under Contract?</Label>
+                  <Select value={formData.under_contract} onValueChange={(value) => handleSelectChange('under_contract', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select option" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="yes">Yes</SelectItem>
+                      <SelectItem value="no">No</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -259,43 +457,59 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="askingPrice">Asking Price ($)</Label>
+                  <Label htmlFor="agreed_price">Agreed Price ($)</Label>
                   <Input
-                    id="askingPrice"
-                    name="askingPrice"
+                    id="agreed_price"
+                    name="agreed_price"
                     type="number"
                     step="0.01"
-                    placeholder="Enter asking price"
-                    value={formData.askingPrice}
+                    placeholder="Enter agreed price"
+                    value={formData.agreed_price}
                     onChange={handleInputChange}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="estimatedAEV">Estimated AEV ($)</Label>
+                  <Label htmlFor="estimated_aev">Estimated AEV ($)</Label>
                   <Input
-                    id="estimatedAEV"
-                    name="estimatedAEV"
+                    id="estimated_aev"
+                    name="estimated_aev"
                     type="number"
                     step="0.01"
                     placeholder="Enter estimated AEV"
-                    value={formData.estimatedAEV}
+                    value={formData.estimated_aev}
                     onChange={handleInputChange}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="developmentCosts">Development Costs ($)</Label>
+                  <Label htmlFor="development_costs">Development Costs ($)</Label>
                   <Input
-                    id="developmentCosts"
-                    name="developmentCosts"
+                    id="development_costs"
+                    name="development_costs"
                     type="number"
                     step="0.01"
                     placeholder="Enter development costs"
-                    value={formData.developmentCosts}
+                    value={formData.development_costs}
                     onChange={handleInputChange}
                   />
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="exit_strategy">Exit Strategy</Label>
+                <Select value={formData.exit_strategy} onValueChange={(value) => handleSelectChange('exit_strategy', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select exit strategy" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {exitStrategyOptions.map(option => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </CardContent>
           </Card>
@@ -324,8 +538,8 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="accessType">Access Type</Label>
-                  <Select value={formData.accessType} onValueChange={(value) => handleSelectChange('accessType', value)}>
+                  <Label htmlFor="access_type">Access Type</Label>
+                  <Select value={formData.access_type} onValueChange={(value) => handleSelectChange('access_type', value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select access type" />
                     </SelectTrigger>
@@ -353,24 +567,24 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="environmentalFactors">Environmental Factors</Label>
+                  <Label htmlFor="environmental_factors">Environmental Factors</Label>
                   <Input
-                    id="environmentalFactors"
-                    name="environmentalFactors"
+                    id="environmental_factors"
+                    name="environmental_factors"
                     placeholder="Environmental considerations"
-                    value={formData.environmentalFactors}
+                    value={formData.environmental_factors}
                     onChange={handleInputChange}
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="nearestAttraction">Nearest Attraction</Label>
+                <Label htmlFor="nearest_attraction">Nearest Attraction</Label>
                 <Input
-                  id="nearestAttraction"
-                  name="nearestAttraction"
+                  id="nearest_attraction"
+                  name="nearest_attraction"
                   placeholder="Describe nearest attraction"
-                  value={formData.nearestAttraction}
+                  value={formData.nearest_attraction}
                   onChange={handleInputChange}
                 />
               </div>
@@ -389,17 +603,91 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
             </CardContent>
           </Card>
 
+          {/* Characteristics */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Property & Location Characteristics</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-3">
+                <Label>Property Characteristics</Label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {propertyCharacteristicsOptions.map(characteristic => (
+                    <div key={characteristic} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`property-${characteristic}`}
+                        checked={formData.property_characteristics.includes(characteristic)}
+                        onCheckedChange={(checked) => 
+                          handleCheckboxChange('property_characteristics', characteristic, checked)
+                        }
+                      />
+                      <Label 
+                        htmlFor={`property-${characteristic}`}
+                        className="text-sm font-normal"
+                      >
+                        {characteristic}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <Label>Location Characteristics</Label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {locationCharacteristicsOptions.map(characteristic => (
+                    <div key={characteristic} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`location-${characteristic}`}
+                        checked={formData.location_characteristics.includes(characteristic)}
+                        onCheckedChange={(checked) => 
+                          handleCheckboxChange('location_characteristics', characteristic, checked)
+                        }
+                      />
+                      <Label 
+                        htmlFor={`location-${characteristic}`}
+                        className="text-sm font-normal"
+                      >
+                        {characteristic}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Additional Notes */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Additional Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="extra_notes">Extra Notes</Label>
+                <Textarea
+                  id="extra_notes"
+                  name="extra_notes"
+                  placeholder="Any additional information or notes about the property"
+                  value={formData.extra_notes}
+                  onChange={handleInputChange}
+                  rows={3}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
           {/* File Upload */}
           <Card>
             <CardHeader>
               <CardTitle>Upload Files</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                <Upload className="mx-auto h-12 w-12 text-gray-400" />
+              <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
+                <Upload className="mx-auto h-12 w-12 text-muted-foreground" />
                 <div className="mt-4">
                   <label htmlFor="file-upload" className="cursor-pointer">
-                    <span className="mt-2 block text-sm font-medium text-gray-900">
+                    <span className="mt-2 block text-sm font-medium">
                       Upload photos and documents
                     </span>
                     <input
@@ -419,12 +707,12 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
                 <div className="space-y-2">
                   <h4 className="font-medium">Uploaded Files</h4>
                   {uploadedFiles.map((file) => (
-                    <div key={file.id} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                    <div key={file.id} className="flex items-center justify-between bg-muted/50 p-3 rounded-lg">
                       <div className="flex items-center space-x-3">
                         {getFileIcon(file.type)}
                         <div>
                           <p className="text-sm font-medium">{file.name}</p>
-                          <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
+                          <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
                         </div>
                       </div>
                       <Button
