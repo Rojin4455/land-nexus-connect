@@ -298,17 +298,18 @@ const SubmitDeal = () => {
                 </div>
               </div>
 
-              <div className="form-field">
-                <Label htmlFor="zoning" className="form-label">Zoning Classification</Label>
-                <Input
-                  id="zoning"
-                  name="zoning"
-                  placeholder="e.g., R-1, C-2, M-1"
-                  value={formData.zoning}
-                  onChange={handleInputChange}
-                  className="form-input"
-                />
-              </div>
+               <div className="form-field">
+                 <Label htmlFor="zoning" className="form-label">Zoning Classification *</Label>
+                 <Input
+                   id="zoning"
+                   name="zoning"
+                   placeholder="e.g., R-1, C-2, M-1"
+                   value={formData.zoning}
+                   onChange={handleInputChange}
+                   className="form-input"
+                   required
+                 />
+               </div>
             </CardContent>
           </Card>
 
@@ -332,31 +333,33 @@ const SubmitDeal = () => {
                 />
               </div>
 
-              <div className="form-field">
-                <Label htmlFor="estimated_aev" className="form-label">Estimated AEV ($)</Label>
-                <Input
-                  id="estimated_aev"
-                  name="estimated_aev"
-                  type="number"
-                  placeholder="150000"
-                  value={formData.estimated_aev}
-                  onChange={handleInputChange}
-                  className="form-input"
-                />
-              </div>
+               <div className="form-field">
+                 <Label htmlFor="estimated_aev" className="form-label">Estimated AEV ($) *</Label>
+                 <Input
+                   id="estimated_aev"
+                   name="estimated_aev"
+                   type="number"
+                   placeholder="150000"
+                   value={formData.estimated_aev}
+                   onChange={handleInputChange}
+                   className="form-input"
+                   required
+                 />
+               </div>
 
-              <div className="form-field">
-                <Label htmlFor="development_costs" className="form-label">Development Costs ($)</Label>
-                <Input
-                  id="development_costs"
-                  name="development_costs"
-                  type="number"
-                  placeholder="25000"
-                  value={formData.development_costs}
-                  onChange={handleInputChange}
-                  className="form-input"
-                />
-              </div>
+               <div className="form-field">
+                 <Label htmlFor="development_costs" className="form-label">Development Costs ($) *</Label>
+                 <Input
+                   id="development_costs"
+                   name="development_costs"
+                   type="number"
+                   placeholder="25000"
+                   value={formData.development_costs}
+                   onChange={handleInputChange}
+                   className="form-input"
+                   required
+                 />
+               </div>
             </CardContent>
           </Card>
 
@@ -398,53 +401,55 @@ const SubmitDeal = () => {
                 </Select>
               </div>
 
-              <div className="md:col-span-2 form-field">
-                <Label htmlFor="nearest_attraction" className="form-label">Nearest Major City/Development/Attraction</Label>
-                <Input
-                  id="nearest_attraction"
-                  name="nearest_attraction"
-                  placeholder="e.g., 15 miles from Denver downtown"
-                  value={formData.nearest_attraction}
-                  onChange={handleInputChange}
-                  className="form-input"
-                />
-              </div>
+               <div className="md:col-span-2 form-field">
+                 <Label htmlFor="nearest_attraction" className="form-label">Nearest Major City/Development/Attraction *</Label>
+                 <Input
+                   id="nearest_attraction"
+                   name="nearest_attraction"
+                   placeholder="e.g., 15 miles from Denver downtown"
+                   value={formData.nearest_attraction}
+                   onChange={handleInputChange}
+                   className="form-input"
+                   required
+                 />
+               </div>
 
-              <div className="md:col-span-2 form-field">
-                <Label htmlFor="topography" className="form-label">Topography</Label>
-                <Textarea
-                  id="topography"
-                  name="topography"
-                  placeholder="Describe the land's topography, elevation, slope, etc."
-                  value={formData.topography}
-                  onChange={handleInputChange}
-                  className="min-h-[100px]"
-                />
-              </div>
+               <div className="md:col-span-2 form-field">
+                 <Label htmlFor="topography" className="form-label">Topography</Label>
+                 <Textarea
+                   id="topography"
+                   name="topography"
+                   placeholder="Describe the land's topography, elevation, slope, etc."
+                   value={formData.topography}
+                   onChange={handleInputChange}
+                   className="min-h-[100px]"
+                 />
+               </div>
 
-              <div className="md:col-span-2 form-field">
-                <Label htmlFor="environmental_factors" className="form-label">Environmental Factors</Label>
-                <Textarea
-                  id="environmental_factors"
-                  name="environmental_factors"
-                  placeholder="Any environmental concerns, wetlands, flood zones, etc."
-                  value={formData.environmental_factors}
-                  onChange={handleInputChange}
-                  className="min-h-[100px]"
-                />
-              </div>
+               <div className="md:col-span-2 form-field">
+                 <Label htmlFor="environmental_factors" className="form-label">Environmental Factors *</Label>
+                 <Textarea
+                   id="environmental_factors"
+                   name="environmental_factors"
+                   placeholder="Any environmental concerns, wetlands, flood zones, etc."
+                   value={formData.environmental_factors}
+                   onChange={handleInputChange}
+                   className="min-h-[100px]"
+                   required
+                 />
+               </div>
 
-              <div className="md:col-span-2 form-field">
-                <Label htmlFor="description" className="form-label">Land Description</Label>
-                <Textarea
-                  id="description"
-                  name="description"
-                  placeholder="Provide a detailed description of the property..."
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  className="min-h-[120px]"
-                />
-              </div>
+               <div className="md:col-span-2 form-field">
+                 <Label htmlFor="description" className="form-label">Land Description</Label>
+                 <Textarea
+                   id="description"
+                   name="description"
+                   placeholder="Provide a detailed description of the property..."
+                   value={formData.description}
+                   onChange={handleInputChange}
+                   className="min-h-[120px]"
+                 />
+               </div>
             </CardContent>
           </Card>
 
@@ -545,22 +550,22 @@ const SubmitDeal = () => {
                 />
               </div>
 
-              <div className="form-field">
-                <Label htmlFor="exit_strategy" className="form-label">Exit Strategy</Label>
-                <Select value={formData.exit_strategy} onValueChange={(value) => handleSelectChange('exit_strategy', value)}>
-                  <SelectTrigger className="form-input">
-                    <SelectValue placeholder="Select exit strategy" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="infill">Infill Lot Development</SelectItem>
-                    <SelectItem value="flip">Buy & Flip</SelectItem>
-                    <SelectItem value="subdivide">Subdivide & Sell</SelectItem>
-                    <SelectItem value="seller_financing">Seller Financing</SelectItem>
-                    <SelectItem value="rezoning">Entitlement/Rezoning</SelectItem>
-                    <SelectItem value="mobile_home">Mobile Home Lot</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+               <div className="form-field">
+                 <Label htmlFor="exit_strategy" className="form-label">Exit Strategy *</Label>
+                 <Select value={formData.exit_strategy} onValueChange={(value) => handleSelectChange('exit_strategy', value)}>
+                   <SelectTrigger className="form-input">
+                     <SelectValue placeholder="Select exit strategy" />
+                   </SelectTrigger>
+                   <SelectContent>
+                     <SelectItem value="infill">Infill Lot Development</SelectItem>
+                     <SelectItem value="flip">Buy & Flip</SelectItem>
+                     <SelectItem value="subdivide">Subdivide & Sell</SelectItem>
+                     <SelectItem value="seller_financing">Seller Financing</SelectItem>
+                     <SelectItem value="rezoning">Entitlement/Rezoning</SelectItem>
+                     <SelectItem value="mobile_home">Mobile Home Lot</SelectItem>
+                   </SelectContent>
+                 </Select>
+               </div>
 
               <div className="md:col-span-2 form-field">
                 <Label htmlFor="extra_notes" className="form-label">Additional Notes</Label>
