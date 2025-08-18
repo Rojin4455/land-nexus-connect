@@ -95,6 +95,7 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    console.log(`Modal field updated: ${name} = "${value}"`);
     setFormData(prev => ({
       ...prev,
       [name]: value

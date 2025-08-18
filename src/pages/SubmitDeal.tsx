@@ -80,10 +80,11 @@ const SubmitDeal = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: name === 'agreed_price' || name === 'acreage' || name === 'lot_size' ? parseFloat(value) || 0 : value
-    });
+    console.log(`Field updated: ${name} = "${value}"`);
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const handleSelectChange = (name, value) => {
