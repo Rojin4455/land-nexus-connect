@@ -28,19 +28,32 @@ const SubmitDeal = () => {
     address: '',
     latitude: null,
     longitude: null,
-    place_id:null,
-    landType: '',
+    place_id: null,
+    land_type: '',
     acreage: '',
     zoning: '',
-    askingPrice: '',
-    estimatedAEV: '',
-    developmentCosts: '',
+    agreed_price: '',
+    estimated_aev: '',
+    development_costs: '',
     utilities: '',
-    accessType: '',
+    access_type: '',
     topography: '',
-    environmentalFactors: '',
-    nearestAttraction: '',
-    description: ''
+    environmental_factors: '',
+    nearest_attraction: '',
+    description: '',
+    property_characteristics: [],
+    location_characteristics: [],
+    llc_name: '',
+    first_name: '',
+    last_name: '',
+    phone_number: '',
+    email: '',
+    under_contract: '',
+    parcel_id: '',
+    lot_size: '',
+    lot_size_unit: 'acres',
+    exit_strategy: '',
+    extra_notes: ''
   });
 
   useEffect(() => {
@@ -69,7 +82,7 @@ const SubmitDeal = () => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: name === 'askingPrice' || name === 'acreage' ? parseFloat(value) || 0 : value
+      [name]: name === 'agreed_price' || name === 'acreage' || name === 'lot_size' ? parseFloat(value) || 0 : value
     });
   };
 
@@ -128,19 +141,35 @@ const SubmitDeal = () => {
         latitude: formData.latitude || '',
         longitude: formData.longitude || '',
         place_id: formData.place_id || '',
-        landType: formData.landType || '', // Single ID as string
+        land_type: formData.land_type || '',
+        landType: formData.land_type || '', // backward compatibility
         acreage: parseFloat(formData.acreage) || 0,
         zoning: formData.zoning || '',
-        askingPrice: parseFloat(formData.askingPrice) || 0, // Number
-        estimatedAEV: formData.estimatedAEV || '0', // String representation
-        developmentCosts: formData.developmentCosts || '0', // String representation
-        utilities: formData.utilities || '', // Single ID as string
-        accessType: formData.accessType || '', // Single ID as string
+        agreed_price: parseFloat(formData.agreed_price) || 0,
+        askingPrice: parseFloat(formData.agreed_price) || 0, // backward compatibility
+        estimated_aev: parseFloat(formData.estimated_aev) || 0,
+        development_costs: parseFloat(formData.development_costs) || 0,
+        utilities: formData.utilities || '',
+        access_type: formData.access_type || '',
+        accessType: formData.access_type || '', // backward compatibility
         topography: formData.topography || '',
-        environmentalFactors: formData.environmentalFactors || '',
-        nearestAttraction: formData.nearestAttraction || '',
+        environmental_factors: formData.environmental_factors || '',
+        nearest_attraction: formData.nearest_attraction || '',
         description: formData.description || '',
-        files: [...photos, ...documents] // Backend expects 'files' not separate photos/documents
+        property_characteristics: formData.property_characteristics || [],
+        location_characteristics: formData.location_characteristics || [],
+        llc_name: formData.llc_name || '',
+        first_name: formData.first_name || '',
+        last_name: formData.last_name || '',
+        phone_number: formData.phone_number || '',
+        email: formData.email || '',
+        under_contract: formData.under_contract || '',
+        parcel_id: formData.parcel_id || '',
+        lot_size: parseFloat(formData.lot_size) || 0,
+        lot_size_unit: formData.lot_size_unit || 'acres',
+        exit_strategy: formData.exit_strategy || '',
+        extra_notes: formData.extra_notes || '',
+        files: [...photos, ...documents]
       };
 
       // Log the complete form data for verification
@@ -212,8 +241,8 @@ const SubmitDeal = () => {
               </div>
 
               <div className="form-field">
-                <Label htmlFor="landType" className="form-label">Land Type *</Label>
-                <Select value={formData.landType} onValueChange={(value) => handleSelectChange('landType', value)}>
+                <Label htmlFor="land_type" className="form-label">Land Type *</Label>
+                <Select value={formData.land_type} onValueChange={(value) => handleSelectChange('land_type', value)}>
                   <SelectTrigger className="form-input">
                     <SelectValue placeholder="Select land type" />
                   </SelectTrigger>
@@ -228,7 +257,7 @@ const SubmitDeal = () => {
               </div>
 
               <div className="form-field">
-                <Label htmlFor="acreage" className="form-label">Lot Size (Acres) *</Label>
+                <Label htmlFor="acreage" className="form-label">Acreage *</Label>
                 <Input
                   id="acreage"
                   name="acreage"
@@ -240,6 +269,32 @@ const SubmitDeal = () => {
                   className="form-input"
                   required
                 />
+              </div>
+
+              <div className="form-field">
+                <Label htmlFor="lot_size" className="form-label">Lot Size *</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="lot_size"
+                    name="lot_size"
+                    type="number"
+                    step="0.1"
+                    placeholder="e.g., 2.5"
+                    value={formData.lot_size}
+                    onChange={handleInputChange}
+                    className="form-input flex-1"
+                    required
+                  />
+                  <Select value={formData.lot_size_unit} onValueChange={(value) => handleSelectChange('lot_size_unit', value)}>
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="acres">Acres</SelectItem>
+                      <SelectItem value="sqft">Sq Ft</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <div className="form-field">
@@ -263,13 +318,13 @@ const SubmitDeal = () => {
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="form-field">
-                <Label htmlFor="askingPrice" className="form-label">Asking/Purchase Price ($) *</Label>
+                <Label htmlFor="agreed_price" className="form-label">Agreed/Purchase Price ($) *</Label>
                 <Input
-                  id="askingPrice"
-                  name="askingPrice"
+                  id="agreed_price"
+                  name="agreed_price"
                   type="number"
                   placeholder="125000"
-                  value={formData.askingPrice}
+                  value={formData.agreed_price}
                   onChange={handleInputChange}
                   className="form-input"
                   required
@@ -277,26 +332,26 @@ const SubmitDeal = () => {
               </div>
 
               <div className="form-field">
-                <Label htmlFor="estimatedAEV" className="form-label">Estimated AEV / ADV ($)</Label>
+                <Label htmlFor="estimated_aev" className="form-label">Estimated AEV ($)</Label>
                 <Input
-                  id="estimatedAEV"
-                  name="estimatedAEV"
+                  id="estimated_aev"
+                  name="estimated_aev"
                   type="number"
                   placeholder="150000"
-                  value={formData.estimatedAEV}
+                  value={formData.estimated_aev}
                   onChange={handleInputChange}
                   className="form-input"
                 />
               </div>
 
               <div className="form-field">
-                <Label htmlFor="developmentCosts" className="form-label">Est. Development/Holding Costs ($)</Label>
+                <Label htmlFor="development_costs" className="form-label">Development Costs ($)</Label>
                 <Input
-                  id="developmentCosts"
-                  name="developmentCosts"
+                  id="development_costs"
+                  name="development_costs"
                   type="number"
                   placeholder="25000"
-                  value={formData.developmentCosts}
+                  value={formData.development_costs}
                   onChange={handleInputChange}
                   className="form-input"
                 />
@@ -327,8 +382,8 @@ const SubmitDeal = () => {
               </div>
 
               <div className="form-field">
-                <Label htmlFor="accessType" className="form-label">Access Type *</Label>
-                <Select value={formData.accessType} onValueChange={(value) => handleSelectChange('accessType', value)}>
+                <Label htmlFor="access_type" className="form-label">Access Type *</Label>
+                <Select value={formData.access_type} onValueChange={(value) => handleSelectChange('access_type', value)}>
                   <SelectTrigger className="form-input">
                     <SelectValue placeholder="Select access type" />
                   </SelectTrigger>
@@ -343,12 +398,12 @@ const SubmitDeal = () => {
               </div>
 
               <div className="md:col-span-2 form-field">
-                <Label htmlFor="nearestAttraction" className="form-label">Nearest Major City/Development/Attraction</Label>
+                <Label htmlFor="nearest_attraction" className="form-label">Nearest Major City/Development/Attraction</Label>
                 <Input
-                  id="nearestAttraction"
-                  name="nearestAttraction"
+                  id="nearest_attraction"
+                  name="nearest_attraction"
                   placeholder="e.g., 15 miles from Denver downtown"
-                  value={formData.nearestAttraction}
+                  value={formData.nearest_attraction}
                   onChange={handleInputChange}
                   className="form-input"
                 />
@@ -367,12 +422,12 @@ const SubmitDeal = () => {
               </div>
 
               <div className="md:col-span-2 form-field">
-                <Label htmlFor="environmentalFactors" className="form-label">Environmental Factors</Label>
+                <Label htmlFor="environmental_factors" className="form-label">Environmental Factors</Label>
                 <Textarea
-                  id="environmentalFactors"
-                  name="environmentalFactors"
+                  id="environmental_factors"
+                  name="environmental_factors"
                   placeholder="Any environmental concerns, wetlands, flood zones, etc."
-                  value={formData.environmentalFactors}
+                  value={formData.environmental_factors}
                   onChange={handleInputChange}
                   className="min-h-[100px]"
                 />
@@ -387,6 +442,134 @@ const SubmitDeal = () => {
                   value={formData.description}
                   onChange={handleInputChange}
                   className="min-h-[120px]"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Contact Information */}
+          <Card className="card-elevated">
+            <CardHeader>
+              <CardTitle>Contact Information</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="form-field">
+                <Label htmlFor="llc_name" className="form-label">LLC Name *</Label>
+                <Input
+                  id="llc_name"
+                  name="llc_name"
+                  placeholder="Your LLC Name"
+                  value={formData.llc_name}
+                  onChange={handleInputChange}
+                  className="form-input"
+                  required
+                />
+              </div>
+
+              <div className="form-field">
+                <Label htmlFor="first_name" className="form-label">First Name *</Label>
+                <Input
+                  id="first_name"
+                  name="first_name"
+                  placeholder="John"
+                  value={formData.first_name}
+                  onChange={handleInputChange}
+                  className="form-input"
+                  required
+                />
+              </div>
+
+              <div className="form-field">
+                <Label htmlFor="last_name" className="form-label">Last Name *</Label>
+                <Input
+                  id="last_name"
+                  name="last_name"
+                  placeholder="Doe"
+                  value={formData.last_name}
+                  onChange={handleInputChange}
+                  className="form-input"
+                  required
+                />
+              </div>
+
+              <div className="form-field">
+                <Label htmlFor="phone_number" className="form-label">Phone Number *</Label>
+                <Input
+                  id="phone_number"
+                  name="phone_number"
+                  placeholder="(555) 123-4567"
+                  value={formData.phone_number}
+                  onChange={handleInputChange}
+                  className="form-input"
+                  required
+                />
+              </div>
+
+              <div className="form-field">
+                <Label htmlFor="email" className="form-label">Email *</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="john@example.com"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className="form-input"
+                  required
+                />
+              </div>
+
+              <div className="form-field">
+                <Label htmlFor="under_contract" className="form-label">Under Contract *</Label>
+                <Select value={formData.under_contract} onValueChange={(value) => handleSelectChange('under_contract', value)}>
+                  <SelectTrigger className="form-input">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="yes">Yes</SelectItem>
+                    <SelectItem value="no">No</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="form-field">
+                <Label htmlFor="parcel_id" className="form-label">Parcel ID</Label>
+                <Input
+                  id="parcel_id"
+                  name="parcel_id"
+                  placeholder="Property Parcel ID"
+                  value={formData.parcel_id}
+                  onChange={handleInputChange}
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-field">
+                <Label htmlFor="exit_strategy" className="form-label">Exit Strategy</Label>
+                <Select value={formData.exit_strategy} onValueChange={(value) => handleSelectChange('exit_strategy', value)}>
+                  <SelectTrigger className="form-input">
+                    <SelectValue placeholder="Select exit strategy" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="infill">Infill Lot Development</SelectItem>
+                    <SelectItem value="flip">Buy & Flip</SelectItem>
+                    <SelectItem value="subdivide">Subdivide & Sell</SelectItem>
+                    <SelectItem value="seller_financing">Seller Financing</SelectItem>
+                    <SelectItem value="rezoning">Entitlement/Rezoning</SelectItem>
+                    <SelectItem value="mobile_home">Mobile Home Lot</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="md:col-span-2 form-field">
+                <Label htmlFor="extra_notes" className="form-label">Additional Notes</Label>
+                <Textarea
+                  id="extra_notes"
+                  name="extra_notes"
+                  placeholder="Any additional information about the property..."
+                  value={formData.extra_notes}
+                  onChange={handleInputChange}
+                  className="min-h-[100px]"
                 />
               </div>
             </CardContent>
