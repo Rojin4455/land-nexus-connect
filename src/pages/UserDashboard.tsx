@@ -66,7 +66,7 @@ const UserDashboard = () => {
             submittedOn: '2024-01-15',
             status: 'Under Review',
             coach: 'Sarah Johnson',
-            askingPrice: 125000,
+            agreedPrice: 125000,
             landType: 'Residential'
           },
           {
@@ -75,7 +75,7 @@ const UserDashboard = () => {
             submittedOn: '2024-01-10',
             status: 'Approved',
             coach: 'Mike Chen',
-            askingPrice: 89000,
+            agreedPrice: 89000,
             landType: 'Commercial'
           }
         ];
@@ -203,7 +203,7 @@ const UserDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-foreground">
-                {formatCurrency(deals.reduce((sum, deal) => sum + deal.askingPrice, 0))}
+                {formatCurrency(deals.reduce((sum, deal) => sum + deal.agreedPrice, 0))}
               </div>
               <p className="text-xs text-muted-foreground">Across all submissions</p>
             </CardContent>
@@ -269,7 +269,7 @@ const UserDashboard = () => {
                             <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                             <div>
                               <p className="font-medium text-foreground text-sm">{deal.address}</p>
-                              <p className="text-xs text-muted-foreground">{formatCurrency(deal.askingPrice)} • {deal.landType}</p>
+                              <p className="text-xs text-muted-foreground">{formatCurrency(deal.agreedPrice)} • {deal.landType}</p>
                             </div>
                           </div>
                         </td>

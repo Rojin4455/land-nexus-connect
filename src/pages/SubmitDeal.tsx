@@ -146,7 +146,7 @@ const SubmitDeal = () => {
         acreage: parseFloat(formData.acreage) || 0,
         zoning: formData.zoning || '',
         agreed_price: parseFloat(formData.agreed_price) || 0,
-        askingPrice: parseFloat(formData.agreed_price) || 0, // backward compatibility
+        agreedPrice: parseFloat(formData.agreed_price) || 0, // backward compatibility
         estimated_aev: parseFloat(formData.estimated_aev) || 0,
         development_costs: parseFloat(formData.development_costs) || 0,
         utilities: formData.utilities || '',

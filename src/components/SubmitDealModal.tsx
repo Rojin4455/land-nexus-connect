@@ -180,7 +180,7 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
         extra_notes: formData.extra_notes,
         // Backward compatibility with old API
         landType: formData.land_type,
-        askingPrice: parseFloat(formData.agreed_price) || 0,
+        agreedPrice: parseFloat(formData.agreed_price) || 0,
         estimatedAEV: formData.estimated_aev,
         developmentCosts: formData.development_costs,
         accessType: formData.access_type,

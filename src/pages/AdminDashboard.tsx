@@ -245,7 +245,7 @@ const AdminDashboard = () => {
 );
 
 
-  const totalValue = deals.reduce((sum, deal) => sum + (deal.askingPrice || 0), 0);
+  const totalValue = deals.reduce((sum, deal) => sum + (deal.agreedPrice || 0), 0);
   const pendingDeals = deals.filter(deal => (deal.status || '').toLowerCase().includes('pending') || (deal.status || '').toLowerCase().includes('review')).length;
 
   return (
@@ -604,7 +604,7 @@ const AdminDashboard = () => {
                             </td>
                             <td className="p-4">
                               <span className="text-sm font-medium text-foreground">
-                                {formatCurrency(deal.askingPrice || 0)}
+                                {formatCurrency(deal.agreedPrice || 0)}
                               </span>
                             </td>
                             <td className="p-4">

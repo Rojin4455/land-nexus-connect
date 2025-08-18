@@ -17,7 +17,7 @@ const PropertyInformationAdmin = ({ deal, formatCurrency }: PropertyInformationP
   const [formData, setFormData] = useState({
     acreage: deal.acreage || '',
     zoning: deal.zoning || '',
-    askingPrice: deal.askingPrice || '',
+    agreedPrice: deal.agreedPrice || '',
     estimatedAEV: deal.estimatedAEV || '',
     developmentCosts: deal.developmentCosts || '',
     topography: deal.topography || '',
@@ -38,7 +38,7 @@ const PropertyInformationAdmin = ({ deal, formatCurrency }: PropertyInformationP
       const payload = {
         ...formData,
         acreage: parseFloat(formData.acreage),
-        askingPrice: parseFloat(formData.askingPrice),
+        agreedPrice: parseFloat(formData.agreedPrice),
         estimatedAEV: parseFloat(formData.estimatedAEV),
         developmentCosts: parseFloat(formData.developmentCosts),
       };
@@ -150,11 +150,11 @@ const PropertyInformationAdmin = ({ deal, formatCurrency }: PropertyInformationP
             </div>
 
             <div>
-              <label className="text-sm font-medium text-muted-foreground">Asking Price</label>
+              <label className="text-sm font-medium text-muted-foreground">Agreed Price</label>
               <Input
                 type="number"
-                value={formData.askingPrice}
-                onChange={e => handleChange('askingPrice', e.target.value)}
+                value={formData.agreedPrice}
+                onChange={e => handleChange('agreedPrice', e.target.value)}
               />
             </div>
 

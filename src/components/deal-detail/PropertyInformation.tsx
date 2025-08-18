@@ -145,10 +145,10 @@ const PropertyInformation = ({ deal, formatCurrency }: PropertyInformationProps)
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-4">
-            {deal.askingPrice !== undefined && (
+            {deal.agreedPrice !== undefined && (
               <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Asking Price</span>
-                <span className="font-semibold text-lg">{formatCurrency(deal.askingPrice)}</span>
+                <span className="text-muted-foreground">Agreed Price</span>
+                <span className="font-semibold text-lg">{formatCurrency(deal.agreedPrice)}</span>
               </div>
             )}
             {deal.estimatedAEV && (

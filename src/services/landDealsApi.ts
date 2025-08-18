@@ -106,7 +106,7 @@ export interface LandDeal {
   submittedOn: string;
   status: string;
   coach: string;
-  askingPrice: number;
+  agreedPrice: number;
   landType: string;
   description?: string;
   acreage?: number;
@@ -118,7 +118,7 @@ export interface LandDeal {
 
 export interface CreateLandDealData {
   address: string;
-  askingPrice: number;
+  agreedPrice: number;
   latitude: string;
   longitude: string;
   place_id: string;
@@ -156,7 +156,7 @@ export const landDealsApi = {
     if (dealData.landType) formData.append('landType', dealData.landType);
     if (dealData.acreage) formData.append('acreage', dealData.acreage.toString());
     if (dealData.zoning) formData.append('zoning', dealData.zoning);
-    if (dealData.askingPrice) formData.append('askingPrice', dealData.askingPrice.toString());
+    if (dealData.agreedPrice) formData.append('agreedPrice', dealData.agreedPrice.toString());
     if (dealData.estimatedAEV) formData.append('estimatedAEV', dealData.estimatedAEV);
     if (dealData.developmentCosts) formData.append('developmentCosts', dealData.developmentCosts);
     if (dealData.utilities) formData.append('utilities', dealData.utilities);
@@ -197,7 +197,7 @@ export const landDealsApi = {
       submittedOn: property.created_at,
       status: property.status,
       coach: 'Assigned Coach', // Default value since not in response
-      askingPrice: parseFloat(property.asking_price),
+      agreedPrice: parseFloat(property.asking_price),
       landType: property.land_type_name,
       acreage: parseFloat(property.acreage),
       totalFilesCount: property.total_files_count
@@ -223,7 +223,7 @@ export const landDealsApi = {
       submittedOn: property.created_at,
       status: property.status,
       coach: 'Assigned Coach', // Default value since not in response
-      askingPrice: parseFloat(property.asking_price),
+      agreedPrice: parseFloat(property.asking_price),
       landType: property.land_type_detail?.display_name || property.land_type_name,
       acreage: parseFloat(property.acreage),
       zoning: property.zoning,
@@ -381,7 +381,7 @@ export const landDealsApi = {
         submittedOn: property.created_at,
         status: property.status,
         coach: 'Assigned Coach',
-        askingPrice: parseFloat(property.asking_price),
+        agreedPrice: parseFloat(property.asking_price),
         landType: property.land_type_name,
         acreage: parseFloat(property.acreage),
         totalFilesCount: property.total_files_count
@@ -406,7 +406,7 @@ export const landDealsApi = {
         submittedOn: property.created_at,
         status: property.status,
         coach: 'Assigned Coach',
-        askingPrice: parseFloat(property.asking_price),
+        agreedPrice: parseFloat(property.asking_price),
         landType: property.land_type_name,
         acreage: parseFloat(property.acreage),
         totalFilesCount: property.total_files_count
