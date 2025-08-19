@@ -889,22 +889,8 @@ const onSubmit = async (values: BuyBoxFormValues) => {
                           />
                         </section>
 
-                        {/* Strategies and desired types */}
+                        {/* Desired Property Types */}
                         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          {(assetType === "houses" || assetType === "both") && (
-                            <CheckboxGroup
-                              name="strategiesHouses"
-                              label="Investment Strategy (Houses)"
-                              options={CONSTANTS.strategies.houses}
-                            />
-                          )}
-                          {(assetType === "land" || assetType === "both") && (
-                            <CheckboxGroup
-                              name="strategiesLand"
-                              label="Investment Strategy (Land)"
-                              options={CONSTANTS.strategies.land}
-                            />
-                          )}
                           {(assetType === "houses" || assetType === "both") && (
                             <CheckboxGroup
                               name="desiredTypesHouses"
@@ -955,32 +941,12 @@ const onSubmit = async (values: BuyBoxFormValues) => {
                         </section>
 
                         {/* Exit Strategy */}
-                        <FormField
-                          control={form.control}
-                          name="exitStrategy"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Exit Strategy *</FormLabel>
-                              <FormDescription>
-                                Select the investment exit strategy (20% weighting in matching algorithm)
-                              </FormDescription>
-                              <FormControl>
-                                <Select value={field.value || ""} onValueChange={field.onChange}>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select exit strategy" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {CONSTANTS.exitStrategies.map((strategy) => (
-                                      <SelectItem key={strategy} value={strategy}>
-                                        {CONSTANTS.exitStrategyLabels[strategy as keyof typeof CONSTANTS.exitStrategyLabels]}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
+                        <CheckboxGroup 
+                          name="exitStrategy" 
+                          label="Exit Strategy (20% weighting in matching algorithm)" 
+                          options={CONSTANTS.exitStrategies.map(strategy => 
+                            CONSTANTS.exitStrategyLabels[strategy as keyof typeof CONSTANTS.exitStrategyLabels]
+                          )} 
                         />
 
                         {/* Notes */}
