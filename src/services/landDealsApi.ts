@@ -145,26 +145,39 @@ export interface ApiResponse<T> {
 // API Functions
 export const landDealsApi = {
   // Create a new land deal
-  createLandDeal: async (dealData: CreateLandDealData): Promise<ApiResponse<LandDeal>> => {
+  createLandDeal: async (dealData: any): Promise<ApiResponse<LandDeal>> => {
     const formData = new FormData();
     
-    // Append fields with correct types as per backend requirements
+    // Append fields with correct backend field names from serializer
     if (dealData.address) formData.append('address', dealData.address);
     if (dealData.latitude) formData.append('latitude', dealData.latitude.toString());
     if (dealData.longitude) formData.append('longitude', dealData.longitude.toString());
     if (dealData.place_id) formData.append('place_id', dealData.place_id);
-    if (dealData.landType) formData.append('landType', dealData.landType);
+    if (dealData.land_type) formData.append('land_type', dealData.land_type);
     if (dealData.acreage) formData.append('acreage', dealData.acreage.toString());
     if (dealData.zoning) formData.append('zoning', dealData.zoning);
-    if (dealData.agreedPrice) formData.append('agreedPrice', dealData.agreedPrice.toString());
-    if (dealData.estimatedAEV) formData.append('estimatedAEV', dealData.estimatedAEV);
-    if (dealData.developmentCosts) formData.append('developmentCosts', dealData.developmentCosts);
+    if (dealData.agreed_price) formData.append('agreed_price', dealData.agreed_price.toString());
+    if (dealData.estimated_aev) formData.append('estimated_aev', dealData.estimated_aev);
+    if (dealData.development_costs) formData.append('development_costs', dealData.development_costs);
     if (dealData.utilities) formData.append('utilities', dealData.utilities);
-    if (dealData.accessType) formData.append('accessType', dealData.accessType);
+    if (dealData.access_type) formData.append('access_type', dealData.access_type);
     if (dealData.topography) formData.append('topography', dealData.topography);
-    if (dealData.environmentalFactors) formData.append('environmentalFactors', dealData.environmentalFactors);
-    if (dealData.nearestAttraction) formData.append('nearestAttraction', dealData.nearestAttraction);
+    if (dealData.environmental_factors) formData.append('environmental_factors', dealData.environmental_factors);
+    if (dealData.nearest_attraction) formData.append('nearest_attraction', dealData.nearest_attraction);
     if (dealData.description) formData.append('description', dealData.description);
+    
+    // Add new required fields from serializer
+    if (dealData.llc_name) formData.append('llc_name', dealData.llc_name);
+    if (dealData.first_name) formData.append('first_name', dealData.first_name);
+    if (dealData.last_name) formData.append('last_name', dealData.last_name);
+    if (dealData.phone_number) formData.append('phone_number', dealData.phone_number);
+    if (dealData.email) formData.append('email', dealData.email);
+    if (dealData.under_contract) formData.append('under_contract', dealData.under_contract);
+    if (dealData.parcel_id) formData.append('parcel_id', dealData.parcel_id);
+    if (dealData.lot_size) formData.append('lot_size', dealData.lot_size.toString());
+    if (dealData.lot_size_unit) formData.append('lot_size_unit', dealData.lot_size_unit);
+    if (dealData.exit_strategy) formData.append('exit_strategy', dealData.exit_strategy);
+    if (dealData.extra_notes) formData.append('extra_notes', dealData.extra_notes);
 
     
     
