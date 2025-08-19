@@ -84,14 +84,6 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
     'Flood Zone', 'HOA Community', 'Near School', 'Near Shopping', 'Rural Area', 'Urban Area'
   ];
 
-  const exitStrategyOptions = [
-    { value: 'infill', label: 'Infill Lot Development' },
-    { value: 'flip', label: 'Buy & Flip' },
-    { value: 'subdivide', label: 'Subdivide & Sell' },
-    { value: 'seller_financing', label: 'Seller Financing' },
-    { value: 'rezoning', label: 'Entitlement/Rezoning' },
-    { value: 'mobile_home', label: 'Mobile Home Lot' }
-  ];
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

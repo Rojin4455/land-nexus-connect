@@ -33,15 +33,14 @@ const CONSTANTS = {
     houses: ["Fix & Flip", "Buy & Hold (Rental)", "BRRRR", "Airbnb / Short-Term Rental", "Novation / Creative Finance"],
     land: ["Infill Lot Development", "Buy & Flip", "Buy & Hold", "Subdivide & Sell", "Seller Financing", "RV Lot / Tiny Home Lot / Mobile Home Lot", "Entitlement / Rezoning"],
   },
-  exitStrategies: ["infill", "flip", "subdivide", "rental", "commercial", "agricultural", "hold"],
+  exitStrategies: ["infill", "flip", "subdivide", "seller_financing", "rezoning", "mobile_home"],
   exitStrategyLabels: {
     "infill": "Infill Lot Development",
     "flip": "Buy & Flip", 
     "subdivide": "Subdivide & Sell",
-    "rental": "Rental Investment",
-    "commercial": "Commercial Development", 
-    "agricultural": "Agricultural Use",
-    "hold": "Buy & Hold"
+    "seller_financing": "Seller Financing",
+    "rezoning": "Entitlement/Rezoning", 
+    "mobile_home": "Mobile Home Lot"
   },
   propertyTypes: {
     houses: ["Single Family", "Duplex / Triplex", "Mobile Home with Land", "Townhouse", "Condo"],
