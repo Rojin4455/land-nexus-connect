@@ -259,492 +259,451 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Contact Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Contact Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="first_name">First Name</Label>
-                  <Input
-                    id="first_name"
-                    name="first_name"
-                    placeholder="Enter first name"
-                    value={formData.first_name}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="last_name">Last Name</Label>
-                  <Input
-                    id="last_name"
-                    name="last_name"
-                    placeholder="Enter last name"
-                    value={formData.last_name}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    placeholder="Enter email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone_number">Phone Number</Label>
-                  <Input
-                    id="phone_number"
-                    name="phone_number"
-                    placeholder="Enter phone number"
-                    value={formData.phone_number}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="llc_name">LLC Name</Label>
-                <Input
-                  id="llc_name"
-                  name="llc_name"
-                  placeholder="Enter LLC name"
-                  value={formData.llc_name}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Basic Information */}
-          <Card>
+          <Card className="card-elevated">
             <CardHeader>
-              <CardTitle>Property Information</CardTitle>
+              <CardTitle>Basic Information</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="address">Property Address</Label>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="md:col-span-2 form-field">
+                <Label htmlFor="address" className="form-label">Lot Address / Location *</Label>
                 <AddressAutocomplete
                   value={formData.address}
-                  onChange={(address, locationData) => {
+                  onChange={(address, coordinates) => {
                     setFormData(prev => ({
                       ...prev,
                       address,
-                      latitude: locationData?.lat || null,
-                      longitude: locationData?.lng || null,
-                      place_id: locationData?.place_id || null
+                      latitude: coordinates?.lat,
+                      longitude: coordinates?.lng,
+                      place_id: coordinates?.place_id
                     }));
                   }}
+                  placeholder="123 Main St, City, State, ZIP"
+                  required
+                  className="form-input"
                 />
               </div>
 
-               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                 <div className="space-y-2">
-                   <Label htmlFor="land_type">Land Type *</Label>
-                   <Select value={formData.land_type} onValueChange={(value) => handleSelectChange('land_type', value)}>
-                     <SelectTrigger>
-                       <SelectValue placeholder="Select land type" />
-                     </SelectTrigger>
-                     <SelectContent>
-                       {landTypesOptions.map(option => (
-                         <SelectItem key={option.value} value={option.value}>
-                           {option.label}
-                         </SelectItem>
-                       ))}
-                     </SelectContent>
-                   </Select>
-                 </div>
-
-                 <div className="space-y-2">
-                   <Label htmlFor="acreage">Acreage *</Label>
-                   <Input
-                     id="acreage"
-                     name="acreage"
-                     type="number"
-                     step="0.01"
-                     placeholder="Enter acreage"
-                     value={formData.acreage}
-                     onChange={handleInputChange}
-                     required
-                   />
-                 </div>
-
-                 <div className="space-y-2">
-                   <Label htmlFor="zoning">Zoning *</Label>
-                   <Input
-                     id="zoning"
-                     name="zoning"
-                     placeholder="Enter zoning information"
-                     value={formData.zoning}
-                     onChange={handleInputChange}
-                     required
-                   />
-                 </div>
-               </div>
-
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                 <div className="space-y-2">
-                   <Label htmlFor="lot_size">Lot Size *</Label>
-                   <Input
-                     id="lot_size"
-                     name="lot_size"
-                     type="number"
-                     step="0.01"
-                     placeholder="Enter lot size"
-                     value={formData.lot_size}
-                     onChange={handleInputChange}
-                     required
-                   />
-                 </div>
-
-                 <div className="space-y-2">
-                   <Label htmlFor="lot_size_unit">Lot Size Unit *</Label>
-                   <Select value={formData.lot_size_unit} onValueChange={(value) => handleSelectChange('lot_size_unit', value)}>
-                     <SelectTrigger>
-                       <SelectValue placeholder="Select unit" />
-                     </SelectTrigger>
-                     <SelectContent>
-                       <SelectItem value="acres">Acres</SelectItem>
-                       <SelectItem value="sqft">Square Feet</SelectItem>
-                     </SelectContent>
-                   </Select>
-                 </div>
-               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="parcel_id">Parcel ID (Optional)</Label>
-                  <Input
-                    id="parcel_id"
-                    name="parcel_id"
-                    placeholder="Enter parcel ID"
-                    value={formData.parcel_id}
-                    onChange={handleInputChange}
-                  />
-                </div>
-
-                 <div className="space-y-2">
-                   <Label htmlFor="under_contract">Under Contract? *</Label>
-                   <Select value={formData.under_contract} onValueChange={(value) => handleSelectChange('under_contract', value)}>
-                     <SelectTrigger>
-                       <SelectValue placeholder="Select option" />
-                     </SelectTrigger>
-                     <SelectContent>
-                       <SelectItem value="yes">Yes</SelectItem>
-                       <SelectItem value="no">No</SelectItem>
-                     </SelectContent>
-                   </Select>
-                 </div>
+              <div className="form-field">
+                <Label htmlFor="land_type" className="form-label">Land Type *</Label>
+                <Select value={formData.land_type} onValueChange={(value) => handleSelectChange('land_type', value)}>
+                  <SelectTrigger className="form-input">
+                    <SelectValue placeholder="Select land type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {landTypesOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
+
+              <div className="form-field">
+                <Label htmlFor="acreage" className="form-label">Acreage *</Label>
+                <Input
+                  id="acreage"
+                  name="acreage"
+                  type="number"
+                  step="0.1"
+                  placeholder="e.g., 2.5"
+                  value={formData.acreage}
+                  onChange={handleInputChange}
+                  className="form-input"
+                  required
+                />
+              </div>
+
+              <div className="form-field">
+                <Label htmlFor="lot_size" className="form-label">Lot Size *</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="lot_size"
+                    name="lot_size"
+                    type="number"
+                    step="0.1"
+                    placeholder="e.g., 2.5"
+                    value={formData.lot_size}
+                    onChange={handleInputChange}
+                    className="form-input flex-1"
+                    required
+                  />
+                  <Select value={formData.lot_size_unit} onValueChange={(value) => handleSelectChange('lot_size_unit', value)}>
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="acres">Acres</SelectItem>
+                      <SelectItem value="sqft">Sq Ft</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+               <div className="form-field">
+                 <Label htmlFor="zoning" className="form-label">Zoning Classification *</Label>
+                 <Input
+                   id="zoning"
+                   name="zoning"
+                   placeholder="e.g., R-1, C-2, M-1"
+                   value={formData.zoning}
+                   onChange={handleInputChange}
+                   className="form-input"
+                   required
+                 />
+               </div>
             </CardContent>
           </Card>
 
           {/* Financial Information */}
-          <Card>
+          <Card className="card-elevated">
             <CardHeader>
-              <CardTitle>Financial Information</CardTitle>
+              <CardTitle>Financial Details</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                 <div className="space-y-2">
-                   <Label htmlFor="agreed_price">Agreed Price ($) *</Label>
-                   <Input
-                     id="agreed_price"
-                     name="agreed_price"
-                     type="number"
-                     step="0.01"
-                     placeholder="Enter agreed price"
-                     value={formData.agreed_price}
-                     onChange={handleInputChange}
-                     required
-                   />
-                 </div>
+            <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="form-field">
+                <Label htmlFor="agreed_price" className="form-label">Agreed/Purchase Price ($) *</Label>
+                <Input
+                  id="agreed_price"
+                  name="agreed_price"
+                  type="number"
+                  placeholder="125000"
+                  value={formData.agreed_price}
+                  onChange={handleInputChange}
+                  className="form-input"
+                  required
+                />
+              </div>
 
-                 <div className="space-y-2">
-                   <Label htmlFor="estimated_aev">Estimated AEV ($) *</Label>
-                   <Input
-                     id="estimated_aev"
-                     name="estimated_aev"
-                     type="number"
-                     step="0.01"
-                     placeholder="Enter estimated AEV"
-                     value={formData.estimated_aev}
-                     onChange={handleInputChange}
-                     required
-                   />
-                 </div>
-
-                 <div className="space-y-2">
-                   <Label htmlFor="development_costs">Development Costs ($) *</Label>
-                   <Input
-                     id="development_costs"
-                     name="development_costs"
-                     type="number"
-                     step="0.01"
-                     placeholder="Enter development costs"
-                     value={formData.development_costs}
-                     onChange={handleInputChange}
-                     required
-                   />
-                 </div>
+               <div className="form-field">
+                 <Label htmlFor="estimated_aev" className="form-label">Estimated AEV ($) *</Label>
+                 <Input
+                   id="estimated_aev"
+                   name="estimated_aev"
+                   type="number"
+                   placeholder="150000"
+                   value={formData.estimated_aev}
+                   onChange={handleInputChange}
+                   className="form-input"
+                   required
+                 />
                </div>
 
-               <div className="space-y-2">
-                 <Label htmlFor="exit_strategy">Exit Strategy *</Label>
-                 <Select value={formData.exit_strategy} onValueChange={(value) => handleSelectChange('exit_strategy', value)}>
-                   <SelectTrigger>
-                     <SelectValue placeholder="Select exit strategy" />
-                   </SelectTrigger>
-                   <SelectContent>
-                     {exitStrategyOptions.map(option => (
-                       <SelectItem key={option.value} value={option.value}>
-                         {option.label}
-                       </SelectItem>
-                     ))}
-                   </SelectContent>
-                 </Select>
+               <div className="form-field">
+                 <Label htmlFor="development_costs" className="form-label">Development Costs ($) *</Label>
+                 <Input
+                   id="development_costs"
+                   name="development_costs"
+                   type="number"
+                   placeholder="25000"
+                   value={formData.development_costs}
+                   onChange={handleInputChange}
+                   className="form-input"
+                   required
+                 />
                </div>
             </CardContent>
           </Card>
 
           {/* Property Details */}
-          <Card>
+          <Card className="card-elevated">
             <CardHeader>
               <CardTitle>Property Details</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                 <div className="space-y-2">
-                   <Label htmlFor="utilities">Utilities *</Label>
-                   <Select value={formData.utilities} onValueChange={(value) => handleSelectChange('utilities', value)}>
-                     <SelectTrigger>
-                       <SelectValue placeholder="Select utilities" />
-                     </SelectTrigger>
-                     <SelectContent>
-                       {utilitiesOptions.map(option => (
-                         <SelectItem key={option.value} value={option.value}>
-                           {option.label}
-                         </SelectItem>
-                       ))}
-                     </SelectContent>
-                   </Select>
-                 </div>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="form-field">
+                <Label htmlFor="utilities" className="form-label">Utilities Available *</Label>
+                <Select value={formData.utilities} onValueChange={(value) => handleSelectChange('utilities', value)}>
+                  <SelectTrigger className="form-input">
+                    <SelectValue placeholder="Select utilities" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {utilitiesOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-                 <div className="space-y-2">
-                   <Label htmlFor="access_type">Access Type *</Label>
-                   <Select value={formData.access_type} onValueChange={(value) => handleSelectChange('access_type', value)}>
-                     <SelectTrigger>
-                       <SelectValue placeholder="Select access type" />
-                     </SelectTrigger>
-                     <SelectContent>
-                       {accessTypesOptions.map(option => (
-                         <SelectItem key={option.value} value={option.value}>
-                           {option.label}
-                         </SelectItem>
-                       ))}
-                     </SelectContent>
-                   </Select>
-                 </div>
-               </div>
+              <div className="form-field">
+                <Label htmlFor="access_type" className="form-label">Access Type *</Label>
+                <Select value={formData.access_type} onValueChange={(value) => handleSelectChange('access_type', value)}>
+                  <SelectTrigger className="form-input">
+                    <SelectValue placeholder="Select access type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {accessTypesOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                 <div className="space-y-2">
-                   <Label htmlFor="topography">Topography</Label>
-                   <Input
-                     id="topography"
-                     name="topography"
-                     placeholder="Describe topography"
-                     value={formData.topography}
-                     onChange={handleInputChange}
-                   />
-                 </div>
-
-                 <div className="space-y-2">
-                   <Label htmlFor="environmental_factors">Environmental Factors *</Label>
-                   <Input
-                     id="environmental_factors"
-                     name="environmental_factors"
-                     placeholder="Environmental considerations"
-                     value={formData.environmental_factors}
-                     onChange={handleInputChange}
-                     required
-                   />
-                 </div>
-               </div>
-
-               <div className="space-y-2">
-                 <Label htmlFor="nearest_attraction">Nearest Attraction *</Label>
+               <div className="md:col-span-2 form-field">
+                 <Label htmlFor="nearest_attraction" className="form-label">Nearest Major City/Development/Attraction *</Label>
                  <Input
                    id="nearest_attraction"
                    name="nearest_attraction"
-                   placeholder="Describe nearest attraction"
+                   placeholder="e.g., 15 miles from Denver downtown"
                    value={formData.nearest_attraction}
                    onChange={handleInputChange}
+                   className="form-input"
                    required
                  />
                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  name="description"
-                  placeholder="Provide a detailed description of the property"
-                  value={formData.description}
+               <div className="md:col-span-2 form-field">
+                 <Label htmlFor="topography" className="form-label">Topography</Label>
+                 <Textarea
+                   id="topography"
+                   name="topography"
+                   placeholder="Describe the land's topography, elevation, slope, etc."
+                   value={formData.topography}
+                   onChange={handleInputChange}
+                   className="min-h-[100px]"
+                 />
+               </div>
+
+               <div className="md:col-span-2 form-field">
+                 <Label htmlFor="environmental_factors" className="form-label">Environmental Factors *</Label>
+                 <Textarea
+                   id="environmental_factors"
+                   name="environmental_factors"
+                   placeholder="Any environmental concerns, wetlands, flood zones, etc."
+                   value={formData.environmental_factors}
+                   onChange={handleInputChange}
+                   className="min-h-[100px]"
+                   required
+                 />
+               </div>
+
+               <div className="md:col-span-2 form-field">
+                 <Label htmlFor="description" className="form-label">Land Description</Label>
+                 <Textarea
+                   id="description"
+                   name="description"
+                   placeholder="Provide a detailed description of the property..."
+                   value={formData.description}
+                   onChange={handleInputChange}
+                   className="min-h-[120px]"
+                 />
+               </div>
+            </CardContent>
+          </Card>
+
+          {/* Contact Information */}
+          <Card className="card-elevated">
+            <CardHeader>
+              <CardTitle>Contact Information</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="form-field">
+                <Label htmlFor="llc_name" className="form-label">LLC Name *</Label>
+                <Input
+                  id="llc_name"
+                  name="llc_name"
+                  placeholder="Your LLC Name"
+                  value={formData.llc_name}
                   onChange={handleInputChange}
-                  rows={4}
+                  className="form-input"
+                  required
                 />
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Characteristics */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Property & Location Characteristics</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-3">
-                <Label>Property Characteristics</Label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {propertyCharacteristicsOptions.map(characteristic => (
-                    <div key={characteristic} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`property-${characteristic}`}
-                        checked={formData.property_characteristics.includes(characteristic)}
-                        onCheckedChange={(checked) => 
-                          handleCheckboxChange('property_characteristics', characteristic, checked)
-                        }
-                      />
-                      <Label 
-                        htmlFor={`property-${characteristic}`}
-                        className="text-sm font-normal"
-                      >
-                        {characteristic}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
+              <div className="form-field">
+                <Label htmlFor="first_name" className="form-label">First Name *</Label>
+                <Input
+                  id="first_name"
+                  name="first_name"
+                  placeholder="John"
+                  value={formData.first_name}
+                  onChange={handleInputChange}
+                  className="form-input"
+                  required
+                />
               </div>
 
-              <div className="space-y-3">
-                <Label>Location Characteristics</Label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {locationCharacteristicsOptions.map(characteristic => (
-                    <div key={characteristic} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`location-${characteristic}`}
-                        checked={formData.location_characteristics.includes(characteristic)}
-                        onCheckedChange={(checked) => 
-                          handleCheckboxChange('location_characteristics', characteristic, checked)
-                        }
-                      />
-                      <Label 
-                        htmlFor={`location-${characteristic}`}
-                        className="text-sm font-normal"
-                      >
-                        {characteristic}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
+              <div className="form-field">
+                <Label htmlFor="last_name" className="form-label">Last Name *</Label>
+                <Input
+                  id="last_name"
+                  name="last_name"
+                  placeholder="Doe"
+                  value={formData.last_name}
+                  onChange={handleInputChange}
+                  className="form-input"
+                  required
+                />
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Additional Notes */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Additional Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="extra_notes">Extra Notes</Label>
+              <div className="form-field">
+                <Label htmlFor="phone_number" className="form-label">Phone Number *</Label>
+                <Input
+                  id="phone_number"
+                  name="phone_number"
+                  placeholder="(555) 123-4567"
+                  value={formData.phone_number}
+                  onChange={handleInputChange}
+                  className="form-input"
+                  required
+                />
+              </div>
+
+              <div className="form-field">
+                <Label htmlFor="email" className="form-label">Email *</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="john@example.com"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className="form-input"
+                  required
+                />
+              </div>
+
+              <div className="form-field">
+                <Label htmlFor="under_contract" className="form-label">Under Contract *</Label>
+                <Select value={formData.under_contract} onValueChange={(value) => handleSelectChange('under_contract', value)}>
+                  <SelectTrigger className="form-input">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="yes">Yes</SelectItem>
+                    <SelectItem value="no">No</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="form-field">
+                <Label htmlFor="parcel_id" className="form-label">Parcel ID</Label>
+                <Input
+                  id="parcel_id"
+                  name="parcel_id"
+                  placeholder="Property Parcel ID"
+                  value={formData.parcel_id}
+                  onChange={handleInputChange}
+                  className="form-input"
+                />
+              </div>
+
+               <div className="form-field">
+                 <Label htmlFor="exit_strategy" className="form-label">Exit Strategy *</Label>
+                 <Select value={formData.exit_strategy} onValueChange={(value) => handleSelectChange('exit_strategy', value)}>
+                   <SelectTrigger className="form-input">
+                     <SelectValue placeholder="Select exit strategy" />
+                   </SelectTrigger>
+                   <SelectContent>
+                     <SelectItem value="infill">Infill Lot Development</SelectItem>
+                     <SelectItem value="flip">Buy & Flip</SelectItem>
+                     <SelectItem value="subdivide">Subdivide & Sell</SelectItem>
+                     <SelectItem value="seller_financing">Seller Financing</SelectItem>
+                     <SelectItem value="rezoning">Entitlement/Rezoning</SelectItem>
+                     <SelectItem value="mobile_home">Mobile Home Lot</SelectItem>
+                   </SelectContent>
+                 </Select>
+               </div>
+
+              <div className="md:col-span-2 form-field">
+                <Label htmlFor="extra_notes" className="form-label">Additional Notes</Label>
                 <Textarea
                   id="extra_notes"
                   name="extra_notes"
-                  placeholder="Any additional information or notes about the property"
+                  placeholder="Any additional information about the property..."
                   value={formData.extra_notes}
                   onChange={handleInputChange}
-                  rows={3}
+                  className="min-h-[100px]"
                 />
               </div>
             </CardContent>
           </Card>
 
           {/* File Upload */}
-          <Card>
+          <Card className="card-elevated">
             <CardHeader>
-              <CardTitle>Upload Files</CardTitle>
+              <CardTitle>Documents & Media</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
-                <Upload className="mx-auto h-12 w-12 text-muted-foreground" />
-                <div className="mt-4">
-                  <label htmlFor="file-upload" className="cursor-pointer">
-                    <span className="mt-2 block text-sm font-medium">
-                      Upload photos and documents
-                    </span>
-                    <input
-                      id="file-upload"
-                      name="file-upload"
-                      type="file"
-                      className="sr-only"
-                      multiple
-                      accept="image/*,application/pdf,.doc,.docx"
-                      onChange={handleFileUpload}
-                    />
-                  </label>
+              <div className="form-field">
+                <Label className="form-label">Upload Photos/Videos/Documents</Label>
+                <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary/50 transition-colors">
+                  <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Drag files here or click to browse
+                  </p>
+                  <p className="text-xs text-muted-foreground mb-4">
+                    Supports: JPG, PNG, PDF, MP4, KML, CAD files (max 10MB each)
+                  </p>
+                  <Input
+                    type="file"
+                    multiple
+                    accept=".jpg,.jpeg,.png,.pdf,.mp4,.kml,.dwg,.dxf"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                    id="file-upload"
+                  />
+                  <Button 
+                    type="button" 
+                    variant="outline"
+                    onClick={() => document.getElementById('file-upload').click()}
+                  >
+                    Choose Files
+                  </Button>
                 </div>
               </div>
 
+              {/* Uploaded Files */}
               {uploadedFiles.length > 0 && (
                 <div className="space-y-2">
-                  <h4 className="font-medium">Uploaded Files</h4>
-                  {uploadedFiles.map((file) => (
-                    <div key={file.id} className="flex items-center justify-between bg-muted/50 p-3 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        {getFileIcon(file.type)}
-                        <div>
-                          <p className="text-sm font-medium">{file.name}</p>
-                          <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
+                  <h4 className="font-medium text-sm">Uploaded Files ({uploadedFiles.length})</h4>
+                  <div className="grid gap-2">
+                    {uploadedFiles.map((file) => (
+                      <div key={file.id} className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          {getFileIcon(file.type)}
+                          <div>
+                            <p className="text-sm font-medium">{file.name}</p>
+                            <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
+                          </div>
                         </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeFile(file.id)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
                       </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeFile(file.id)}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               )}
             </CardContent>
           </Card>
 
+          {/* Submit Button */}
           <div className="flex justify-end space-x-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button 
+              type="button" 
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Submitting...' : 'Submit Deal for Review'}
+            <Button 
+              type="submit" 
+              className="btn-primary px-8"
+              disabled={isLoading}
+            >
+              {isLoading ? "Submitting..." : "Submit Deal for Review"}
             </Button>
           </div>
         </form>
