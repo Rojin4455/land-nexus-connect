@@ -135,12 +135,11 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
 
   const assetType = form.watch("assetType");
 
-  const likelihood = useMemo(() => {
-    if (state.matchScore == null) return null;
-    if (state.matchScore >= 70) return { label: "High", color: "bg-green-100 text-green-800" };
-    if (state.matchScore >= 40) return { label: "Medium", color: "bg-yellow-100 text-yellow-800" };
-    return { label: "Low", color: "bg-red-100 text-red-800" };
-  }, [state.matchScore]);
+  const getMatchLikelihood = (score: number) => {
+    if (score > 45) return { label: "Good Fit", color: "bg-green-100 text-green-800" };
+    if (score < 40) return { label: "Poor Fit", color: "bg-red-100 text-red-800" };
+    return { label: "Marginal Fit", color: "bg-yellow-100 text-yellow-800" };
+  };
 
   // Utility functions
   const updateState = (updates: Partial<typeof state>) => setState(prev => ({ ...prev, ...updates }));
@@ -515,7 +514,7 @@ const onSubmit = async (values: BuyBoxFormValues) => {
       ) : state.matchingStats ? (
         <div className="space-y-8">
           {/* Buyer Profile & Status */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="border rounded-lg p-4 bg-card">
               <h4 className="font-medium text-sm text-muted-foreground mb-2">Status</h4>
               <div className="flex flex-col gap-2">
@@ -532,6 +531,44 @@ const onSubmit = async (values: BuyBoxFormValues) => {
               <p className="text-lg font-semibold capitalize">
                 {state.matchingStats.buybox_criteria?.asset_type || "Not Set"}
               </p>
+            </div>
+            <div className="border rounded-lg p-4 bg-card">
+              <h4 className="font-medium text-sm text-muted-foreground mb-2">Target Location</h4>
+              <p className="text-sm truncate">
+                {state.matchingStats.buybox_criteria?.address || "Not Specified"}
+              </p>
+            </div>
+          </div>
+
+          {/* Algorithm Weights Display */}
+          <div className="border rounded-lg p-6 bg-accent/20">
+            <h4 className="font-medium text-lg mb-4">Weighted Matching Algorithm</h4>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
+              <div className="space-y-2">
+                <div className="text-2xl font-bold text-primary">40%</div>
+                <div className="text-xs font-medium">Location Match</div>
+                <div className="text-xs text-muted-foreground">City, County, Zip</div>
+              </div>
+              <div className="space-y-2">
+                <div className="text-2xl font-bold text-primary">30%</div>
+                <div className="text-xs font-medium">Land Type</div>
+                <div className="text-xs text-muted-foreground">Property Category</div>
+              </div>
+              <div className="space-y-2">
+                <div className="text-2xl font-bold text-primary">20%</div>
+                <div className="text-xs font-medium">Exit Strategy</div>
+                <div className="text-xs text-muted-foreground">Investment Plan</div>
+              </div>
+              <div className="space-y-2">
+                <div className="text-2xl font-bold text-primary">5%</div>
+                <div className="text-xs font-medium">Lot Size</div>
+                <div className="text-xs text-muted-foreground">Acreage Match</div>
+              </div>
+              <div className="space-y-2">
+                <div className="text-2xl font-bold text-primary">5%</div>
+                <div className="text-xs font-medium">Agreed Price</div>
+                <div className="text-xs text-muted-foreground">Price Range</div>
+              </div>
             </div>
           </div>
 
@@ -610,24 +647,24 @@ const onSubmit = async (values: BuyBoxFormValues) => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="border rounded-lg p-6 text-center bg-card">
                 <div className="text-3xl font-bold text-green-600 mb-2">
-                  {state.matchingStats.matching_stats?.likelihood_breakdown?.high_likelihood_count || 0}
+                  {state.matchingStats.matching_stats?.recent_performance?.good_fit_count || 0}
                 </div>
-                <div className="text-sm font-medium text-muted-foreground">High Score Matches</div>
-                <div className="text-xs text-muted-foreground mt-1">(70%+ match)</div>
+                <div className="text-sm font-medium text-muted-foreground">Good Fit</div>
+                <div className="text-xs text-muted-foreground mt-1">(&gt;45% match)</div>
               </div>
               <div className="border rounded-lg p-6 text-center bg-card">
                 <div className="text-3xl font-bold text-yellow-600 mb-2">
-                  {state.matchingStats.matching_stats?.likelihood_breakdown?.medium_likelihood_count || 0}
+                  {state.matchingStats.matching_stats?.recent_performance?.marginal_fit_count || 0}
                 </div>
-                <div className="text-sm font-medium text-muted-foreground">Medium Score Matches</div>
-                <div className="text-xs text-muted-foreground mt-1">(40-69% match)</div>
+                <div className="text-sm font-medium text-muted-foreground">Marginal Fit</div>
+                <div className="text-xs text-muted-foreground mt-1">(40-45% match)</div>
               </div>
               <div className="border rounded-lg p-6 text-center bg-card">
                 <div className="text-3xl font-bold text-red-600 mb-2">
-                  {state.matchingStats.matching_stats?.likelihood_breakdown?.low_likelihood_count || 0}
+                  {state.matchingStats.matching_stats?.recent_performance?.poor_fit_count || 0}
                 </div>
-                <div className="text-sm font-medium text-muted-foreground">Low Score Matches</div>
-                <div className="text-xs text-muted-foreground mt-1">(Below 40% match)</div>
+                <div className="text-sm font-medium text-muted-foreground">Poor Fit</div>
+                <div className="text-xs text-muted-foreground mt-1">(&lt;40% match)</div>
               </div>
             </div>
           </div>
@@ -639,45 +676,43 @@ const onSubmit = async (values: BuyBoxFormValues) => {
               <div className="border rounded-lg overflow-hidden">
                 <div className="max-h-80 overflow-y-auto">
                   <div className="divide-y">
-                    {state.matchingStats.matching_results.recent_matches.map((match: any) => (
-                      <div key={match.property_id} className="p-4 hover:bg-accent/50 transition-colors">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1 min-w-0">
-                            <h6 className="font-medium text-sm mb-2">{match.display_name}</h6>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-muted-foreground">
-                              <div>
-                                <span className="font-medium">Type:</span> {match.land_type}
-                              </div>
-                              <div>
-                                <span className="font-medium">Size:</span> {match.acreage} acres
-                              </div>
-                              <div>
-                                <span className="font-medium">Price:</span> ${match.asking_price?.toLocaleString()}
-                              </div>
-                              <div>
-                                <span className="font-medium">Address:</span> {match.address}
+                    {state.matchingStats.matching_results.recent_matches.map((match: any) => {
+                      const likelihood = getMatchLikelihood(match.match_score);
+                      return (
+                        <div key={match.property_id} className="p-4 hover:bg-accent/50 transition-colors">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1 min-w-0">
+                              <h6 className="font-medium text-sm mb-2">{match.display_name}</h6>
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-muted-foreground">
+                                <div>
+                                  <span className="font-medium">Type:</span> {match.land_type}
+                                </div>
+                                <div>
+                                  <span className="font-medium">Size:</span> {match.acreage} acres
+                                </div>
+                                <div>
+                                  <span className="font-medium">Price:</span> ${Number(match.agreed_price || 0).toLocaleString()}
+                                </div>
+                                <div>
+                                  <span className="font-medium">Address:</span> {match.address}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                          <div className="flex items-center gap-3 flex-shrink-0">
-                            <Badge 
-                              variant={match.likelihood === 'High' ? 'default' : match.likelihood === 'Medium' ? 'secondary' : 'outline'}
-                              className={`text-xs ${
-                                match.likelihood === 'High' ? 'bg-green-100 text-green-800' : 
-                                match.likelihood === 'Medium' ? 'bg-yellow-100 text-yellow-800' : 
-                                'bg-red-100 text-red-800'
-                              }`}
-                            >
-                              {match.likelihood}
-                            </Badge>
-                            <div className="text-right">
-                              <div className="font-semibold text-lg">{match.match_score}%</div>
-                              <div className="text-xs text-muted-foreground">Match Score</div>
+                            <div className="flex items-center gap-3 flex-shrink-0">
+                              <Badge 
+                                className={`text-xs ${likelihood.color}`}
+                              >
+                                {match.likelihood || likelihood.label}
+                              </Badge>
+                              <div className="text-right">
+                                <div className="font-semibold text-lg">{match.match_score}%</div>
+                                <div className="text-xs text-muted-foreground">Match Score</div>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               </div>
