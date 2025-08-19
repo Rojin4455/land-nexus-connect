@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { landDealsApi } from "@/services/landDealsApi";
@@ -31,6 +32,16 @@ const CONSTANTS = {
   strategies: {
     houses: ["Fix & Flip", "Buy & Hold (Rental)", "BRRRR", "Airbnb / Short-Term Rental", "Novation / Creative Finance"],
     land: ["Infill Lot Development", "Buy & Flip", "Buy & Hold", "Subdivide & Sell", "Seller Financing", "RV Lot / Tiny Home Lot / Mobile Home Lot", "Entitlement / Rezoning"],
+  },
+  exitStrategies: ["infill", "flip", "subdivide", "rental", "commercial", "agricultural", "hold"],
+  exitStrategyLabels: {
+    "infill": "Infill Lot Development",
+    "flip": "Buy & Flip", 
+    "subdivide": "Subdivide & Sell",
+    "rental": "Rental Investment",
+    "commercial": "Commercial Development", 
+    "agricultural": "Agricultural Use",
+    "hold": "Buy & Hold"
   },
   propertyTypes: {
     houses: ["Single Family", "Duplex / Triplex", "Mobile Home with Land", "Townhouse", "Condo"],
@@ -73,6 +84,7 @@ const BuyBoxSchema = z.object({
   strictRequirements: z.array(z.string()).default([]),
   locationCharacteristics: z.array(z.string()).default([]),
   propertyCharacteristics: z.array(z.string()).default([]),
+  exitStrategy: z.string().optional().default(""),
   notes: z.string().optional().default(""),
 });
 
@@ -129,6 +141,7 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
       strictRequirements: [],
       locationCharacteristics: [],
       propertyCharacteristics: [],
+      exitStrategy: "",
       notes: "",
     },
   });
@@ -198,6 +211,7 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
       strictRequirements: [],
       locationCharacteristics: [],
       propertyCharacteristics: [],
+      exitStrategy: "",
       notes: "",
     });
   };
@@ -253,6 +267,7 @@ const loadBuyBox = async () => {
           strictRequirements: buyBoxData.strict_requirements || [],
           locationCharacteristics: buyBoxData.location_characteristics || [],
           propertyCharacteristics: buyBoxData.property_characteristics || [],
+          exitStrategy: buyBoxData.exit_strategy || "",
           notes: buyBoxData.notes || "",
         };
         form.reset(mapped as BuyBoxFormValues);
@@ -353,6 +368,7 @@ const onSubmit = async (values: BuyBoxFormValues) => {
       strict_requirements: values.strictRequirements,
       location_characteristics: values.locationCharacteristics,
       property_characteristics: values.propertyCharacteristics,
+      exit_strategy: values.exitStrategy,
       notes: values.notes,
     };
 
@@ -938,6 +954,35 @@ const onSubmit = async (values: BuyBoxFormValues) => {
                           <CheckboxGroup name="locationCharacteristics" label="Location Characteristics" options={CONSTANTS.locationChars} />
                           <CheckboxGroup name="propertyCharacteristics" label="Property Characteristics" options={CONSTANTS.propertyChars} />
                         </section>
+
+                        {/* Exit Strategy */}
+                        <FormField
+                          control={form.control}
+                          name="exitStrategy"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Exit Strategy *</FormLabel>
+                              <FormDescription>
+                                Select the investment exit strategy (20% weighting in matching algorithm)
+                              </FormDescription>
+                              <FormControl>
+                                <Select value={field.value || ""} onValueChange={field.onChange}>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select exit strategy" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {CONSTANTS.exitStrategies.map((strategy) => (
+                                      <SelectItem key={strategy} value={strategy}>
+                                        {CONSTANTS.exitStrategyLabels[strategy as keyof typeof CONSTANTS.exitStrategyLabels]}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
                         {/* Notes */}
                         <FormField
