@@ -3,20 +3,22 @@ import { Autocomplete, useLoadScript } from '@react-google-maps/api';
 import { Input } from '@/components/ui/input';
 import { MapPin } from 'lucide-react';
 
-interface Coordinates {
+// Define full location type
+interface LocationData {
   lat: number;
   lng: number;
+  place_id: string;
+  city?: string | null;
+  county?: string | null;
+  state?: string | null;
+  zip_code?: string | null;
 }
 
 interface AddressAutocompleteProps {
   value: string;
   onChange: (
     address: string,
-    locationData?: {
-      lat: number;
-      lng: number;
-      place_id: string;
-    }
+    locationData?: LocationData
   ) => void;
   placeholder?: string;
   required?: boolean;
@@ -45,15 +47,34 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   const onPlaceChanged = () => {
     if (autocomplete) {
       const place = autocomplete.getPlace();
+      console.log("place", place);
+
       const address = place.formatted_address || place.name || '';
       const lat = place.geometry?.location?.lat();
       const lng = place.geometry?.location?.lng();
       const place_id = place.place_id;
 
+      // Extract helper
+      const getComponent = (type: string) =>
+        place.address_components?.find(c => c.types.includes(type))?.long_name || null;
+
+      const city = getComponent("locality");
+      const county = getComponent("administrative_area_level_2");
+      const state = getComponent("administrative_area_level_1");
+      const zip_code = getComponent("postal_code");
+
       if (lat && lng && place_id) {
-        onChange(address, { lat, lng, place_id });
+        onChange(address, {
+          lat,
+          lng,
+          place_id,
+          city,
+          county,
+          state,
+          zip_code,
+        });
       } else {
-        onChange(address); // fallback if place data is incomplete
+        onChange(address); // fallback if no geometry
       }
     }
   };
