@@ -15,6 +15,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "@/hooks/use-toast";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { landDealsApi } from "@/services/landDealsApi";
+import AddressAutocomplete from '@/components/map/AddressAutocomplete';
 
 // Consolidated constants and schemas
 const CONSTANTS = {
@@ -47,11 +48,10 @@ const BuyBoxSchema = z.object({
   assetType: z.enum(["land", "houses", "both"]).default("both"),
   activeBuyer: z.boolean().default(true),
   blacklistStatus: z.boolean().default(false),
-  cities: z.array(z.string()).default([]),
-  counties: z.array(z.string()).default([]),
-  states: z.array(z.string()).default([]),
-  zips: z.array(z.string()).default([]),
-  radiusMiles: z.number().optional().nullable(),
+  address: z.string().optional().default(""),
+  latitude: z.number().optional().nullable(),
+  longitude: z.number().optional().nullable(),
+  place_id: z.string().optional().default(""),
   strategiesHouses: z.array(z.string()).default([]),
   strategiesLand: z.array(z.string()).default([]),
   desiredTypesHouses: z.array(z.string()).default([]),
@@ -104,11 +104,10 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
       assetType: "both",
       activeBuyer: true,
       blacklistStatus: false,
-      cities: [],
-      counties: [],
-      states: [],
-      zips: [],
-      radiusMiles: undefined,
+      address: "",
+      latitude: undefined,
+      longitude: undefined,
+      place_id: "",
       strategiesHouses: [],
       strategiesLand: [],
       desiredTypesHouses: [],
@@ -175,11 +174,10 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
       assetType: "both",
       activeBuyer: true,
       blacklistStatus: false,
-      cities: [],
-      counties: [],
-      states: [],
-      zips: [],
-      radiusMiles: undefined,
+      address: "",
+      latitude: undefined,
+      longitude: undefined,
+      place_id: "",
       strategiesHouses: [],
       strategiesLand: [],
       desiredTypesHouses: [],
@@ -231,11 +229,10 @@ const loadBuyBox = async () => {
           assetType: mapAssetType(buyBoxData.asset_type) || "both",
           activeBuyer: Boolean(buyBoxData.is_active_buyer ?? true),
           blacklistStatus: Boolean(buyBoxData.is_blacklisted ?? false),
-          cities: buyBoxData.preferred_cities || [],
-          counties: buyBoxData.preferred_counties || [],
-          states: buyBoxData.preferred_states || [],
-          zips: buyBoxData.preferred_zip_codes || [],
-          radiusMiles: numberOrNull(buyBoxData.radius_miles),
+          address: buyBoxData.address || "",
+          latitude: buyBoxData.latitude || null,
+          longitude: buyBoxData.longitude || null,
+          place_id: buyBoxData.place_id || "",
           strategiesHouses: buyBoxData.house_strategies || [], // Fix: was strategies_houses
           strategiesLand: buyBoxData.land_strategies || [],   // Fix: was strategies_land
           desiredTypesHouses: buyBoxData.house_property_types || [], // Fix: was desired_types_houses
@@ -330,13 +327,12 @@ const onSubmit = async (values: BuyBoxFormValues) => {
     updateState({ savingBuyBox: true });
     const payload: any = {
       asset_type: values.assetType.toLowerCase(),
-      is_active_buyer: values.activeBuyer,        // Fix: was active_buyer
-      is_blacklisted: values.blacklistStatus,     // Fix: was blacklist_status
-      preferred_cities: values.cities,
-      preferred_counties: values.counties,
-      preferred_states: values.states,
-      preferred_zip_codes: values.zips,
-      radius_miles: values.radiusMiles,
+      is_active_buyer: values.activeBuyer,
+      is_blacklisted: values.blacklistStatus,
+      address: values.address || "",
+      latitude: values.latitude || null,
+      longitude: values.longitude || null,
+      place_id: values.place_id || "",
       house_strategies: values.strategiesHouses,  // Fix: was strategies_houses
       land_strategies: values.strategiesLand,     // Fix: was strategies_land
       house_property_types: values.desiredTypesHouses, // Fix: was desired_types_houses
@@ -812,21 +808,32 @@ const onSubmit = async (values: BuyBoxFormValues) => {
                           />
                         </div>
 
-                        {/* Location preferences */}
-                        <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <CsvField name="cities" label="Cities (CSV)" placeholder="e.g., Phoenix, Tempe" />
-                          <CsvField name="counties" label="Counties (CSV)" placeholder="e.g., Maricopa, Pima" />
-                          <CsvField name="states" label="States (CSV)" placeholder="e.g., AZ, CA, TX" />
-                          <CsvField name="zips" label="ZIP codes (CSV)" placeholder="e.g., 85281, 85282" />
+                        {/* Address field */}
+                        <section className="space-y-4">
                           <FormField
                             control={form.control}
-                            name="radiusMiles"
+                            name="address"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Radius (miles)</FormLabel>
+                                <FormLabel>Target Address / Location</FormLabel>
                                 <FormControl>
-                                  <Input type="number" value={field.value ?? ""} onChange={(e) => field.onChange(numOrNull(e.target.value))} placeholder="Optional" />
+                                  <AddressAutocomplete
+                                    value={field.value || ""}
+                                    onChange={(address, locationData) => {
+                                      field.onChange(address);
+                                      if (locationData) {
+                                        form.setValue("latitude", locationData.lat);
+                                        form.setValue("longitude", locationData.lng);
+                                        form.setValue("place_id", locationData.place_id);
+                                      }
+                                    }}
+                                    placeholder="Enter target investment address..."
+                                    className="w-full"
+                                  />
                                 </FormControl>
+                                <FormDescription>
+                                  Specify the target address or area for investments
+                                </FormDescription>
                               </FormItem>
                             )}
                           />
