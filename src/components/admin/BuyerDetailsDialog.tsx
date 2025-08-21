@@ -83,7 +83,7 @@ const BuyBoxSchema = z.object({
   strictRequirements: z.array(z.string()).default([]),
   locationCharacteristics: z.array(z.string()).default([]),
   propertyCharacteristics: z.array(z.string()).default([]),
-  exitStrategy: z.string().optional().default(""),
+  exitStrategy: z.array(z.string()).default([]),
   notes: z.string().optional().default(""),
 });
 
@@ -140,7 +140,7 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
       strictRequirements: [],
       locationCharacteristics: [],
       propertyCharacteristics: [],
-      exitStrategy: "",
+      exitStrategy: [],
       notes: "",
     },
   });
@@ -210,7 +210,7 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
       strictRequirements: [],
       locationCharacteristics: [],
       propertyCharacteristics: [],
-      exitStrategy: "",
+      exitStrategy: [],
       notes: "",
     });
   };
@@ -266,7 +266,7 @@ const loadBuyBox = async () => {
           strictRequirements: buyBoxData.strict_requirements || [],
           locationCharacteristics: buyBoxData.location_characteristics || [],
           propertyCharacteristics: buyBoxData.property_characteristics || [],
-          exitStrategy: buyBoxData.exit_strategy || "",
+          exitStrategy: Array.isArray(buyBoxData.exit_strategy) ? buyBoxData.exit_strategy : (buyBoxData.exit_strategy ? [buyBoxData.exit_strategy] : []),
           notes: buyBoxData.notes || "",
         };
         form.reset(mapped as BuyBoxFormValues);
@@ -955,32 +955,10 @@ const onSubmit = async (values: BuyBoxFormValues) => {
                         </section>
 
                         {/* Exit Strategy */}
-                        <FormField
-                          control={form.control}
+                        <CheckboxGroup
                           name="exitStrategy"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Exit Strategy *</FormLabel>
-                              <FormDescription>
-                                Select the investment exit strategy (20% weighting in matching algorithm)
-                              </FormDescription>
-                              <FormControl>
-                                <Select value={field.value || ""} onValueChange={field.onChange}>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select exit strategy" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {CONSTANTS.exitStrategies.map((strategy) => (
-                                      <SelectItem key={strategy} value={strategy}>
-                                        {CONSTANTS.exitStrategyLabels[strategy as keyof typeof CONSTANTS.exitStrategyLabels]}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
+                          label="Exit Strategy"
+                          options={Object.values(CONSTANTS.exitStrategyLabels)}
                         />
 
                         {/* Notes */}
