@@ -33,7 +33,15 @@ const CONSTANTS = {
     houses: ["Fix & Flip", "Buy & Hold (Rental)", "BRRRR", "Airbnb / Short-Term Rental", "Novation / Creative Finance"],
     land: ["Infill Lot Development", "Buy & Flip", "Buy & Hold", "Subdivide & Sell", "Seller Financing", "RV Lot / Tiny Home Lot / Mobile Home Lot", "Entitlement / Rezoning"],
   },
-  exitStrategies: ["infill", "flip", "subdivide", "seller_financing", "rezoning", "mobile_home"],
+  exitStrategies: ["Infill Lot Development", "Buy & Flip", "Subdivide & Sell", "Seller Financing", "Entitlement/Rezoning", "Mobile Home Lot"],
+  exitStrategyMapping: {
+    "Infill Lot Development": "infill",
+    "Buy & Flip": "flip", 
+    "Subdivide & Sell": "subdivide",
+    "Seller Financing": "seller_financing",
+    "Entitlement/Rezoning": "rezoning", 
+    "Mobile Home Lot": "mobile_home"
+  },
   exitStrategyLabels: {
     "infill": "Infill Lot Development",
     "flip": "Buy & Flip", 
@@ -266,7 +274,9 @@ const loadBuyBox = async () => {
           strictRequirements: buyBoxData.strict_requirements || [],
           locationCharacteristics: buyBoxData.location_characteristics || [],
           propertyCharacteristics: buyBoxData.property_characteristics || [],
-          exitStrategy: Array.isArray(buyBoxData.exit_strategy) ? buyBoxData.exit_strategy : (buyBoxData.exit_strategy ? [buyBoxData.exit_strategy] : []),
+          exitStrategy: Array.isArray(buyBoxData.exit_strategy) 
+            ? buyBoxData.exit_strategy.map(key => CONSTANTS.exitStrategyLabels[key as keyof typeof CONSTANTS.exitStrategyLabels]).filter(Boolean)
+            : (buyBoxData.exit_strategy ? [CONSTANTS.exitStrategyLabels[buyBoxData.exit_strategy as keyof typeof CONSTANTS.exitStrategyLabels]].filter(Boolean) : []),
           notes: buyBoxData.notes || "",
         };
         form.reset(mapped as BuyBoxFormValues);
@@ -367,7 +377,7 @@ const onSubmit = async (values: BuyBoxFormValues) => {
       strict_requirements: values.strictRequirements,
       location_characteristics: values.locationCharacteristics,
       property_characteristics: values.propertyCharacteristics,
-      exit_strategy: values.exitStrategy,
+      exit_strategy: values.exitStrategy.map(label => CONSTANTS.exitStrategyMapping[label as keyof typeof CONSTANTS.exitStrategyMapping]).filter(Boolean),
       notes: values.notes,
     };
 
@@ -940,14 +950,12 @@ const onSubmit = async (values: BuyBoxFormValues) => {
                           <CheckboxGroup name="propertyCharacteristics" label="Property Characteristics" options={CONSTANTS.propertyChars} />
                         </section>
 
-                        {/* Exit Strategy */}
-                        <CheckboxGroup 
-                          name="exitStrategy" 
-                          label="Exit Strategy (20% weighting in matching algorithm)" 
-                          options={CONSTANTS.exitStrategies.map(strategy => 
-                            CONSTANTS.exitStrategyLabels[strategy as keyof typeof CONSTANTS.exitStrategyLabels]
-                          )} 
-                        />
+                         {/* Exit Strategy */}
+                         <CheckboxGroup 
+                           name="exitStrategy" 
+                           label="Exit Strategy (20% weighting in matching algorithm)" 
+                           options={CONSTANTS.exitStrategies} 
+                         />
 
                         {/* Notes */}
                         <FormField
