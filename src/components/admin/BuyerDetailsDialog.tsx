@@ -33,15 +33,7 @@ const CONSTANTS = {
     houses: ["Fix & Flip", "Buy & Hold (Rental)", "BRRRR", "Airbnb / Short-Term Rental", "Novation / Creative Finance"],
     land: ["Infill Lot Development", "Buy & Flip", "Buy & Hold", "Subdivide & Sell", "Seller Financing", "RV Lot / Tiny Home Lot / Mobile Home Lot", "Entitlement / Rezoning"],
   },
-  exitStrategies: ["Infill Lot Development", "Buy & Flip", "Subdivide & Sell", "Seller Financing", "Entitlement/Rezoning", "Mobile Home Lot"],
-  exitStrategyMapping: {
-    "Infill Lot Development": "infill",
-    "Buy & Flip": "flip", 
-    "Subdivide & Sell": "subdivide",
-    "Seller Financing": "seller_financing",
-    "Entitlement/Rezoning": "rezoning", 
-    "Mobile Home Lot": "mobile_home"
-  },
+  exitStrategies: ["infill", "flip", "subdivide", "seller_financing", "rezoning", "mobile_home"],
   exitStrategyLabels: {
     "infill": "Infill Lot Development",
     "flip": "Buy & Flip", 
@@ -91,7 +83,7 @@ const BuyBoxSchema = z.object({
   strictRequirements: z.array(z.string()).default([]),
   locationCharacteristics: z.array(z.string()).default([]),
   propertyCharacteristics: z.array(z.string()).default([]),
-  exitStrategy: z.array(z.string()).default([]),
+  exitStrategy: z.string().optional().default(""),
   notes: z.string().optional().default(""),
 });
 
@@ -148,7 +140,7 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
       strictRequirements: [],
       locationCharacteristics: [],
       propertyCharacteristics: [],
-      exitStrategy: [],
+      exitStrategy: "",
       notes: "",
     },
   });
@@ -218,7 +210,7 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
       strictRequirements: [],
       locationCharacteristics: [],
       propertyCharacteristics: [],
-      exitStrategy: [],
+      exitStrategy: "",
       notes: "",
     });
   };
@@ -274,9 +266,7 @@ const loadBuyBox = async () => {
           strictRequirements: buyBoxData.strict_requirements || [],
           locationCharacteristics: buyBoxData.location_characteristics || [],
           propertyCharacteristics: buyBoxData.property_characteristics || [],
-          exitStrategy: Array.isArray(buyBoxData.exit_strategy) 
-            ? buyBoxData.exit_strategy.map(key => CONSTANTS.exitStrategyLabels[key as keyof typeof CONSTANTS.exitStrategyLabels]).filter(Boolean)
-            : (buyBoxData.exit_strategy ? [CONSTANTS.exitStrategyLabels[buyBoxData.exit_strategy as keyof typeof CONSTANTS.exitStrategyLabels]].filter(Boolean) : []),
+          exitStrategy: buyBoxData.exit_strategy || "",
           notes: buyBoxData.notes || "",
         };
         form.reset(mapped as BuyBoxFormValues);
@@ -377,7 +367,7 @@ const onSubmit = async (values: BuyBoxFormValues) => {
       strict_requirements: values.strictRequirements,
       location_characteristics: values.locationCharacteristics,
       property_characteristics: values.propertyCharacteristics,
-      exit_strategy: values.exitStrategy.map(label => CONSTANTS.exitStrategyMapping[label as keyof typeof CONSTANTS.exitStrategyMapping]).filter(Boolean),
+      exit_strategy: values.exitStrategy,
       notes: values.notes,
     };
 
@@ -899,8 +889,22 @@ const onSubmit = async (values: BuyBoxFormValues) => {
                           />
                         </section>
 
-                        {/* Desired Property Types */}
+                        {/* Strategies and desired types */}
                         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {(assetType === "houses" || assetType === "both") && (
+                            <CheckboxGroup
+                              name="strategiesHouses"
+                              label="Investment Strategy (Houses)"
+                              options={CONSTANTS.strategies.houses}
+                            />
+                          )}
+                          {(assetType === "land" || assetType === "both") && (
+                            <CheckboxGroup
+                              name="strategiesLand"
+                              label="Investment Strategy (Land)"
+                              options={CONSTANTS.strategies.land}
+                            />
+                          )}
                           {(assetType === "houses" || assetType === "both") && (
                             <CheckboxGroup
                               name="desiredTypesHouses"
@@ -950,12 +954,34 @@ const onSubmit = async (values: BuyBoxFormValues) => {
                           <CheckboxGroup name="propertyCharacteristics" label="Property Characteristics" options={CONSTANTS.propertyChars} />
                         </section>
 
-                         {/* Exit Strategy */}
-                         <CheckboxGroup 
-                           name="exitStrategy" 
-                           label="Exit Strategy (20% weighting in matching algorithm)" 
-                           options={CONSTANTS.exitStrategies} 
-                         />
+                        {/* Exit Strategy */}
+                        <FormField
+                          control={form.control}
+                          name="exitStrategy"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Exit Strategy *</FormLabel>
+                              <FormDescription>
+                                Select the investment exit strategy (20% weighting in matching algorithm)
+                              </FormDescription>
+                              <FormControl>
+                                <Select value={field.value || ""} onValueChange={field.onChange}>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select exit strategy" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {CONSTANTS.exitStrategies.map((strategy) => (
+                                      <SelectItem key={strategy} value={strategy}>
+                                        {CONSTANTS.exitStrategyLabels[strategy as keyof typeof CONSTANTS.exitStrategyLabels]}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
                         {/* Notes */}
                         <FormField
