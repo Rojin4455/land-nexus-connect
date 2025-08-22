@@ -44,7 +44,24 @@ const AdminMatchingBuyersSection = ({ propertyId }: AdminMatchingBuyersSectionPr
     try {
       const response = await landDealsApi.admin.getPropertyMatchingBuyers(propertyId);
       if (response.success) {
-        setMatchingBuyers(response.data);
+        const data: any = response.data;
+        let matches: MatchingBuyer[] = [];
+
+        if (Array.isArray(data)) {
+          // Already an array of buyers
+          matches = data as MatchingBuyer[];
+        } else if (data?.matching_results?.all_matches) {
+          matches = data.matching_results.all_matches.map((m: any) => ({
+            id: m?.buyer?.id ?? m?.id ?? 0,
+            name: m?.buyer?.name ?? m?.name ?? 'Unknown Buyer',
+            email: m?.buyer?.email ?? m?.email ?? '',
+            phone: m?.buyer?.phone ?? m?.phone ?? '',
+            match_score: Math.round(m?.match_score ?? m?.score ?? 0),
+            buy_box_details: undefined,
+          }));
+        }
+
+        setMatchingBuyers(matches);
       } else {
         toast({
           title: "Error loading matching buyers",
