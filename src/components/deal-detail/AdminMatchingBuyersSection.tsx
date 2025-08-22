@@ -220,12 +220,15 @@ const AdminMatchingBuyersSection = ({ propertyId }: AdminMatchingBuyersSectionPr
                                 </div>
                               ) : buyerDetails ? (
                                 <div className="space-y-6">
-                                  {/* Match Score */}
+                                  {/* Match Analysis */}
                                   <div className="text-center">
-                                    <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium text-white ${getMatchScoreColor(selectedBuyer?.match_score || 0)}`}>
+                                    <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium text-white ${getMatchScoreColor(buyerDetails.match_analysis?.match_score || 0)}`}>
                                       <Target className="h-4 w-4 mr-2" />
-                                      Match Score: {selectedBuyer?.match_score}%
+                                      Match Score: {Math.round(buyerDetails.match_analysis?.match_score || 0)}%
                                     </div>
+                                    <p className="text-sm text-muted-foreground mt-2">
+                                      {buyerDetails.match_analysis?.likelihood || 'Unknown Fit'}
+                                    </p>
                                   </div>
 
                                   <Separator />
@@ -236,12 +239,12 @@ const AdminMatchingBuyersSection = ({ propertyId }: AdminMatchingBuyersSectionPr
                                     <div className="space-y-2">
                                       <div className="flex items-center gap-2 text-sm">
                                         <Mail className="h-4 w-4 text-muted-foreground" />
-                                        <span className="text-foreground">{buyerDetails.email}</span>
+                                        <span className="text-foreground">{buyerDetails.buyer_details?.email}</span>
                                       </div>
-                                      {buyerDetails.phone && (
+                                      {buyerDetails.buyer_details?.phone && (
                                         <div className="flex items-center gap-2 text-sm">
                                           <Phone className="h-4 w-4 text-muted-foreground" />
-                                          <span className="text-foreground">{buyerDetails.phone}</span>
+                                          <span className="text-foreground">{buyerDetails.buyer_details.phone}</span>
                                         </div>
                                       )}
                                     </div>
@@ -249,56 +252,67 @@ const AdminMatchingBuyersSection = ({ propertyId }: AdminMatchingBuyersSectionPr
 
                                   <Separator />
 
-                                  {/* Buy Box Criteria */}
-                                  {buyerDetails.buy_box_details && (
+                                  {/* Component Scores */}
+                                  {buyerDetails.match_analysis?.component_scores && (
                                     <div>
-                                      <h3 className="text-lg font-semibold text-foreground mb-3">Buy Box Criteria</h3>
-                                      <div className="space-y-4">
-                                        <div>
-                                          <label className="text-sm font-medium text-muted-foreground">Price Range</label>
-                                          <div className="flex items-center gap-2 mt-1">
-                                            <DollarSign className="h-4 w-4 text-muted-foreground" />
-                                            <span className="text-foreground">
-                                              {formatCurrency(buyerDetails.buy_box_details.min_price)} - {formatCurrency(buyerDetails.buy_box_details.max_price)}
+                                      <h3 className="text-lg font-semibold text-foreground mb-3">Match Breakdown</h3>
+                                      <div className="space-y-3">
+                                        {Object.entries(buyerDetails.match_analysis.component_scores).map(([key, score]: [string, any]) => (
+                                          <div key={key} className="flex items-center justify-between">
+                                            <span className="text-sm capitalize text-muted-foreground">
+                                              {key.replace('_', ' ')}
                                             </span>
-                                          </div>
-                                        </div>
-
-                                        {buyerDetails.buy_box_details.preferred_land_types && buyerDetails.buy_box_details.preferred_land_types.length > 0 && (
-                                          <div>
-                                            <label className="text-sm font-medium text-muted-foreground">Preferred Land Types</label>
-                                            <div className="flex flex-wrap gap-2 mt-1">
-                                              {buyerDetails.buy_box_details.preferred_land_types.map((type: string, index: number) => (
-                                                <Badge key={index} variant="secondary">{type}</Badge>
-                                              ))}
+                                            <div className="flex items-center gap-2">
+                                              <div className="w-24 bg-muted rounded-full h-2">
+                                                <div 
+                                                  className={`h-2 rounded-full ${getMatchScoreColor(score)}`}
+                                                  style={{ width: `${Math.min(score, 100)}%` }}
+                                                />
+                                              </div>
+                                              <span className="text-sm font-medium text-foreground w-12 text-right">
+                                                {Math.round(score)}%
+                                              </span>
                                             </div>
                                           </div>
-                                        )}
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
 
-                                        {buyerDetails.buy_box_details.location_preferences && buyerDetails.buy_box_details.location_preferences.length > 0 && (
-                                          <div>
-                                            <label className="text-sm font-medium text-muted-foreground">Location Preferences</label>
-                                            <div className="flex flex-wrap gap-2 mt-1">
-                                              {buyerDetails.buy_box_details.location_preferences.map((location: string, index: number) => (
-                                                <Badge key={index} variant="outline">
-                                                  <MapPin className="h-3 w-3 mr-1" />
-                                                  {location}
-                                                </Badge>
-                                              ))}
+                                  <Separator />
+
+                                  {/* Criteria Comparison */}
+                                  {buyerDetails.criteria_comparison && (
+                                    <div>
+                                      <h3 className="text-lg font-semibold text-foreground mb-3">Property vs Buyer Criteria</h3>
+                                      <div className="space-y-4">
+                                        {Object.entries(buyerDetails.criteria_comparison).map(([key, comparison]: [string, any]) => (
+                                          <div key={key} className="border border-border rounded-lg p-3">
+                                            <h4 className="text-sm font-medium text-foreground capitalize mb-2">
+                                              {key.replace('_', ' ')}
+                                            </h4>
+                                            <div className="grid grid-cols-2 gap-3 text-sm">
+                                              <div>
+                                                <label className="text-xs text-muted-foreground">Property Offers</label>
+                                                <p className="text-foreground">
+                                                  {typeof comparison.property === 'object' ? 
+                                                    JSON.stringify(comparison.property) : 
+                                                    comparison.property || 'Not specified'
+                                                  }
+                                                </p>
+                                              </div>
+                                              <div>
+                                                <label className="text-xs text-muted-foreground">Buyer Wants</label>
+                                                <p className="text-foreground">
+                                                  {Array.isArray(comparison.buyer_wants) ? 
+                                                    comparison.buyer_wants.join(', ') : 
+                                                    comparison.buyer_wants || 'Not specified'
+                                                  }
+                                                </p>
+                                              </div>
                                             </div>
                                           </div>
-                                        )}
-
-                                        {buyerDetails.buy_box_details.investment_strategy && buyerDetails.buy_box_details.investment_strategy.length > 0 && (
-                                          <div>
-                                            <label className="text-sm font-medium text-muted-foreground">Investment Strategy</label>
-                                            <div className="flex flex-wrap gap-2 mt-1">
-                                              {buyerDetails.buy_box_details.investment_strategy.map((strategy: string, index: number) => (
-                                                <Badge key={index} variant="outline">{strategy}</Badge>
-                                              ))}
-                                            </div>
-                                          </div>
-                                        )}
+                                        ))}
                                       </div>
                                     </div>
                                   )}
