@@ -490,6 +490,18 @@ export const landDealsApi = {
       return { success: true, data: response.data };
     },
 
+    // Get matching buyers for a property
+    getPropertyMatchingBuyers: async (propertyId: string): Promise<ApiResponse<Array<any>>> => {
+      const response = await api.get(`/properties/${propertyId}/matching-buyers/`);
+      return { success: true, data: response.data };
+    },
+
+    // Get specific matching buyer details for a property
+    getPropertyMatchingBuyerDetail: async (propertyId: string, buyerId: string): Promise<ApiResponse<any>> => {
+      const response = await api.get(`/properties/${propertyId}/matching-buyers/${buyerId}/`);
+      return { success: true, data: response.data };
+    },
+
     // Get buyer matching stats
     getBuyerMatchingStats: async (buyerId: string): Promise<ApiResponse<any>> => {
       const response = await api.get(`/buyers/${buyerId}/matching-stats/`);

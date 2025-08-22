@@ -6,7 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import PropertyInformation from '@/components/deal-detail/PropertyInformation';
 import AdminDocumentsSection from '@/components/deal-detail/AdminDocumentsSection';
 import AdminConversationSection from '@/components/deal-detail/AdminConversationSection';
-import { ArrowLeft, FileText, MapPin, Upload, MessageCircle, Edit, LogOut } from 'lucide-react';
+import AdminMatchingBuyersSection from '@/components/deal-detail/AdminMatchingBuyersSection';
+import { ArrowLeft, FileText, MapPin, Upload, MessageCircle, Edit, LogOut, Users } from 'lucide-react';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { logoutUser } from '@/store/authSlice';
@@ -222,6 +223,12 @@ const AdminDealDetail = () => {
       label: 'Conversation',
       icon: MessageCircle,
       count: null
+    },
+    {
+      id: 'matching-buyers',
+      label: 'Matching Buyers',
+      icon: Users,
+      count: null
     }
   ];
 
@@ -240,6 +247,8 @@ const AdminDealDetail = () => {
             getStatusVariant={getStatusVariant}
           />
         );
+      case 'matching-buyers':
+        return <AdminMatchingBuyersSection propertyId={deal.id} />;
       default:
         return null;
     }
