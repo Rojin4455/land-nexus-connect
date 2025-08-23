@@ -585,18 +585,18 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
                 />
               </div>
 
-                <div className="form-field">
-                  <Label htmlFor="exit_strategy" className="form-label">Exit Strategy *</Label>
-                  <Select value={formData.exit_strategy} onValueChange={(value) => handleSelectChange('exit_strategy', value)}>
-                    <SelectTrigger className="form-input">
-                      <SelectValue placeholder="Select exit strategy" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Infill Lot Development">Infill Lot Development</SelectItem>
-                      <SelectItem value="Buy & Flip">Buy & Flip</SelectItem>
-                      <SelectItem value="Subdivide & Sell">Subdivide & Sell</SelectItem>
-                      <SelectItem value="Seller Financing">Seller Financing</SelectItem>
-                      <SelectItem value="Entitlement/Rezoning">Entitlement/Rezoning</SelectItem>
+               <div className="form-field">
+                 <Label htmlFor="exit_strategy" className="form-label">Exit Strategy *</Label>
+                 <Select value={formData.exit_strategy} onValueChange={(value) => handleSelectChange('exit_strategy', value)}>
+                   <SelectTrigger className="form-input">
+                     <SelectValue placeholder="Select exit strategy" />
+                   </SelectTrigger>
+                   <SelectContent>
+                     <SelectItem value="infill">Infill Lot Development</SelectItem>
+                     <SelectItem value="flip">Buy & Flip</SelectItem>
+                     <SelectItem value="subdivide">Subdivide & Sell</SelectItem>
+                     <SelectItem value="seller_financing">Seller Financing</SelectItem>
+                     <SelectItem value="rezoning">Entitlement/Rezoning</SelectItem>
                      <SelectItem value="mobile_home">Mobile Home Lot</SelectItem>
                    </SelectContent>
                  </Select>
