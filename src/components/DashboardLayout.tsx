@@ -13,8 +13,7 @@ import {
   Menu, 
   X,
   Settings,
-  FileText,
-  MessageCircle
+  FileText
 } from 'lucide-react';
 
 const DashboardLayout = ({ children, activeTab = 'dashboard' }) => {
@@ -44,7 +43,6 @@ const DashboardLayout = ({ children, activeTab = 'dashboard' }) => {
   const navigationItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/dashboard' },
     { id: 'submit', label: 'Submit Deal', icon: Plus, path: '/submit-deal' },
-    { id: 'conversations', label: 'Messages', icon: MessageCircle, path: '/conversations' },
     { id: 'criteria', label: 'Buy Box Criteria', icon: FileText, path: '/criteria' },
     { id: 'profile', label: 'Profile', icon: User, path: '/profile' }
   ];
