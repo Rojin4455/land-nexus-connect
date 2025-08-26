@@ -436,43 +436,18 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
                 </Select>
               </div>
 
-               <div className="md:col-span-2 form-field">
-                 <Label htmlFor="nearest_attraction" className="form-label">Nearest Major City/Development/Attraction *</Label>
-                 <Input
-                   id="nearest_attraction"
-                   name="nearest_attraction"
-                   placeholder="e.g., 15 miles from Denver downtown"
-                   value={formData.nearest_attraction}
-                   onChange={handleInputChange}
-                   className="form-input"
-                   required
-                 />
-               </div>
-
-               <div className="md:col-span-2 form-field">
-                 <Label htmlFor="topography" className="form-label">Topography</Label>
-                 <Textarea
-                   id="topography"
-                   name="topography"
-                   placeholder="Describe the land's topography, elevation, slope, etc."
-                   value={formData.topography}
-                   onChange={handleInputChange}
-                   className="min-h-[100px]"
-                 />
-               </div>
-
-               <div className="md:col-span-2 form-field">
-                 <Label htmlFor="environmental_factors" className="form-label">Environmental Factors *</Label>
-                 <Textarea
-                   id="environmental_factors"
-                   name="environmental_factors"
-                   placeholder="Any environmental concerns, wetlands, flood zones, etc."
-                   value={formData.environmental_factors}
-                   onChange={handleInputChange}
-                   className="min-h-[100px]"
-                   required
-                 />
-               </div>
+              <div className="form-field">
+                <Label htmlFor="under_contract" className="form-label">Under Contract *</Label>
+                <Select value={formData.under_contract} onValueChange={(value) => handleSelectChange('under_contract', value)}>
+                  <SelectTrigger className="form-input">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="yes">Yes</SelectItem>
+                    <SelectItem value="no">No</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
                <div className="md:col-span-2 form-field">
                  <Label htmlFor="description" className="form-label">Land Description</Label>
@@ -560,18 +535,6 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
                 />
               </div>
 
-              <div className="form-field">
-                <Label htmlFor="under_contract" className="form-label">Under Contract *</Label>
-                <Select value={formData.under_contract} onValueChange={(value) => handleSelectChange('under_contract', value)}>
-                  <SelectTrigger className="form-input">
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="yes">Yes</SelectItem>
-                    <SelectItem value="no">No</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
 
               <div className="form-field">
                 <Label htmlFor="parcel_id" className="form-label">Parcel ID</Label>
