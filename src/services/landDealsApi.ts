@@ -130,9 +130,6 @@ export interface CreateLandDealData {
   accessType?: string;
   estimatedAEV?: string;
   developmentCosts?: string;
-  topography?: string;
-  environmentalFactors?: string;
-  nearestAttraction?: string;
   files?: File[]; // Combined files array for backend
 }
 
@@ -161,9 +158,6 @@ export const landDealsApi = {
     if (dealData.development_costs) formData.append('development_costs', dealData.development_costs);
     if (dealData.utilities) formData.append('utilities', dealData.utilities);
     if (dealData.access_type) formData.append('access_type', dealData.access_type);
-    if (dealData.topography) formData.append('topography', dealData.topography);
-    if (dealData.environmental_factors) formData.append('environmental_factors', dealData.environmental_factors);
-    if (dealData.nearest_attraction) formData.append('nearest_attraction', dealData.nearest_attraction);
     if (dealData.description) formData.append('description', dealData.description);
     
     // Add new required fields from serializer
@@ -246,9 +240,6 @@ export const landDealsApi = {
       description: property.description,
       estimatedAEV: property.estimated_aev,
       developmentCosts: property.development_costs,
-      topography: property.topography,
-      environmentalFactors: property.environmental_factors,
-      nearestAttraction: property.nearest_attraction,
       accessType: property.access_type_detail?.display_name,
       files: property.files || []
     };

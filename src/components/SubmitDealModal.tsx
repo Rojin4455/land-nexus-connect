@@ -43,9 +43,6 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
     development_costs: '',
     utilities: '',
     access_type: '',
-    topography: '',
-    environmental_factors: '',
-    nearest_attraction: '',
     description: '',
     property_characteristics: [],
     location_characteristics: [],
@@ -177,13 +174,10 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
         estimatedAEV: formData.estimated_aev,
         developmentCosts: formData.development_costs,
         accessType: formData.access_type,
-        environmentalFactors: formData.environmental_factors,
-        nearestAttraction: formData.nearest_attraction,
         // Common fields
         acreage: parseFloat(formData.acreage) || 0,
         zoning: formData.zoning,
         utilities: formData.utilities,
-        topography: formData.topography,
         description: formData.description,
         files: uploadedFiles.map(f => f.file)
       };
@@ -209,9 +203,6 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
         development_costs: '',
         utilities: '',
         access_type: '',
-        topography: '',
-        environmental_factors: '',
-        nearest_attraction: '',
         description: '',
         property_characteristics: [],
         location_characteristics: [],

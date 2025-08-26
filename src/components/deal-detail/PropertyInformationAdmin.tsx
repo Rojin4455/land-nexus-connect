@@ -20,9 +20,6 @@ const PropertyInformationAdmin = ({ deal, formatCurrency }: PropertyInformationP
     agreedPrice: deal.agreedPrice || '',
     estimatedAEV: deal.estimatedAEV || '',
     developmentCosts: deal.developmentCosts || '',
-    topography: deal.topography || '',
-    environmentalFactors: deal.environmentalFactors || '',
-    nearestAttraction: deal.nearestAttraction || '',
     description: deal.description || '',
   });
 
@@ -173,30 +170,6 @@ const PropertyInformationAdmin = ({ deal, formatCurrency }: PropertyInformationP
                 type="number"
                 value={formData.developmentCosts}
                 onChange={e => handleChange('developmentCosts', e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-muted-foreground">Topography</label>
-              <Input
-                value={formData.topography}
-                onChange={e => handleChange('topography', e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-muted-foreground">Environmental Factors</label>
-              <Input
-                value={formData.environmentalFactors}
-                onChange={e => handleChange('environmentalFactors', e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-muted-foreground">Nearest Attraction</label>
-              <Input
-                value={formData.nearestAttraction}
-                onChange={e => handleChange('nearestAttraction', e.target.value)}
               />
             </div>
           </div>

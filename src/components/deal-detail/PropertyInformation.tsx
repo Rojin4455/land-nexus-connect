@@ -84,31 +84,10 @@ const PropertyInformation = ({ deal, formatCurrency }: PropertyInformationProps)
             )}
           </div>
 
-          {deal.nearestAttraction && (
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Nearest Attraction</p>
-              <p className="text-foreground">{deal.nearestAttraction}</p>
-            </div>
-          )}
-
           {deal.description && (
             <div>
               <p className="text-sm font-medium text-muted-foreground">Description</p>
               <p className="text-foreground">{deal.description}</p>
-            </div>
-          )}
-
-          {deal.topography && (
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Topography</p>
-              <p className="text-foreground">{deal.topography}</p>
-            </div>
-          )}
-
-          {deal.environmentalFactors && (
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Environmental Factors</p>
-              <p className="text-foreground">{deal.environmentalFactors}</p>
             </div>
           )}
 
