@@ -505,7 +505,7 @@ export const landDealsApi = {
     // Get all conversations for logged-in user (inbox)
     getInbox: async () => {
       try {
-        const response = await api.get('/conversations/inbox/');
+        const response = await api.get('/data/conversations/inbox/');
         return response.data;
       } catch (error) {
         throw new Error(handleApiError(error));
@@ -515,7 +515,7 @@ export const landDealsApi = {
     // Get conversation details and messages for specific property submission
     getConversation: async (propertySubmissionId: string) => {
       try {
-        const response = await api.get(`/conversations/${propertySubmissionId}/`);
+        const response = await api.get(`/data/conversations/${propertySubmissionId}/`);
         return response.data;
       } catch (error) {
         throw new Error(handleApiError(error));
@@ -525,7 +525,7 @@ export const landDealsApi = {
     // Send a message in conversation
     sendMessage: async (propertySubmissionId: string, messageBody: string) => {
       try {
-        const response = await api.post(`/conversations/${propertySubmissionId}/send/`, {
+        const response = await api.post(`/data/conversations/${propertySubmissionId}/send/`, {
           message: messageBody
         });
         return response.data;
@@ -537,7 +537,7 @@ export const landDealsApi = {
     // Mark messages as read
     markAsRead: async (propertySubmissionId: string) => {
       try {
-        const response = await api.post(`/conversations/${propertySubmissionId}/read/`);
+        const response = await api.post(`/data/conversations/${propertySubmissionId}/read/`);
         return response.data;
       } catch (error) {
         throw new Error(handleApiError(error));
