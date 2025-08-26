@@ -153,8 +153,6 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
         estimated_aev: parseFloat(formData.estimated_aev) || 0,
         development_costs: parseFloat(formData.development_costs) || 0,
         access_type: formData.access_type,
-        environmental_factors: formData.environmental_factors,
-        nearest_attraction: formData.nearest_attraction,
         property_characteristics: formData.property_characteristics,
         location_characteristics: formData.location_characteristics,
         llc_name: formData.llc_name,
