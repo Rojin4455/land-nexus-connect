@@ -502,7 +502,49 @@ export const landDealsApi = {
 
   // Conversation functions
   conversations: {
-    // Get conversation messages for a property
+    // Get all conversations for logged-in user (inbox)
+    getInbox: async () => {
+      try {
+        const response = await api.get('/conversations/inbox/');
+        return response.data;
+      } catch (error) {
+        throw new Error(handleApiError(error));
+      }
+    },
+
+    // Get conversation details and messages for specific property submission
+    getConversation: async (propertySubmissionId: string) => {
+      try {
+        const response = await api.get(`/conversations/${propertySubmissionId}/`);
+        return response.data;
+      } catch (error) {
+        throw new Error(handleApiError(error));
+      }
+    },
+
+    // Send a message in conversation
+    sendMessage: async (propertySubmissionId: string, messageBody: string) => {
+      try {
+        const response = await api.post(`/conversations/${propertySubmissionId}/send/`, {
+          message: messageBody
+        });
+        return response.data;
+      } catch (error) {
+        throw new Error(handleApiError(error));
+      }
+    },
+
+    // Mark messages as read
+    markAsRead: async (propertySubmissionId: string) => {
+      try {
+        const response = await api.post(`/conversations/${propertySubmissionId}/read/`);
+        return response.data;
+      } catch (error) {
+        throw new Error(handleApiError(error));
+      }
+    },
+
+    // Get conversation messages for a property (legacy)
     getMessages: async (propertyId: string): Promise<ApiResponse<Array<{
       id: number;
       sender_username: string;
@@ -512,22 +554,6 @@ export const landDealsApi = {
       is_admin: boolean;
     }>>> => {
       const response = await api.get(`/data/conversations/${propertyId}/`);
-      return {
-        success: true,
-        data: response.data
-      };
-    },
-
-    // Send a message for a property
-    sendMessage: async (propertyId: string, message: string): Promise<ApiResponse<{
-      id: number;
-      sender_username: string;
-      property_submission_id: number;
-      message: string;
-      timestamp: string;
-      is_admin: boolean;
-    }>> => {
-      const response = await api.post(`/data/conversations/${propertyId}/send/`, { message });
       return {
         success: true,
         data: response.data
