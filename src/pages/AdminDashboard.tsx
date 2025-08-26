@@ -394,16 +394,16 @@ const AdminDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-4 flex-1">
-                  <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder={view === 'users' ? "Search users..." : view === 'buyers' ? "Search buyers..." : "Search deals by address, ID, or type..."}
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder={view === 'users' ? "Search users..." : view === 'buyers' ? "Search buyers..." : "Search deals by address, ID, or type..."}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <div className="flex items-center gap-4">
                   {view === 'deals' && (
                     <Select value={statusFilter || "all"} onValueChange={(value) => setStatusFilter(value === "all" ? "" : value)}>
                       <SelectTrigger className="w-48">
@@ -418,13 +418,13 @@ const AdminDashboard = () => {
                       </SelectContent>
                     </Select>
                   )}
+                  {view === 'buyers' && (
+                    <Button onClick={() => setCreateBuyerOpen(true)}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create Buyer
+                    </Button>
+                  )}
                 </div>
-                {view === 'buyers' && (
-                  <Button onClick={() => setCreateBuyerOpen(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Buyer
-                  </Button>
-                )}
               </div>
 
               {/* Create Buyer Dialog */}
