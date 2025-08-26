@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -41,6 +42,7 @@ const AdminDashboard = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [userDeals, setUserDeals] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [view, setView] = useState('deals'); // 'deals' or 'users'
   const [loading, setLoading] = useState(false);
   const adminEmail = user?.email || localStorage.getItem('adminEmail') || 'admin@example.com';
@@ -225,11 +227,15 @@ const AdminDashboard = () => {
 
   const currentDeals = selectedUser ? userDeals : deals;
   
-  const filteredDeals = currentDeals.filter(deal =>
-    (deal.address || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (deal.id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (deal.landType || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredDeals = currentDeals.filter(deal => {
+    const matchesSearch = (deal.address || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (deal.id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (deal.landType || '').toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = !statusFilter || (deal.status || '').toLowerCase() === statusFilter.toLowerCase();
+    
+    return matchesSearch && matchesStatus;
+  });
 
   const filteredUsers = users.filter(user =>
     (user.username || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -388,14 +394,30 @@ const AdminDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between mb-6">
-                <div className="relative flex-1 max-w-md">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder={view === 'users' ? "Search users..." : view === 'buyers' ? "Search buyers..." : "Search deals by address, ID, or type..."}
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
+                <div className="flex items-center gap-4 flex-1">
+                  <div className="relative flex-1 max-w-md">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder={view === 'users' ? "Search users..." : view === 'buyers' ? "Search buyers..." : "Search deals by address, ID, or type..."}
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  {view === 'deals' && (
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Filter by status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">All Statuses</SelectItem>
+                        <SelectItem value="submitted">Submitted</SelectItem>
+                        <SelectItem value="under_review">Under Review</SelectItem>
+                        <SelectItem value="approved">Approved</SelectItem>
+                        <SelectItem value="rejected">Rejected</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
                 {view === 'buyers' && (
                   <Button onClick={() => setCreateBuyerOpen(true)}>
