@@ -405,12 +405,12 @@ const AdminDashboard = () => {
                     />
                   </div>
                   {view === 'deals' && (
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <Select value={statusFilter || "all"} onValueChange={(value) => setStatusFilter(value === "all" ? "" : value)}>
                       <SelectTrigger className="w-48">
                         <SelectValue placeholder="Filter by status" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Statuses</SelectItem>
+                        <SelectItem value="all">All Statuses</SelectItem>
                         <SelectItem value="submitted">Submitted</SelectItem>
                         <SelectItem value="under_review">Under Review</SelectItem>
                         <SelectItem value="approved">Approved</SelectItem>
