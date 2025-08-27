@@ -163,7 +163,9 @@ const UserDashboard = () => {
       (deal.id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (deal.landType || '').toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesStatus = !statusFilter || (deal.status || '').toLowerCase() === statusFilter.toLowerCase();
+    const matchesStatus = !statusFilter || 
+      (deal.status || '').toLowerCase().replace(/\s+/g, '_') === statusFilter.toLowerCase() ||
+      (deal.status || '').toLowerCase() === statusFilter.toLowerCase().replace('_', ' ');
     
     return matchesSearch && matchesStatus;
   });
@@ -280,8 +282,8 @@ const UserDashboard = () => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All Statuses</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="under review">Under Review</SelectItem>
+                        <SelectItem value="submitted">Submitted</SelectItem>
+                        <SelectItem value="under_review">Under Review</SelectItem>
                         <SelectItem value="approved">Approved</SelectItem>
                         <SelectItem value="rejected">Rejected</SelectItem>
                       </SelectContent>
