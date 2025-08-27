@@ -73,10 +73,10 @@ const AdminConversationCenter = () => {
   };
 
   useEffect(() => {
-    if (messages.length > 0) {
-      scrollToBottom();
+    if (messages.length > 0 && !messagesLoading) {
+      requestAnimationFrame(() => scrollToBottom());
     }
-  }, [messages]);
+  }, [messages, messagesLoading, selectedConversation]);
 
   useEffect(() => {
     // Check authentication
@@ -264,15 +264,15 @@ const AdminConversationCenter = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-[calc(100vh-180px)]">
           {/* Conversations List - Left Sidebar */}
-          <Card className="card-elevated lg:col-span-1">
+          <Card className="card-elevated lg:col-span-1 h-full flex flex-col">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MessageSquare className="h-5 w-5 text-primary" />
                 Active Conversations
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-0">
-              <ScrollArea className="h-[calc(100vh-280px)]">
+            <CardContent className="p-0 flex-1">
+              <ScrollArea className="h-full">
                 {loading ? (
                   <div className="flex items-center justify-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -325,7 +325,7 @@ const AdminConversationCenter = () => {
           </Card>
 
           {/* Conversation Messages - Center */}
-          <Card className="card-elevated lg:col-span-1">
+          <Card className="card-elevated lg:col-span-1 h-full flex flex-col">
             <CardHeader>
               <CardTitle>
                 {selectedConversation ? (
@@ -343,9 +343,9 @@ const AdminConversationCenter = () => {
                 )}
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-0">
+            <CardContent className="p-0 flex-1 flex flex-col">
               {selectedConversation ? (
-                <div className="flex flex-col h-[calc(100vh-340px)]">
+                <div className="flex flex-col flex-1">
                   <ScrollArea className="flex-1 px-4 pt-4">
                     {messagesLoading ? (
                       <div className="flex items-center justify-center py-8">
@@ -428,7 +428,7 @@ const AdminConversationCenter = () => {
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center justify-center h-[calc(100vh-340px)]">
+                <div className="flex items-center justify-center h-full">
                   <div className="text-center">
                     <MessageSquare className="h-16 w-16 text-muted-foreground/50 mx-auto mb-4" />
                     <p className="text-muted-foreground">Select a conversation to start messaging</p>
@@ -439,7 +439,7 @@ const AdminConversationCenter = () => {
           </Card>
 
           {/* Deal Information - Right Sidebar */}
-          <Card className="card-elevated lg:col-span-1">
+          <Card className="card-elevated lg:col-span-1 h-full flex flex-col">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-primary" />
