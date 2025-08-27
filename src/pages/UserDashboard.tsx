@@ -250,6 +250,35 @@ const UserDashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
+            {/* Search and Filter Controls */}
+            {deals.length > 0 && (
+              <div className="flex items-center justify-between mb-6">
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search deals by address, ID, or type..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <div className="flex items-center gap-4">
+                  <Select value={statusFilter || "all"} onValueChange={(value) => setStatusFilter(value === "all" ? "" : value)}>
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder="Filter by status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Statuses</SelectItem>
+                      <SelectItem value="submitted">Submitted</SelectItem>
+                      <SelectItem value="under_review">Under Review</SelectItem>
+                      <SelectItem value="approved">Approved</SelectItem>
+                      <SelectItem value="rejected">Rejected</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
+
             {deals.length === 0 ? (
               <div className="text-center py-12">
                 <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -270,123 +299,96 @@ const UserDashboard = () => {
                 <p className="text-muted-foreground">Try adjusting your search terms or filters</p>
               </div>
             ) : (
-              <>
-                <div className="flex items-center justify-between mb-6">
-                  <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search deals by address, ID, or type..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <Select value={statusFilter || "all"} onValueChange={(value) => setStatusFilter(value === "all" ? "" : value)}>
-                      <SelectTrigger className="w-48">
-                        <SelectValue placeholder="Filter by status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Statuses</SelectItem>
-                        <SelectItem value="submitted">Submitted</SelectItem>
-                        <SelectItem value="under_review">Under Review</SelectItem>
-                        <SelectItem value="approved">Approved</SelectItem>
-                        <SelectItem value="rejected">Rejected</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-border">
-                        <th className="text-left p-4 font-medium text-muted-foreground">Deal ID</th>
-                        <th className="text-left p-4 font-medium text-muted-foreground">Location</th>
-                        <th className="text-left p-4 font-medium text-muted-foreground">Submitted</th>
-                        <th className="text-left p-4 font-medium text-muted-foreground">Status</th>
-                        <th className="text-left p-4 font-medium text-muted-foreground">Coach</th>
-                        <th className="text-left p-4 font-medium text-muted-foreground">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredDeals.map((deal) => (
-                        <tr key={deal.id} className="border-b border-border hover:bg-secondary/50 transition-colors">
-                          <td className="p-4">
-                            <span className="font-mono text-sm font-medium text-primary">{deal.id}</span>
-                          </td>
-                          <td className="p-4">
-                            <div className="flex items-start space-x-2">
-                              <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                              <div>
-                                <p className="font-medium text-foreground text-sm">{deal.address}</p>
-                                <p className="text-xs text-muted-foreground">{formatCurrency(deal.agreedPrice)} • {deal.landType}</p>
-                              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="text-left p-4 font-medium text-muted-foreground">Deal ID</th>
+                      <th className="text-left p-4 font-medium text-muted-foreground">Location</th>
+                      <th className="text-left p-4 font-medium text-muted-foreground">Submitted</th>
+                      <th className="text-left p-4 font-medium text-muted-foreground">Status</th>
+                      <th className="text-left p-4 font-medium text-muted-foreground">Coach</th>
+                      <th className="text-left p-4 font-medium text-muted-foreground">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredDeals.map((deal) => (
+                      <tr key={deal.id} className="border-b border-border hover:bg-secondary/50 transition-colors">
+                        <td className="p-4">
+                          <span className="font-mono text-sm font-medium text-primary">{deal.id}</span>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-start space-x-2">
+                            <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                            <div>
+                              <p className="font-medium text-foreground text-sm">{deal.address}</p>
+                              <p className="text-xs text-muted-foreground">{formatCurrency(deal.agreedPrice)} • {deal.landType}</p>
                             </div>
-                          </td>
-                          <td className="p-4">
-                            <div className="flex items-center space-x-2">
-                              <Calendar className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-sm text-foreground">{formatDate(deal.submittedOn)}</span>
-                            </div>
-                          </td>
-                          <td className="p-4">
-                            <Badge className={`${getStatusVariant(deal.status)} text-xs`}>
-                              {deal.status}
-                            </Badge>
-                          </td>
-                          <td className="p-4">
-                            <span className="text-sm text-foreground">{deal.coach}</span>
-                          </td>
-                          <td className="p-4">
-                            <div className="flex gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => navigate(`/deal/${deal.id}`)}
-                                className="hover:bg-primary hover:text-primary-foreground"
-                              >
-                                <Eye className="h-4 w-4 mr-1" />
-                                View
-                              </Button>
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="hover:bg-destructive hover:text-destructive-foreground"
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center space-x-2">
+                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm text-foreground">{formatDate(deal.submittedOn)}</span>
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <Badge className={`${getStatusVariant(deal.status)} text-xs`}>
+                            {deal.status}
+                          </Badge>
+                        </td>
+                        <td className="p-4">
+                          <span className="text-sm text-foreground">{deal.coach}</span>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => navigate(`/deal/${deal.id}`)}
+                              className="hover:bg-primary hover:text-primary-foreground"
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              View
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="hover:bg-destructive hover:text-destructive-foreground"
+                                >
+                                  <Trash2 className="h-4 w-4 mr-1" />
+                                  Delete
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Property Deal</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete this property deal? This action cannot be undone.
+                                    <br /><br />
+                                    <strong>Property:</strong> {deal.address}
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDeleteDeal(deal.id)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                   >
-                                    <Trash2 className="h-4 w-4 mr-1" />
-                                    Delete
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Delete Property Deal</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      Are you sure you want to delete this property deal? This action cannot be undone.
-                                      <br /><br />
-                                      <strong>Property:</strong> {deal.address}
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction
-                                      onClick={() => handleDeleteDeal(deal.id)}
-                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                    >
-                                      Delete Property
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </>
+                                    Delete Property
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </CardContent>
         </Card>
