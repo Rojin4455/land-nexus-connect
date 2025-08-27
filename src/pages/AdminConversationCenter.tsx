@@ -334,7 +334,7 @@ const AdminConversationCenter = () => {
             <CardContent className="p-0">
               {selectedConversation ? (
                 <div className="flex flex-col h-[calc(100vh-340px)]">
-                  <ScrollArea className="flex-1 p-4">
+                  <ScrollArea className="flex-1 px-4 pt-4">
                     {messagesLoading ? (
                       <div className="flex items-center justify-center py-8">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -345,7 +345,7 @@ const AdminConversationCenter = () => {
                         <p className="text-muted-foreground">No messages yet</p>
                       </div>
                     ) : (
-                      <div className="space-y-4">
+                      <div className="space-y-4 pr-2">
                         {messages.map((message) => (
                           <div
                             key={message.id}
@@ -389,30 +389,28 @@ const AdminConversationCenter = () => {
                   
                   <Separator />
                   
-                  <div className="p-4">
-                    <form onSubmit={handleSendMessage} className="space-y-3">
-                      <Textarea
+                  <div className="p-4 bg-card">
+                    <form onSubmit={handleSendMessage} className="flex gap-2 items-end">
+                      <input
+                        type="text"
                         placeholder="Type your message..."
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
-                        className="min-h-[80px] resize-none"
+                        className="flex-1 px-3 py-2 border border-input bg-background rounded-md text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                         disabled={isSending}
                       />
-                      <div className="flex justify-end">
-                        <Button type="submit" disabled={!newMessage.trim() || isSending}>
-                          {isSending ? (
-                            <>
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
-                              Sending...
-                            </>
-                          ) : (
-                            <>
-                              <Send className="h-4 w-4 mr-2" />
-                              Send Message
-                            </>
-                          )}
-                        </Button>
-                      </div>
+                      <Button 
+                        type="submit" 
+                        size="sm"
+                        disabled={!newMessage.trim() || isSending}
+                        className="px-3"
+                      >
+                        {isSending ? (
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                        ) : (
+                          <Send className="h-4 w-4" />
+                        )}
+                      </Button>
                     </form>
                   </div>
                 </div>
