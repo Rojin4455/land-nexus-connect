@@ -285,14 +285,23 @@ const AdminDashboard = () => {
                   Back to All Deals
                 </Button>
               )}
-                <Button
-                  variant={view === 'buyers' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setView('buyers')}
-                >
-                  <Users className="h-4 w-4 mr-2" />
-                  Buyers
-                </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/admin/conversations')}
+                className="hover:bg-primary hover:text-primary-foreground"
+              >
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Conversations
+              </Button>
+              <Button
+                variant={view === 'buyers' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setView('buyers')}
+              >
+                <Users className="h-4 w-4 mr-2" />
+                Buyers
+              </Button>
               <Button
                 variant={view === 'users' ? 'default' : 'outline'}
                 size="sm"
