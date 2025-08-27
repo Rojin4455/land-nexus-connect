@@ -503,42 +503,54 @@ export const landDealsApi = {
   // Conversation functions
   conversations: {
     // Get all conversations for logged-in user (inbox)
-    getInbox: async () => {
+    getInbox: async (): Promise<ApiResponse<any[]>> => {
       try {
         const response = await api.get('/data/conversations/inbox/');
-        return response.data;
+        return {
+          success: true,
+          data: response.data
+        };
       } catch (error) {
         throw new Error(handleApiError(error));
       }
     },
 
     // Get conversation details and messages for specific property submission
-    getConversation: async (propertySubmissionId: string) => {
+    getConversation: async (propertySubmissionId: string): Promise<ApiResponse<any>> => {
       try {
         const response = await api.get(`/data/conversations/${propertySubmissionId}/`);
-        return response.data;
+        return {
+          success: true,
+          data: response.data
+        };
       } catch (error) {
         throw new Error(handleApiError(error));
       }
     },
 
     // Send a message in conversation
-    sendMessage: async (propertySubmissionId: string, messageBody: string) => {
+    sendMessage: async (propertySubmissionId: string, messageBody: string): Promise<ApiResponse<any>> => {
       try {
         const response = await api.post(`/data/conversations/${propertySubmissionId}/send/`, {
           message: messageBody
         });
-        return response.data;
+        return {
+          success: true,
+          data: response.data
+        };
       } catch (error) {
         throw new Error(handleApiError(error));
       }
     },
 
     // Mark messages as read
-    markAsRead: async (propertySubmissionId: string) => {
+    markAsRead: async (propertySubmissionId: string): Promise<ApiResponse<any>> => {
       try {
         const response = await api.put(`/data/conversations/${propertySubmissionId}/read/`);
-        return response.data;
+        return {
+          success: true,
+          data: response.data
+        };
       } catch (error) {
         throw new Error(handleApiError(error));
       }
