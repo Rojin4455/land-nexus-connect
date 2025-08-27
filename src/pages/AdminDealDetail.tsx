@@ -7,7 +7,7 @@ import PropertyInformation from '@/components/deal-detail/PropertyInformation';
 import AdminDocumentsSection from '@/components/deal-detail/AdminDocumentsSection';
 import AdminConversationSection from '@/components/deal-detail/AdminConversationSection';
 import AdminMatchingBuyersSection from '@/components/deal-detail/AdminMatchingBuyersSection';
-import { ArrowLeft, FileText, MapPin, Upload, MessageCircle, Edit, LogOut, Users } from 'lucide-react';
+import { ArrowLeft, FileText, MapPin, Upload, MessageCircle, Edit, LogOut, Users, MessageSquare } from 'lucide-react';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { logoutUser } from '@/store/authSlice';
@@ -29,6 +29,8 @@ const AdminDealDetail = () => {
     if (tabParam === 'buyers') return 'matching-buyers';
     return tabParam || 'details';
   });
+  
+  const isFromConversation = searchParams.get('from') === 'conversation';
 
   useEffect(() => {
     loadDealData();
@@ -296,14 +298,25 @@ const AdminDealDetail = () => {
           {/* Header */}
           <div className="flex items-center justify-between animate-fade-in">
             <div className="flex items-center space-x-4">
-              <Button 
-                variant="outline"
-                onClick={() => navigate('/admin/dashboard')}
-                className="hover:bg-primary/5"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back
-              </Button>
+              {isFromConversation ? (
+                <Button 
+                  variant="outline"
+                  onClick={() => navigate('/admin/conversations')}
+                  className="hover:bg-primary/5 flex items-center gap-2"
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  Back to Conversation
+                </Button>
+              ) : (
+                <Button 
+                  variant="outline"
+                  onClick={() => navigate('/admin/dashboard')}
+                  className="hover:bg-primary/5"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back
+                </Button>
+              )}
               <div>
                 <h1 className="text-3xl font-bold text-foreground">Deal {deal.id}</h1>
                 <p className="text-muted-foreground">

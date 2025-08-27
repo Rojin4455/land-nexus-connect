@@ -487,7 +487,7 @@ const AdminConversationCenter = () => {
                           variant="outline"
                           size="sm"
                           className="w-full justify-start"
-                          onClick={() => navigate(`/admin/deal/${dealDetails.id}`)}
+                          onClick={() => navigate(`/admin/deal/${dealDetails.id}?from=conversation`)}
                         >
                           <ExternalLink className="h-4 w-4 mr-2" />
                           View Full Deal Details
@@ -498,7 +498,7 @@ const AdminConversationCenter = () => {
                           className="w-full justify-start"
                           onClick={() => {
                             // Navigate to matching buyers section of deal detail
-                            navigate(`/admin/deal/${dealDetails.id}?tab=buyers`);
+                            navigate(`/admin/deal/${dealDetails.id}?tab=buyers&from=conversation`);
                           }}
                         >
                           <TrendingUp className="h-4 w-4 mr-2" />
