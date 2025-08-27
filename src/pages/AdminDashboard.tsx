@@ -312,6 +312,15 @@ const AdminDashboard = () => {
               <Button
                 variant="outline"
                 size="sm"
+                onClick={() => navigate('/admin/conversations')}
+                className="hover:bg-primary hover:text-primary-foreground"
+              >
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Conversations
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => navigate('/admin/form-options')}
                 className="hover:bg-primary hover:text-primary-foreground"
               >

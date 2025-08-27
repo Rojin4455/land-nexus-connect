@@ -24,6 +24,7 @@ import BuyBoxCriteria from "./pages/BuyBoxCriteria";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminFormOptions from "./pages/AdminFormOptions";
 import AdminDealDetail from "./pages/AdminDealDetail";
+import AdminConversationCenter from "./pages/AdminConversationCenter";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +57,7 @@ const App = () => (
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/admin/form-options" element={<AdminFormOptions />} />
               <Route path="/admin/deal/:id" element={<AdminDealDetail />} />
+              <Route path="/admin/conversations" element={<AdminConversationCenter />} />
               
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
