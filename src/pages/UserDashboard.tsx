@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,7 +27,8 @@ import {
   TrendingUp,
   FileText,
   Clock,
-  Trash2
+  Trash2,
+  Search
 } from 'lucide-react';
 import { landDealsApi, handleApiError } from '@/services/landDealsApi';
 import { toast } from '@/hooks/use-toast';
@@ -35,6 +38,8 @@ const UserDashboard = () => {
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
   const [deals, setDeals] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
 
   useEffect(() => {
     // Check if user is authenticated
@@ -152,6 +157,19 @@ const UserDashboard = () => {
     }
   };
 
+  // Filter deals based on search term and status
+  const filteredDeals = deals.filter(deal => {
+    const matchesSearch = (deal.address || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (deal.id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (deal.landType || '').toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = !statusFilter || 
+      (deal.status || '').toLowerCase().replace(/\s+/g, '_') === statusFilter.toLowerCase() ||
+      (deal.status || '').toLowerCase() === statusFilter.toLowerCase().replace('_', ' ');
+    
+    return matchesSearch && matchesStatus;
+  });
+
   if (isLoading) {
     return (
       <DashboardLayout activeTab="dashboard">
@@ -232,6 +250,35 @@ const UserDashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
+            {/* Search and Filter Controls */}
+            {deals.length > 0 && (
+              <div className="flex items-center justify-between mb-6">
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search deals by address, ID, or type..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <div className="flex items-center gap-4">
+                  <Select value={statusFilter || "all"} onValueChange={(value) => setStatusFilter(value === "all" ? "" : value)}>
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder="Filter by status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Statuses</SelectItem>
+                      <SelectItem value="submitted">Submitted</SelectItem>
+                      <SelectItem value="under_review">Under Review</SelectItem>
+                      <SelectItem value="approved">Approved</SelectItem>
+                      <SelectItem value="rejected">Rejected</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
+
             {deals.length === 0 ? (
               <div className="text-center py-12">
                 <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -244,6 +291,12 @@ const UserDashboard = () => {
                   <Plus className="h-4 w-4 mr-2" />
                   Submit Your First Deal
                 </Button>
+              </div>
+            ) : filteredDeals.length === 0 ? (
+              <div className="text-center py-12">
+                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">No deals found</h3>
+                <p className="text-muted-foreground">Try adjusting your search terms or filters</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -259,7 +312,7 @@ const UserDashboard = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {deals.map((deal) => (
+                    {filteredDeals.map((deal) => (
                       <tr key={deal.id} className="border-b border-border hover:bg-secondary/50 transition-colors">
                         <td className="p-4">
                           <span className="font-mono text-sm font-medium text-primary">{deal.id}</span>

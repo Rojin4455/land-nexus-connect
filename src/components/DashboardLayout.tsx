@@ -13,7 +13,8 @@ import {
   Menu, 
   X,
   Settings,
-  FileText
+  FileText,
+  MessageCircle
 } from 'lucide-react';
 
 const DashboardLayout = ({ children, activeTab = 'dashboard' }) => {
