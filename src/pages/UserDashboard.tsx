@@ -263,6 +263,12 @@ const UserDashboard = () => {
                   Submit Your First Deal
                 </Button>
               </div>
+            ) : filteredDeals.length === 0 ? (
+              <div className="text-center py-12">
+                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">No deals found</h3>
+                <p className="text-muted-foreground">Try adjusting your search terms or filters</p>
+              </div>
             ) : (
               <>
                 <div className="flex items-center justify-between mb-6">
