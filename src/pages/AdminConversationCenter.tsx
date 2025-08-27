@@ -284,7 +284,9 @@ const AdminConversationCenter = () => {
                   </div>
                 ) : (
                   <div className="divide-y divide-border">
-                    {conversations.map((conversation) => (
+                    {conversations
+                      .sort((a, b) => new Date(b.last_message.timestamp).getTime() - new Date(a.last_message.timestamp).getTime())
+                      .map((conversation) => (
                       <div
                         key={conversation.property_submission_id}
                         className={`p-4 cursor-pointer hover:bg-accent/50 transition-colors ${
