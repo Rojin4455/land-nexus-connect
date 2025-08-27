@@ -19,13 +19,12 @@ import UserDashboard from "./pages/UserDashboard";
 import SubmitDeal from "./pages/SubmitDeal";
 import DealDetail from "./pages/DealDetail";
 import BuyBoxCriteria from "./pages/BuyBoxCriteria";
-import ConversationsInbox from "./pages/ConversationsInbox";
-import ConversationDetail from "./pages/ConversationDetail";
 
 // Admin portal pages
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminFormOptions from "./pages/AdminFormOptions";
 import AdminDealDetail from "./pages/AdminDealDetail";
+import AdminConversationsInbox from "./pages/AdminConversationsInbox";
 
 const queryClient = new QueryClient();
 
@@ -53,12 +52,11 @@ const App = () => (
             <Route path="/submit-deal" element={<SubmitDeal />} />
             <Route path="/criteria" element={<BuyBoxCriteria />} />
             <Route path="/deal/:id" element={<DealDetail />} />
-            <Route path="/conversations" element={<ConversationsInbox />} />
-            <Route path="/conversations/:propertySubmissionId" element={<ConversationDetail />} />
               
               {/* Admin Portal Routes */}
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/admin/form-options" element={<AdminFormOptions />} />
+              <Route path="/admin/conversations" element={<AdminConversationsInbox />} />
               <Route path="/admin/deal/:id" element={<AdminDealDetail />} />
               
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MessageCircle, Clock } from 'lucide-react';
+import { MessageCircle, Clock, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -19,7 +19,7 @@ interface ConversationPreview {
   unread_count: number;
 }
 
-const ConversationsInbox: React.FC = () => {
+const AdminConversationsInbox: React.FC = () => {
   const [conversations, setConversations] = useState<ConversationPreview[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
@@ -27,12 +27,12 @@ const ConversationsInbox: React.FC = () => {
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/login');
+    if (!isAuthenticated || !user?.is_staff) {
+      navigate('/admin/login');
       return;
     }
     loadConversations();
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, user, navigate]);
 
   const loadConversations = async () => {
     try {
@@ -67,7 +67,7 @@ const ConversationsInbox: React.FC = () => {
   };
 
   const handleConversationClick = (propertySubmissionId: number) => {
-    navigate(`/conversations/${propertySubmissionId}`);
+    navigate(`/admin/deal/${propertySubmissionId}`);
   };
 
   const renderConversationItem = (conversation: ConversationPreview) => (
@@ -81,11 +81,11 @@ const ConversationsInbox: React.FC = () => {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2">
               <h3 className="font-semibold text-sm truncate">
-                Property #{conversation.property_submission_id}
+                Deal #{conversation.property_submission_id}
               </h3>
               {conversation.unread_count > 0 && (
                 <Badge variant="destructive" className="text-xs px-2 py-0">
-                  {conversation.unread_count}
+                  {conversation.unread_count} new
                 </Badge>
               )}
             </div>
@@ -93,8 +93,9 @@ const ConversationsInbox: React.FC = () => {
               {conversation.property_address}
             </p>
             <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
+              <User className="h-3 w-3" />
               <span className="font-medium">
-                {conversation.partner_name}:
+                {conversation.partner_name}
               </span>
             </div>
             <p className="text-sm text-foreground line-clamp-2 mb-2">
@@ -120,7 +121,7 @@ const ConversationsInbox: React.FC = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MessageCircle className="h-5 w-5" />
-                Conversations
+                All Conversations
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -146,7 +147,7 @@ const ConversationsInbox: React.FC = () => {
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <MessageCircle className="h-5 w-5" />
-                Conversations
+                All Conversations
               </div>
               <Badge variant="outline">
                 {conversations.length} conversation{conversations.length !== 1 ? 's' : ''}
@@ -158,12 +159,9 @@ const ConversationsInbox: React.FC = () => {
               <div className="text-center py-12">
                 <MessageCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No conversations yet</h3>
-                <p className="text-muted-foreground mb-4">
-                  Conversations will appear here when you submit property deals or receive messages from admins.
+                <p className="text-muted-foreground">
+                  Conversations will appear here when users submit deals and start messaging.
                 </p>
-                <Button onClick={() => navigate('/submit-deal')}>
-                  Submit Your First Deal
-                </Button>
               </div>
             ) : (
               <div className="space-y-3">
@@ -177,4 +175,4 @@ const ConversationsInbox: React.FC = () => {
   );
 };
 
-export default ConversationsInbox;
+export default AdminConversationsInbox;
