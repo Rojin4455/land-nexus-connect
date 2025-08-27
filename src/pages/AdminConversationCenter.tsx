@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -55,6 +55,7 @@ const AdminConversationCenter = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   
   // State management
   const [conversations, setConversations] = useState<ConversationItem[]>([]);
@@ -65,6 +66,17 @@ const AdminConversationCenter = () => {
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [dealDetails, setDealDetails] = useState<any>(null);
+
+  // Auto scroll to bottom when messages change
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    if (messages.length > 0) {
+      scrollToBottom();
+    }
+  }, [messages]);
 
   useEffect(() => {
     // Check authentication
@@ -344,46 +356,47 @@ const AdminConversationCenter = () => {
                         <MessageSquare className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
                         <p className="text-muted-foreground">No messages yet</p>
                       </div>
-                    ) : (
-                      <div className="space-y-4 pr-2">
-                        {messages.map((message) => (
-                          <div
-                            key={message.id}
-                            className={`flex gap-3 ${
-                              message.is_admin ? 'justify-end' : 'justify-start'
-                            }`}
-                          >
-                            <div
-                              className={`flex gap-3 max-w-[80%] ${
-                                message.is_admin ? 'flex-row-reverse' : 'flex-row'
-                              }`}
-                            >
-                              <Avatar className="w-8 h-8">
-                                <AvatarFallback className={message.is_admin ? 'bg-primary text-primary-foreground' : 'bg-secondary'}>
-                                  {message.is_admin ? <UserCheck className="w-4 h-4" /> : <User className="w-4 h-4" />}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div
-                                className={`p-3 rounded-lg ${
-                                  message.is_admin
-                                    ? 'bg-primary text-primary-foreground'
-                                    : 'bg-secondary'
-                                }`}
-                              >
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className="text-xs font-medium opacity-90">
-                                    {message.is_admin ? 'Admin' : message.sender_username}
-                                  </span>
-                                  <span className="text-xs opacity-60">
-                                    {formatDate(message.timestamp)}
-                                  </span>
-                                </div>
-                                <p className="text-sm">{message.message}</p>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                     ) : (
+                       <div className="space-y-4 pr-2 pb-4">
+                         {messages.map((message) => (
+                           <div
+                             key={message.id}
+                             className={`flex gap-3 ${
+                               message.is_admin ? 'justify-end' : 'justify-start'
+                             }`}
+                           >
+                             <div
+                               className={`flex gap-3 max-w-[80%] ${
+                                 message.is_admin ? 'flex-row-reverse' : 'flex-row'
+                               }`}
+                             >
+                               <Avatar className="w-8 h-8">
+                                 <AvatarFallback className={message.is_admin ? 'bg-primary text-primary-foreground' : 'bg-secondary'}>
+                                   {message.is_admin ? <UserCheck className="w-4 h-4" /> : <User className="w-4 h-4" />}
+                                 </AvatarFallback>
+                               </Avatar>
+                               <div
+                                 className={`p-3 rounded-lg ${
+                                   message.is_admin
+                                     ? 'bg-primary text-primary-foreground'
+                                     : 'bg-secondary'
+                                 }`}
+                               >
+                                 <div className="flex items-center gap-2 mb-1">
+                                   <span className="text-xs font-medium opacity-90">
+                                     {message.is_admin ? 'Admin' : message.sender_username}
+                                   </span>
+                                   <span className="text-xs opacity-60">
+                                     {formatDate(message.timestamp)}
+                                   </span>
+                                 </div>
+                                 <p className="text-sm">{message.message}</p>
+                               </div>
+                             </div>
+                           </div>
+                         ))}
+                         <div ref={messagesEndRef} />
+                       </div>
                     )}
                   </ScrollArea>
                   
