@@ -502,61 +502,7 @@ export const landDealsApi = {
 
   // Conversation functions
   conversations: {
-    // Get all conversations for logged-in user (inbox)
-    getInbox: async (): Promise<ApiResponse<any[]>> => {
-      try {
-        const response = await api.get('/data/conversations/inbox/');
-        return {
-          success: true,
-          data: response.data
-        };
-      } catch (error) {
-        throw new Error(handleApiError(error));
-      }
-    },
-
-    // Get conversation details and messages for specific property submission
-    getConversation: async (propertySubmissionId: string): Promise<ApiResponse<any>> => {
-      try {
-        const response = await api.get(`/data/conversations/${propertySubmissionId}/`);
-        return {
-          success: true,
-          data: response.data
-        };
-      } catch (error) {
-        throw new Error(handleApiError(error));
-      }
-    },
-
-    // Send a message in conversation
-    sendMessage: async (propertySubmissionId: string, messageBody: string): Promise<ApiResponse<any>> => {
-      try {
-        const response = await api.post(`/data/conversations/${propertySubmissionId}/send/`, {
-          message: messageBody
-        });
-        return {
-          success: true,
-          data: response.data
-        };
-      } catch (error) {
-        throw new Error(handleApiError(error));
-      }
-    },
-
-    // Mark messages as read
-    markAsRead: async (propertySubmissionId: string): Promise<ApiResponse<any>> => {
-      try {
-        const response = await api.put(`/data/conversations/${propertySubmissionId}/read/`);
-        return {
-          success: true,
-          data: response.data
-        };
-      } catch (error) {
-        throw new Error(handleApiError(error));
-      }
-    },
-
-    // Get conversation messages for a property (legacy)
+    // Get conversation messages for a property
     getMessages: async (propertyId: string): Promise<ApiResponse<Array<{
       id: number;
       sender_username: string;
@@ -566,6 +512,22 @@ export const landDealsApi = {
       is_admin: boolean;
     }>>> => {
       const response = await api.get(`/data/conversations/${propertyId}/`);
+      return {
+        success: true,
+        data: response.data
+      };
+    },
+
+    // Send a message for a property
+    sendMessage: async (propertyId: string, message: string): Promise<ApiResponse<{
+      id: number;
+      sender_username: string;
+      property_submission_id: number;
+      message: string;
+      timestamp: string;
+      is_admin: boolean;
+    }>> => {
+      const response = await api.post(`/data/conversations/${propertyId}/send/`, { message });
       return {
         success: true,
         data: response.data
