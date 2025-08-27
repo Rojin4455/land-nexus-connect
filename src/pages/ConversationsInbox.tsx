@@ -11,26 +11,12 @@ import { useAppSelector } from '@/hooks/useAppSelector';
 import DashboardLayout from '@/components/DashboardLayout';
 
 interface ConversationPreview {
-  id: string;
-  property_submission: {
-    id: string;
-    title: string;
-    address: string;
-  };
-  latest_message: {
-    id: string;
-    sender_name: string;
-    message: string;
-    timestamp: string;
-    is_read: boolean;
-  };
+  property_submission_id: number;
+  property_address: string;
+  partner_name: string;
+  last_message: string;
+  last_message_at: string;
   unread_count: number;
-  participants: Array<{
-    id: string;
-    name: string;
-    email: string;
-    role: string;
-  }>;
 }
 
 const ConversationsInbox: React.FC = () => {
@@ -52,7 +38,7 @@ const ConversationsInbox: React.FC = () => {
     try {
       setIsLoading(true);
       const data = await landDealsApi.conversations.getInbox();
-      setConversations(data.conversations || []);
+      setConversations(data || []);
     } catch (error) {
       toast({
         title: "Error",
@@ -80,22 +66,22 @@ const ConversationsInbox: React.FC = () => {
     }
   };
 
-  const handleConversationClick = (propertySubmissionId: string) => {
+  const handleConversationClick = (propertySubmissionId: number) => {
     navigate(`/conversations/${propertySubmissionId}`);
   };
 
   const renderConversationItem = (conversation: ConversationPreview) => (
     <Card
-      key={conversation.id}
+      key={conversation.property_submission_id}
       className="cursor-pointer hover:shadow-md transition-shadow border-l-4 border-l-transparent hover:border-l-primary"
-      onClick={() => handleConversationClick(conversation.property_submission.id)}
+      onClick={() => handleConversationClick(conversation.property_submission_id)}
     >
       <CardContent className="p-4">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2">
               <h3 className="font-semibold text-sm truncate">
-                {conversation.property_submission.title}
+                Property #{conversation.property_submission_id}
               </h3>
               {conversation.unread_count > 0 && (
                 <Badge variant="destructive" className="text-xs px-2 py-0">
@@ -104,21 +90,21 @@ const ConversationsInbox: React.FC = () => {
               )}
             </div>
             <p className="text-xs text-muted-foreground mb-2 truncate">
-              {conversation.property_submission.address}
+              {conversation.property_address}
             </p>
             <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
               <span className="font-medium">
-                {conversation.latest_message.sender_name}:
+                {conversation.partner_name}:
               </span>
             </div>
             <p className="text-sm text-foreground line-clamp-2 mb-2">
-              {conversation.latest_message.message}
+              {conversation.last_message}
             </p>
           </div>
           <div className="flex flex-col items-end gap-1 ml-2">
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Clock className="h-3 w-3" />
-              {formatTimestamp(conversation.latest_message.timestamp)}
+              {formatTimestamp(conversation.last_message_at)}
             </div>
           </div>
         </div>
