@@ -537,7 +537,7 @@ export const landDealsApi = {
     // Mark messages as read
     markAsRead: async (propertySubmissionId: string) => {
       try {
-        const response = await api.post(`/data/conversations/${propertySubmissionId}/read/`);
+        const response = await api.put(`/data/conversations/${propertySubmissionId}/read/`);
         return response.data;
       } catch (error) {
         throw new Error(handleApiError(error));
