@@ -14,6 +14,12 @@ import {
   createUtility, 
   createLandType, 
   createAccessType,
+  updateUtility,
+  updateLandType,
+  updateAccessType,
+  deleteUtility,
+  deleteLandType,
+  deleteAccessType,
   clearError 
 } from '@/store/formOptionsSlice';
 import { 
@@ -130,20 +136,92 @@ const AdminFormOptions = () => {
   };
 
   const handleUpdateOption = async () => {
-    // Note: Update functionality would require additional API endpoints
-    toast({
-      title: "Feature coming soon",
-      description: "Update functionality will be available in the next version.",
-    });
-    setEditingOption(null);
+    if (!editingOption || !editingOption.value.trim() || !editingOption.display_name?.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter both value and display name",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const data = {
+      value: editingOption.value.trim(),
+      display_name: editingOption.display_name.trim(),
+    };
+
+    try {
+      let action;
+      switch (activeTab) {
+        case 'utilities':
+          action = updateUtility({ id: editingOption.id, data });
+          break;
+        case 'landTypes':
+          action = updateLandType({ id: editingOption.id, data });
+          break;
+        case 'accessTypes':
+          action = updateAccessType({ id: editingOption.id, data });
+          break;
+        default:
+          throw new Error('Invalid category');
+      }
+
+      await dispatch(action).unwrap();
+      setEditingOption(null);
+      toast({
+        title: "Success",
+        description: `${data.display_name} updated successfully`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error || "Failed to update option",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleDeleteOption = async (index) => {
-    // Note: Delete functionality would require additional API endpoints
-    toast({
-      title: "Feature coming soon",
-      description: "Delete functionality will be available in the next version.",
-    });
+    const data = getTabData();
+    const option = data.items[index];
+
+    if (!option?.id) {
+      toast({
+        title: "Error",
+        description: "Unable to delete option - missing ID",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      let action;
+      switch (activeTab) {
+        case 'utilities':
+          action = deleteUtility(option.id);
+          break;
+        case 'landTypes':
+          action = deleteLandType(option.id);
+          break;
+        case 'accessTypes':
+          action = deleteAccessType(option.id);
+          break;
+        default:
+          throw new Error('Invalid category');
+      }
+
+      await dispatch(action).unwrap();
+      toast({
+        title: "Success",
+        description: `${option.display_name} deleted successfully`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error || "Failed to delete option",
+        variant: "destructive",
+      });
+    }
   };
 
   const getTabDisplayName = (tab) => {
