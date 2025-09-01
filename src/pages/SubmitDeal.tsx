@@ -126,6 +126,55 @@ const SubmitDeal = () => {
     e.preventDefault();
     setIsLoading(true);
 
+    // Validate required fields with specific error messages
+    const errors = [];
+    
+    // Conditional validation: Either address OR parcel_id is required
+    if (!formData.address && !formData.parcel_id) {
+      errors.push("Either Address or Parcel ID is required");
+    }
+    
+    // Required field validations
+    if (!formData.llc_name) errors.push("LLC Name is required");
+    if (!formData.first_name) errors.push("First Name is required");
+    if (!formData.last_name) errors.push("Last Name is required");
+    if (!formData.phone_number) errors.push("Phone Number is required");
+    if (!formData.email) errors.push("Email is required");
+    if (!formData.land_type) errors.push("Land Type is required");
+    if (!formData.acreage) errors.push("Acreage is required");
+    if (!formData.lot_size) errors.push("Lot Size is required");
+    if (!formData.zoning) errors.push("Zoning Classification is required");
+    if (!formData.agreed_price) errors.push("Agreed/Purchase Price is required");
+    if (!formData.estimated_aev) errors.push("Estimated AEV is required");
+    if (!formData.development_costs) errors.push("Development Costs is required");
+    if (!formData.utilities) errors.push("Utilities Available is required");
+    if (!formData.access_type) errors.push("Access Type is required");
+    if (!formData.under_contract) errors.push("Under Contract status is required");
+    if (!formData.exit_strategy) errors.push("Exit Strategy is required");
+
+    // Phone number format validation
+    const phoneRegex = /^\(\d{3}\) \d{3}-\d{4}$/;
+    if (formData.phone_number && !phoneRegex.test(formData.phone_number)) {
+      errors.push("Phone number must be in format (XXX) XXX-XXXX");
+    }
+
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (formData.email && !emailRegex.test(formData.email)) {
+      errors.push("Please enter a valid email address");
+    }
+
+    // Show validation errors if any
+    if (errors.length > 0) {
+      toast({
+        title: "Validation Error",
+        description: errors.join(", "),
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
+
     try {
       // Prepare files for upload
       const photos = uploadedFiles.filter(f => f.type.startsWith('image/')).map(f => f.file);
@@ -217,7 +266,7 @@ const SubmitDeal = () => {
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="md:col-span-2 form-field">
-                <Label htmlFor="address" className="form-label">Lot Address / Location *</Label>
+                <Label htmlFor="address" className="form-label">Lot Address / Location</Label>
                 <AddressAutocomplete
                   value={formData.address}
                   onChange={(address, coordinates) => {
@@ -230,9 +279,11 @@ const SubmitDeal = () => {
                     }));
                   }}
                   placeholder="123 Main St, City, State, ZIP"
-                  required
                   className="form-input"
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Either address or parcel ID below is required
+                </p>
               </div>
 
               <div className="form-field">
@@ -408,6 +459,38 @@ const SubmitDeal = () => {
                 </Select>
               </div>
 
+              <div className="form-field">
+                <Label htmlFor="parcel_id" className="form-label">Parcel ID or APN</Label>
+                <Input
+                  id="parcel_id"
+                  name="parcel_id"
+                  placeholder="Property Parcel ID"
+                  value={formData.parcel_id}
+                  onChange={handleInputChange}
+                  className="form-input"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Required if address is not provided above
+                </p>
+              </div>
+
+              <div className="form-field">
+                <Label htmlFor="exit_strategy" className="form-label">Exit Strategy *</Label>
+                <Select value={formData.exit_strategy} onValueChange={(value) => handleSelectChange('exit_strategy', value)}>
+                  <SelectTrigger className="form-input">
+                    <SelectValue placeholder="Select exit strategy" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="infill">Infill Lot Development</SelectItem>
+                    <SelectItem value="flip">Buy & Flip</SelectItem>
+                    <SelectItem value="subdivide">Subdivide & Sell</SelectItem>
+                    <SelectItem value="seller_financing">Seller Financing</SelectItem>
+                    <SelectItem value="rezoning">Entitlement/Rezoning</SelectItem>
+                    <SelectItem value="mobile_home">Mobile Home Lot</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
                <div className="md:col-span-2 form-field">
                  <Label htmlFor="description" className="form-label">Land Description</Label>
                  <Textarea
@@ -495,34 +578,6 @@ const SubmitDeal = () => {
               </div>
 
 
-              <div className="form-field">
-                <Label htmlFor="parcel_id" className="form-label">Parcel ID</Label>
-                <Input
-                  id="parcel_id"
-                  name="parcel_id"
-                  placeholder="Property Parcel ID"
-                  value={formData.parcel_id}
-                  onChange={handleInputChange}
-                  className="form-input"
-                />
-              </div>
-
-               <div className="form-field">
-                 <Label htmlFor="exit_strategy" className="form-label">Exit Strategy *</Label>
-                 <Select value={formData.exit_strategy} onValueChange={(value) => handleSelectChange('exit_strategy', value)}>
-                   <SelectTrigger className="form-input">
-                     <SelectValue placeholder="Select exit strategy" />
-                   </SelectTrigger>
-                   <SelectContent>
-                     <SelectItem value="infill">Infill Lot Development</SelectItem>
-                     <SelectItem value="flip">Buy & Flip</SelectItem>
-                     <SelectItem value="subdivide">Subdivide & Sell</SelectItem>
-                     <SelectItem value="seller_financing">Seller Financing</SelectItem>
-                     <SelectItem value="rezoning">Entitlement/Rezoning</SelectItem>
-                     <SelectItem value="mobile_home">Mobile Home Lot</SelectItem>
-                   </SelectContent>
-                 </Select>
-               </div>
 
               <div className="md:col-span-2 form-field">
                 <Label htmlFor="extra_notes" className="form-label">Additional Notes</Label>
