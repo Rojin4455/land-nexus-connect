@@ -29,6 +29,8 @@ const SubmitDeal = () => {
     latitude: null,
     longitude: null,
     place_id: null,
+    city: '',
+    county: '',
     land_type: '',
     acreage: '',
     zoning: '',
@@ -72,6 +74,38 @@ const SubmitDeal = () => {
     landTypes: transformFormOptionsForSelect(landTypes),
     utilities: transformFormOptionsForSelect(utilities),
     accessTypes: transformFormOptionsForSelect(accessTypes),
+  };
+
+  // Hardcoded land types as per requirements
+  const landTypeOptions = [
+    { value: 'residential_vacant', label: 'Residential Vacant' },
+    { value: 'commercial', label: 'Commercial' },
+    { value: 'agricultural', label: 'Agricultural' },
+    { value: 'recreational', label: 'Recreational' },
+    { value: 'waterfront', label: 'Waterfront' }
+  ];
+
+  // Validation functions
+  const validatePhone = (phone) => {
+    const phoneRegex = /^\(\d{3}\) \d{3}-\d{4}$/;
+    return phoneRegex.test(phone);
+  };
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Extract city and county from address
+  const extractLocationFromAddress = (address) => {
+    const parts = address.split(',');
+    if (parts.length >= 3) {
+      const city = parts[1]?.trim() || '';
+      const countyState = parts[2]?.trim() || '';
+      const county = countyState.split(' ')[0] || '';
+      return { city, county };
+    }
+    return { city: '', county: '' };
   };
 
 
@@ -124,6 +158,37 @@ const SubmitDeal = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Conditional validation: address or parcel ID required
+    if (!formData.address.trim() && !formData.parcel_id.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Either Sellers Property FULL Address or Parcel ID/APN is required.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate phone number format
+    if (formData.phone_number && !validatePhone(formData.phone_number)) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter a valid phone number in format (XXX) XXX-XXXX",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate email format
+    if (formData.email && !validateEmail(formData.email)) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -139,6 +204,8 @@ const SubmitDeal = () => {
         latitude: formData.latitude || '',
         longitude: formData.longitude || '',
         place_id: formData.place_id || '',
+        city: formData.city || '',
+        county: formData.county || '',
         land_type: formData.land_type || '',
         landType: formData.land_type || '', // backward compatibility
         acreage: parseFloat(formData.acreage) || 0,
@@ -210,60 +277,150 @@ const SubmitDeal = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Basic Information */}
+          {/* Contact Information */}
           <Card className="card-elevated">
             <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
+              <CardTitle>Contact Information</CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="md:col-span-2 form-field">
-                <Label htmlFor="address" className="form-label">Lot Address / Location *</Label>
-                <AddressAutocomplete
-                  value={formData.address}
-                  onChange={(address, coordinates) => {
-                    setFormData(prev => ({
-                      ...prev,
-                      address,
-                      latitude: coordinates?.lat,
-                      longitude: coordinates?.lng,
-                      place_id: coordinates?.place_id
-                    }));
-                  }}
-                  placeholder="123 Main St, City, State, ZIP"
-                  required
+              <div className="form-field">
+                <Label htmlFor="llc_name" className="form-label">Your LLC Name *</Label>
+                <Input
+                  id="llc_name"
+                  name="llc_name"
+                  placeholder="Your LLC Name"
+                  value={formData.llc_name}
+                  onChange={handleInputChange}
                   className="form-input"
+                  required
                 />
               </div>
 
               <div className="form-field">
-                <Label htmlFor="land_type" className="form-label">Land Type *</Label>
-                <Select value={formData.land_type} onValueChange={(value) => handleSelectChange('land_type', value)}>
+                <Label htmlFor="first_name" className="form-label">Your First Name *</Label>
+                <Input
+                  id="first_name"
+                  name="first_name"
+                  placeholder="John"
+                  value={formData.first_name}
+                  onChange={handleInputChange}
+                  className="form-input"
+                  required
+                />
+              </div>
+
+              <div className="form-field">
+                <Label htmlFor="last_name" className="form-label">Your Last Name *</Label>
+                <Input
+                  id="last_name"
+                  name="last_name"
+                  placeholder="Doe"
+                  value={formData.last_name}
+                  onChange={handleInputChange}
+                  className="form-input"
+                  required
+                />
+              </div>
+
+              <div className="form-field">
+                <Label htmlFor="phone_number" className="form-label">Your Phone Number *</Label>
+                <Input
+                  id="phone_number"
+                  name="phone_number"
+                  placeholder="(555) 123-4567"
+                  value={formData.phone_number}
+                  onChange={handleInputChange}
+                  className="form-input"
+                  required
+                />
+              </div>
+
+              <div className="md:col-span-2 form-field">
+                <Label htmlFor="email" className="form-label">Your Email Address *</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="john@example.com"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className="form-input"
+                  required
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Property Deal Details */}
+          <Card className="card-elevated">
+            <CardHeader>
+              <CardTitle>Property Deal Details</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="form-field">
+                <Label htmlFor="under_contract" className="form-label">Under Contract? *</Label>
+                <Select value={formData.under_contract} onValueChange={(value) => handleSelectChange('under_contract', value)}>
                   <SelectTrigger className="form-input">
-                    <SelectValue placeholder="Select land type" />
+                    <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
-                    {formOptions.landTypes.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="yes">Yes</SelectItem>
+                    <SelectItem value="no">No</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="form-field">
-                <Label htmlFor="acreage" className="form-label">Acreage *</Label>
+                <Label htmlFor="agreed_price" className="form-label">Agreed Price with Seller *</Label>
                 <Input
-                  id="acreage"
-                  name="acreage"
+                  id="agreed_price"
+                  name="agreed_price"
                   type="number"
-                  step="0.1"
-                  placeholder="e.g., 2.5"
-                  value={formData.acreage}
+                  placeholder="125000"
+                  value={formData.agreed_price}
                   onChange={handleInputChange}
                   className="form-input"
                   required
                 />
+              </div>
+
+              <div className="md:col-span-2 form-field">
+                <Label htmlFor="address" className="form-label">Sellers Property FULL Address</Label>
+                <AddressAutocomplete
+                  value={formData.address}
+                  onChange={(address, coordinates) => {
+                    const location = extractLocationFromAddress(address);
+                    setFormData(prev => ({
+                      ...prev,
+                      address,
+                      latitude: coordinates?.lat,
+                      longitude: coordinates?.lng,
+                      place_id: coordinates?.place_id,
+                      city: location.city,
+                      county: location.county
+                    }));
+                  }}
+                  placeholder="123 Main St, City, State, ZIP"
+                  className="form-input"
+                />
+                <p className="text-sm text-muted-foreground mt-1">
+                  If left blank, Parcel ID or APN becomes required
+                </p>
+              </div>
+
+              <div className="form-field">
+                <Label htmlFor="parcel_id" className="form-label">Parcel ID or APN</Label>
+                <Input
+                  id="parcel_id"
+                  name="parcel_id"
+                  placeholder="Property Parcel ID"
+                  value={formData.parcel_id}
+                  onChange={handleInputChange}
+                  className="form-input"
+                />
+                <p className="text-sm text-muted-foreground mt-1">
+                  Required if address is not provided
+                </p>
               </div>
 
               <div className="form-field">
@@ -292,85 +449,14 @@ const SubmitDeal = () => {
                 </div>
               </div>
 
-               <div className="form-field">
-                 <Label htmlFor="zoning" className="form-label">Zoning Classification *</Label>
-                 <Input
-                   id="zoning"
-                   name="zoning"
-                   placeholder="e.g., R-1, C-2, M-1"
-                   value={formData.zoning}
-                   onChange={handleInputChange}
-                   className="form-input"
-                   required
-                 />
-               </div>
-            </CardContent>
-          </Card>
-
-          {/* Financial Information */}
-          <Card className="card-elevated">
-            <CardHeader>
-              <CardTitle>Financial Details</CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="form-field">
-                <Label htmlFor="agreed_price" className="form-label">Agreed/Purchase Price ($) *</Label>
-                <Input
-                  id="agreed_price"
-                  name="agreed_price"
-                  type="number"
-                  placeholder="125000"
-                  value={formData.agreed_price}
-                  onChange={handleInputChange}
-                  className="form-input"
-                  required
-                />
-              </div>
-
-               <div className="form-field">
-                 <Label htmlFor="estimated_aev" className="form-label">Estimated AEV ($) *</Label>
-                 <Input
-                   id="estimated_aev"
-                   name="estimated_aev"
-                   type="number"
-                   placeholder="150000"
-                   value={formData.estimated_aev}
-                   onChange={handleInputChange}
-                   className="form-input"
-                   required
-                 />
-               </div>
-
-               <div className="form-field">
-                 <Label htmlFor="development_costs" className="form-label">Development Costs ($) *</Label>
-                 <Input
-                   id="development_costs"
-                   name="development_costs"
-                   type="number"
-                   placeholder="25000"
-                   value={formData.development_costs}
-                   onChange={handleInputChange}
-                   className="form-input"
-                   required
-                 />
-               </div>
-            </CardContent>
-          </Card>
-
-          {/* Property Details */}
-          <Card className="card-elevated">
-            <CardHeader>
-              <CardTitle>Property Details</CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="form-field">
-                <Label htmlFor="utilities" className="form-label">Utilities Available *</Label>
-                <Select value={formData.utilities} onValueChange={(value) => handleSelectChange('utilities', value)}>
+                <Label htmlFor="land_type" className="form-label">Specific Type of Land *</Label>
+                <Select value={formData.land_type} onValueChange={(value) => handleSelectChange('land_type', value)}>
                   <SelectTrigger className="form-input">
-                    <SelectValue placeholder="Select utilities" />
+                    <SelectValue placeholder="Select land type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {formOptions.utilities.map((option) => (
+                    {landTypeOptions.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
                       </SelectItem>
@@ -380,179 +466,75 @@ const SubmitDeal = () => {
               </div>
 
               <div className="form-field">
-                <Label htmlFor="access_type" className="form-label">Access Type *</Label>
-                <Select value={formData.access_type} onValueChange={(value) => handleSelectChange('access_type', value)}>
+                <Label htmlFor="exit_strategy" className="form-label">Exit Strategy (Land) *</Label>
+                <Select value={formData.exit_strategy} onValueChange={(value) => handleSelectChange('exit_strategy', value)}>
                   <SelectTrigger className="form-input">
-                    <SelectValue placeholder="Select access type" />
+                    <SelectValue placeholder="Select exit strategy" />
                   </SelectTrigger>
                   <SelectContent>
-                    {formOptions.accessTypes.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="infill">Infill Lot Development</SelectItem>
+                    <SelectItem value="flip">Buy & Flip</SelectItem>
+                    <SelectItem value="subdivide">Subdivide & Sell</SelectItem>
+                    <SelectItem value="seller_financing">Seller Financing</SelectItem>
+                    <SelectItem value="rezoning">Entitlement/Rezoning</SelectItem>
+                    <SelectItem value="mobile_home">Mobile Home Lot</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-
-              <div className="form-field">
-                <Label htmlFor="under_contract" className="form-label">Under Contract *</Label>
-                <Select value={formData.under_contract} onValueChange={(value) => handleSelectChange('under_contract', value)}>
-                  <SelectTrigger className="form-input">
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="yes">Yes</SelectItem>
-                    <SelectItem value="no">No</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-               <div className="md:col-span-2 form-field">
-                 <Label htmlFor="description" className="form-label">Land Description</Label>
-                 <Textarea
-                   id="description"
-                   name="description"
-                   placeholder="Provide a detailed description of the property..."
-                   value={formData.description}
-                   onChange={handleInputChange}
-                   className="min-h-[120px]"
-                 />
-               </div>
             </CardContent>
           </Card>
 
-          {/* Contact Information */}
+          {/* Additional Information */}
           <Card className="card-elevated">
             <CardHeader>
-              <CardTitle>Contact Information</CardTitle>
+              <CardTitle>Additional Information</CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="form-field">
-                <Label htmlFor="llc_name" className="form-label">LLC Name *</Label>
+                <Label htmlFor="city" className="form-label">Property City</Label>
                 <Input
-                  id="llc_name"
-                  name="llc_name"
-                  placeholder="Your LLC Name"
-                  value={formData.llc_name}
-                  onChange={handleInputChange}
-                  className="form-input"
-                  required
+                  id="city"
+                  name="city"
+                  placeholder="Auto-filled from address"
+                  value={formData.city}
+                  className="form-input bg-muted"
+                  readOnly
                 />
               </div>
 
               <div className="form-field">
-                <Label htmlFor="first_name" className="form-label">First Name *</Label>
+                <Label htmlFor="county" className="form-label">County</Label>
                 <Input
-                  id="first_name"
-                  name="first_name"
-                  placeholder="John"
-                  value={formData.first_name}
-                  onChange={handleInputChange}
-                  className="form-input"
-                  required
+                  id="county"
+                  name="county"
+                  placeholder="Auto-filled from address"
+                  value={formData.county}
+                  className="form-input bg-muted"
+                  readOnly
                 />
               </div>
-
-              <div className="form-field">
-                <Label htmlFor="last_name" className="form-label">Last Name *</Label>
-                <Input
-                  id="last_name"
-                  name="last_name"
-                  placeholder="Doe"
-                  value={formData.last_name}
-                  onChange={handleInputChange}
-                  className="form-input"
-                  required
-                />
-              </div>
-
-              <div className="form-field">
-                <Label htmlFor="phone_number" className="form-label">Phone Number *</Label>
-                <Input
-                  id="phone_number"
-                  name="phone_number"
-                  placeholder="(555) 123-4567"
-                  value={formData.phone_number}
-                  onChange={handleInputChange}
-                  className="form-input"
-                  required
-                />
-              </div>
-
-              <div className="form-field">
-                <Label htmlFor="email" className="form-label">Email *</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="john@example.com"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className="form-input"
-                  required
-                />
-              </div>
-
-
-              <div className="form-field">
-                <Label htmlFor="parcel_id" className="form-label">Parcel ID</Label>
-                <Input
-                  id="parcel_id"
-                  name="parcel_id"
-                  placeholder="Property Parcel ID"
-                  value={formData.parcel_id}
-                  onChange={handleInputChange}
-                  className="form-input"
-                />
-              </div>
-
-               <div className="form-field">
-                 <Label htmlFor="exit_strategy" className="form-label">Exit Strategy *</Label>
-                 <Select value={formData.exit_strategy} onValueChange={(value) => handleSelectChange('exit_strategy', value)}>
-                   <SelectTrigger className="form-input">
-                     <SelectValue placeholder="Select exit strategy" />
-                   </SelectTrigger>
-                   <SelectContent>
-                     <SelectItem value="infill">Infill Lot Development</SelectItem>
-                     <SelectItem value="flip">Buy & Flip</SelectItem>
-                     <SelectItem value="subdivide">Subdivide & Sell</SelectItem>
-                     <SelectItem value="seller_financing">Seller Financing</SelectItem>
-                     <SelectItem value="rezoning">Entitlement/Rezoning</SelectItem>
-                     <SelectItem value="mobile_home">Mobile Home Lot</SelectItem>
-                   </SelectContent>
-                 </Select>
-               </div>
 
               <div className="md:col-span-2 form-field">
-                <Label htmlFor="extra_notes" className="form-label">Additional Notes</Label>
+                <Label htmlFor="extra_notes" className="form-label">Any Additional Details?</Label>
                 <Textarea
                   id="extra_notes"
                   name="extra_notes"
-                  placeholder="Any additional information about the property..."
+                  placeholder="Include examples like 'How'd You Find Them', 'Did you still need help closing them?' etc."
                   value={formData.extra_notes}
                   onChange={handleInputChange}
                   className="min-h-[100px]"
                 />
               </div>
-            </CardContent>
-          </Card>
 
-          {/* File Upload */}
-          <Card className="card-elevated">
-            <CardHeader>
-              <CardTitle>Documents & Media</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="form-field">
-                <Label className="form-label">Upload Photos/Videos/Documents</Label>
+              <div className="md:col-span-2 form-field">
+                <Label className="form-label">Upload Documents</Label>
                 <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary/50 transition-colors">
                   <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-4" />
                   <p className="text-sm text-muted-foreground mb-2">
                     Drag files here or click to browse
                   </p>
                   <p className="text-xs text-muted-foreground mb-4">
-                    Supports: JPG, PNG, PDF, MP4, KML, CAD files (max 10MB each)
+                    Accepted formats: .pdf, .jpg, .png (Max file size per file)
                   </p>
                   <Input
                     type="file"
@@ -570,36 +552,36 @@ const SubmitDeal = () => {
                     Choose Files
                   </Button>
                 </div>
-              </div>
 
-              {/* Uploaded Files */}
-              {uploadedFiles.length > 0 && (
-                <div className="space-y-2">
-                  <h4 className="font-medium text-sm">Uploaded Files ({uploadedFiles.length})</h4>
-                  <div className="grid gap-2">
-                    {uploadedFiles.map((file) => (
-                      <div key={file.id} className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          {getFileIcon(file.type)}
-                          <div>
-                            <p className="text-sm font-medium">{file.name}</p>
-                            <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
+                {/* Uploaded Files */}
+                {uploadedFiles.length > 0 && (
+                  <div className="space-y-2 mt-4">
+                    <h4 className="font-medium text-sm">Uploaded Files ({uploadedFiles.length})</h4>
+                    <div className="grid gap-2">
+                      {uploadedFiles.map((file) => (
+                        <div key={file.id} className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg">
+                          <div className="flex items-center space-x-3">
+                            {getFileIcon(file.type)}
+                            <div>
+                              <p className="text-sm font-medium">{file.name}</p>
+                              <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
+                            </div>
                           </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeFile(file.id)}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
                         </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeFile(file.id)}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </CardContent>
           </Card>
 
