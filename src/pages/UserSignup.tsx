@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import AuthLayout from '@/components/AuthLayout';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { useAppSelector } from '@/hooks/useAppSelector';
-import { signupUser, clearError } from '@/store/authSlice';
+import { signupUser, clearError, logout } from '@/store/authSlice';
 
 const UserSignup = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -25,13 +25,8 @@ const UserSignup = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { isLoading, error, isAuthenticated } = useAppSelector((state) => state.auth);
+  const { isLoading, error } = useAppSelector((state) => state.auth);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/dashboard');
-    }
-  }, [isAuthenticated, navigate]);
 
   useEffect(() => {
     if (error) {
@@ -65,7 +60,18 @@ const UserSignup = () => {
       return;
     }
 
-    dispatch(signupUser(formData));
+    try {
+      await dispatch(signupUser(formData)).unwrap();
+      // Ensure we require login after signup
+      dispatch(logout());
+      toast({
+        title: "Signup successful",
+        description: "Your account was created. Please sign in to continue.",
+      });
+      navigate('/login');
+    } catch {
+      // Error toast handled by error effect
+    }
   };
 
   const handleInputChange = (e: any) => {
