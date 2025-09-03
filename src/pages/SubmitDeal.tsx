@@ -33,8 +33,6 @@ const SubmitDeal = () => {
     acreage: '',
     zoning: '',
     agreed_price: '',
-    estimated_aev: '',
-    development_costs: '',
     utilities: '',
     access_type: '',
     description: '',
@@ -145,8 +143,6 @@ const SubmitDeal = () => {
     if (!formData.lot_size) errors.push("Lot Size is required");
     if (!formData.zoning) errors.push("Zoning Classification is required");
     if (!formData.agreed_price) errors.push("Agreed/Purchase Price is required");
-    if (!formData.estimated_aev) errors.push("Estimated AEV is required");
-    if (!formData.development_costs) errors.push("Development Costs is required");
     if (!formData.utilities) errors.push("Utilities Available is required");
     if (!formData.access_type) errors.push("Access Type is required");
     if (!formData.under_contract) errors.push("Under Contract status is required");
@@ -194,8 +190,6 @@ const SubmitDeal = () => {
         zoning: formData.zoning || '',
         agreed_price: parseFloat(formData.agreed_price) || 0,
         agreedPrice: parseFloat(formData.agreed_price) || 0, // backward compatibility
-        estimated_aev: parseFloat(formData.estimated_aev) || 0,
-        development_costs: parseFloat(formData.development_costs) || 0,
         utilities: formData.utilities || '',
         access_type: formData.access_type || '',
         accessType: formData.access_type || '', // backward compatibility
@@ -358,12 +352,13 @@ const SubmitDeal = () => {
             </CardContent>
           </Card>
 
-          {/* Financial Information */}
+
+          {/* Property Details */}
           <Card className="card-elevated">
             <CardHeader>
-              <CardTitle>Financial Details</CardTitle>
+              <CardTitle>Property Details</CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="form-field">
                 <Label htmlFor="agreed_price" className="form-label">Agreed/Purchase Price ($) *</Label>
                 <Input
@@ -378,42 +373,6 @@ const SubmitDeal = () => {
                 />
               </div>
 
-               <div className="form-field">
-                 <Label htmlFor="estimated_aev" className="form-label">Estimated AEV ($) *</Label>
-                 <Input
-                   id="estimated_aev"
-                   name="estimated_aev"
-                   type="number"
-                   placeholder="150000"
-                   value={formData.estimated_aev}
-                   onChange={handleInputChange}
-                   className="form-input"
-                   required
-                 />
-               </div>
-
-               <div className="form-field">
-                 <Label htmlFor="development_costs" className="form-label">Development Costs ($) *</Label>
-                 <Input
-                   id="development_costs"
-                   name="development_costs"
-                   type="number"
-                   placeholder="25000"
-                   value={formData.development_costs}
-                   onChange={handleInputChange}
-                   className="form-input"
-                   required
-                 />
-               </div>
-            </CardContent>
-          </Card>
-
-          {/* Property Details */}
-          <Card className="card-elevated">
-            <CardHeader>
-              <CardTitle>Property Details</CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="form-field">
                 <Label htmlFor="utilities" className="form-label">Utilities Available *</Label>
                 <Select value={formData.utilities} onValueChange={(value) => handleSelectChange('utilities', value)}>
