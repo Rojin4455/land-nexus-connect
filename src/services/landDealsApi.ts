@@ -489,6 +489,12 @@ export const landDealsApi = {
       return { success: true, data: response.data };
     },
 
+    // Delete buyer (soft delete)
+    deleteBuyer: async (buyerId: string): Promise<ApiResponse<any>> => {
+      const response = await api.delete(`/buyers/${buyerId}/delete/`);
+      return { success: true, data: response.data };
+    },
+
     // Get buyer matching stats
     getBuyerMatchingStats: async (buyerId: string): Promise<ApiResponse<any>> => {
       const response = await api.get(`/buyers/${buyerId}/matching-stats/`);

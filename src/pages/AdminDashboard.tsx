@@ -29,7 +29,8 @@ import {
   ArrowLeft,
   ChevronDown,
   Edit,
-  Plus
+  Plus,
+  Trash2
 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -54,6 +55,8 @@ const AdminDashboard = () => {
   const [newBuyerPhone, setNewBuyerPhone] = useState('');
   const [buyerDetailsOpen, setBuyerDetailsOpen] = useState(false);
   const [selectedBuyer, setSelectedBuyer] = useState<any>(null);
+  const [deleteBuyerOpen, setDeleteBuyerOpen] = useState(false);
+  const [buyerToDelete, setBuyerToDelete] = useState<any>(null);
 
   useEffect(() => {
     // Check if user is authenticated
@@ -171,6 +174,34 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error('Failed to create buyer:', error);
       toast({ title: 'Error', description: 'Failed to create buyer', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteBuyer = async () => {
+    if (!buyerToDelete) return;
+    
+    try {
+      setLoading(true);
+      await landDealsApi.admin.deleteBuyer(buyerToDelete.id.toString());
+      toast({ 
+        title: 'Buyer deleted', 
+        description: `${buyerToDelete.name} has been removed from the system.` 
+      });
+      setDeleteBuyerOpen(false);
+      setBuyerToDelete(null);
+      
+      // Refresh buyers list
+      const buyersResponse = await landDealsApi.admin.getBuyers();
+      if (buyersResponse.success) setBuyers(buyersResponse.data);
+    } catch (error) {
+      console.error('Failed to delete buyer:', error);
+      toast({ 
+        title: 'Error', 
+        description: 'Failed to delete buyer', 
+        variant: 'destructive' 
+      });
     } finally {
       setLoading(false);
     }
@@ -475,6 +506,35 @@ const AdminDashboard = () => {
                 }}
               />
 
+              {/* Delete Buyer Confirmation Dialog */}
+              <Dialog open={deleteBuyerOpen} onOpenChange={setDeleteBuyerOpen}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Delete Buyer</DialogTitle>
+                  </DialogHeader>
+                  <div className="py-4">
+                    <p className="text-muted-foreground">
+                      Are you sure you want to delete <strong>{buyerToDelete?.name}</strong>? This action will remove them from the system.
+                    </p>
+                  </div>
+                  <DialogFooter>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => { setDeleteBuyerOpen(false); setBuyerToDelete(null); }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      variant="destructive" 
+                      onClick={handleDeleteBuyer}
+                      disabled={loading}
+                    >
+                      {loading ? 'Deleting...' : 'Delete Buyer'}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
               {loading ? (
                 <div className="text-center py-12">
                   <div className="text-lg text-muted-foreground">Loading...</div>
@@ -573,15 +633,26 @@ const AdminDashboard = () => {
                           <td className="p-4"><span className="text-sm text-foreground">{buyer.email}</span></td>
                           <td className="p-4"><span className="text-sm text-foreground">{buyer.phone || 'N/A'}</span></td>
                           <td className="p-4">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => { setSelectedBuyer(buyer); setBuyerDetailsOpen(true); }}
-                              className="hover:bg-primary hover:text-primary-foreground"
-                            >
-                              <Eye className="h-4 w-4 mr-1" />
-                              View Details
-                            </Button>
+                            <div className="flex items-center space-x-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => { setSelectedBuyer(buyer); setBuyerDetailsOpen(true); }}
+                                className="hover:bg-primary hover:text-primary-foreground"
+                              >
+                                <Eye className="h-4 w-4 mr-1" />
+                                View Details
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => { setBuyerToDelete(buyer); setDeleteBuyerOpen(true); }}
+                                className="hover:bg-destructive hover:text-destructive-foreground text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4 mr-1" />
+                                Delete
+                              </Button>
+                            </div>
                           </td>
                         </tr>
                       ))}
