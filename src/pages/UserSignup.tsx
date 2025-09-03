@@ -19,7 +19,8 @@ const UserSignup = () => {
     password: '',
     password_confirm: '',
     first_name: '',
-    last_name: ''
+    last_name: '',
+    phone: ''
   });
 
   const dispatch = useAppDispatch();
@@ -51,7 +52,7 @@ const UserSignup = () => {
       return;
     }
 
-    if (!formData.username || !formData.email || !formData.password) {
+    if (!formData.username || !formData.email || !formData.password || !formData.phone) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -130,6 +131,19 @@ const UserSignup = () => {
             name="email"
             type="email"
             value={formData.email}
+            onChange={handleInputChange}
+            required
+            className="w-full"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="phone">Phone Number *</Label>
+          <Input
+            id="phone"
+            name="phone"
+            type="tel"
+            value={formData.phone}
             onChange={handleInputChange}
             required
             className="w-full"
