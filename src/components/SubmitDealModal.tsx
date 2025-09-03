@@ -215,7 +215,7 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
       console.error('Error submitting deal:', error);
       const errorMessage = handleApiError(error);
       toast({
-        title: "Error",
+        title: "Deal Submission Error",
         description: errorMessage,
         variant: "destructive",
       });

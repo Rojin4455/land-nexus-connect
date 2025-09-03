@@ -37,7 +37,7 @@ const UserLogin = () => {
   useEffect(() => {
     if (error) {
       toast({
-        title: "Login Failed",
+        title: "Login Error",
         description: error,
         variant: "destructive",
       });

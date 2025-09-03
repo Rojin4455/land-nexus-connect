@@ -32,7 +32,7 @@ const UserSignup = () => {
   useEffect(() => {
     if (error) {
       toast({
-        title: "Signup Failed",
+        title: "Registration Error",
         description: error,
         variant: "destructive",
       });

@@ -40,7 +40,7 @@ const AdminLogin = () => {
   useEffect(() => {
     if (error) {
       toast({
-        title: "Admin Login Failed",
+        title: "Authentication Error",
         description: error,
         variant: "destructive",
       });

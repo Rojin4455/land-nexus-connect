@@ -234,7 +234,7 @@ const SubmitDeal = () => {
     } catch (error) {
       const errorMessage = handleApiError(error);
       toast({
-        title: "Submission failed",
+        title: "Deal Submission Failed",
         description: errorMessage,
         variant: "destructive",
       });

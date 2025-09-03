@@ -33,6 +33,7 @@ interface SignupData {
   password_confirm: string;
   first_name?: string;
   last_name?: string;
+  phone?: string;
 }
 
 interface AuthResponse {
@@ -66,7 +67,19 @@ export const loginUser = createAsyncThunk(
       
       return transformedResponse;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Login failed');
+      // Extract specific error message from API response
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        if (errorData.detail) return rejectWithValue(errorData.detail);
+        if (errorData.message) return rejectWithValue(errorData.message);
+        if (errorData.error) return rejectWithValue(errorData.error);
+        if (typeof errorData === 'string') return rejectWithValue(errorData);
+        // Handle field-specific errors
+        if (errorData.username) return rejectWithValue(`Username: ${errorData.username[0]}`);
+        if (errorData.password) return rejectWithValue(`Password: ${errorData.password[0]}`);
+        if (errorData.non_field_errors) return rejectWithValue(errorData.non_field_errors[0]);
+      }
+      return rejectWithValue(error.message || 'Invalid credentials. Please check your username and password.');
     }
   }
 );
@@ -91,7 +104,19 @@ export const loginAdmin = createAsyncThunk(
       return transformedResponse;
     } catch (error: any) {
       console.error('AuthSlice - Admin login error:', error);
-      return rejectWithValue(error.response?.data?.message || 'Admin login failed');
+      // Extract specific error message from API response
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        if (errorData.detail) return rejectWithValue(errorData.detail);
+        if (errorData.message) return rejectWithValue(errorData.message);
+        if (errorData.error) return rejectWithValue(errorData.error);
+        if (typeof errorData === 'string') return rejectWithValue(errorData);
+        // Handle field-specific errors
+        if (errorData.username) return rejectWithValue(`Username: ${errorData.username[0]}`);
+        if (errorData.password) return rejectWithValue(`Password: ${errorData.password[0]}`);
+        if (errorData.non_field_errors) return rejectWithValue(errorData.non_field_errors[0]);
+      }
+      return rejectWithValue(error.message || 'Invalid admin credentials. Please verify your access level.');
     }
   }
 );
@@ -105,7 +130,21 @@ export const signupUser = createAsyncThunk(
       return response.data as AuthResponse;
     } catch (error: any) {
       console.error('Signup error:', error.response?.data);
-      return rejectWithValue(error.response?.data?.message || 'Signup failed');
+      // Extract specific error message from API response
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        if (errorData.detail) return rejectWithValue(errorData.detail);
+        if (errorData.message) return rejectWithValue(errorData.message);
+        if (errorData.error) return rejectWithValue(errorData.error);
+        if (typeof errorData === 'string') return rejectWithValue(errorData);
+        // Handle field-specific errors
+        if (errorData.username) return rejectWithValue(`Username: ${Array.isArray(errorData.username) ? errorData.username[0] : errorData.username}`);
+        if (errorData.email) return rejectWithValue(`Email: ${Array.isArray(errorData.email) ? errorData.email[0] : errorData.email}`);
+        if (errorData.password) return rejectWithValue(`Password: ${Array.isArray(errorData.password) ? errorData.password[0] : errorData.password}`);
+        if (errorData.phone) return rejectWithValue(`Phone: ${Array.isArray(errorData.phone) ? errorData.phone[0] : errorData.phone}`);
+        if (errorData.non_field_errors) return rejectWithValue(Array.isArray(errorData.non_field_errors) ? errorData.non_field_errors[0] : errorData.non_field_errors);
+      }
+      return rejectWithValue(error.message || 'Account creation failed. Please check your information and try again.');
     }
   }
 );
