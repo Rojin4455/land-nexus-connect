@@ -39,8 +39,6 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
     acreage: '',
     zoning: '',
     agreed_price: '',
-    estimated_aev: '',
-    development_costs: '',
     utilities: '',
     access_type: '',
     description: '',
@@ -150,8 +148,6 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
         // New field names
         land_type: formData.land_type,
         agreed_price: parseFloat(formData.agreed_price) || 0,
-        estimated_aev: parseFloat(formData.estimated_aev) || 0,
-        development_costs: parseFloat(formData.development_costs) || 0,
         access_type: formData.access_type,
         property_characteristics: formData.property_characteristics,
         location_characteristics: formData.location_characteristics,
@@ -169,8 +165,6 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
         // Backward compatibility with old API
         landType: formData.land_type,
         agreedPrice: parseFloat(formData.agreed_price) || 0,
-        estimatedAEV: formData.estimated_aev,
-        developmentCosts: formData.development_costs,
         accessType: formData.access_type,
         // Common fields
         acreage: parseFloat(formData.acreage) || 0,
@@ -197,8 +191,6 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
         acreage: '',
         zoning: '',
         agreed_price: '',
-        estimated_aev: '',
-        development_costs: '',
         utilities: '',
         access_type: '',
         description: '',
@@ -337,12 +329,12 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
             </CardContent>
           </Card>
 
-          {/* Financial Information */}
+          {/* Property Details */}
           <Card className="card-elevated">
             <CardHeader>
-              <CardTitle>Financial Details</CardTitle>
+              <CardTitle>Property Details</CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="form-field">
                 <Label htmlFor="agreed_price" className="form-label">Agreed/Purchase Price ($) *</Label>
                 <Input
@@ -357,42 +349,6 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
                 />
               </div>
 
-               <div className="form-field">
-                 <Label htmlFor="estimated_aev" className="form-label">Estimated AEV ($) *</Label>
-                 <Input
-                   id="estimated_aev"
-                   name="estimated_aev"
-                   type="number"
-                   placeholder="150000"
-                   value={formData.estimated_aev}
-                   onChange={handleInputChange}
-                   className="form-input"
-                   required
-                 />
-               </div>
-
-               <div className="form-field">
-                 <Label htmlFor="development_costs" className="form-label">Development Costs ($) *</Label>
-                 <Input
-                   id="development_costs"
-                   name="development_costs"
-                   type="number"
-                   placeholder="25000"
-                   value={formData.development_costs}
-                   onChange={handleInputChange}
-                   className="form-input"
-                   required
-                 />
-               </div>
-            </CardContent>
-          </Card>
-
-          {/* Property Details */}
-          <Card className="card-elevated">
-            <CardHeader>
-              <CardTitle>Property Details</CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="form-field">
                 <Label htmlFor="utilities" className="form-label">Utilities Available *</Label>
                 <Select value={formData.utilities} onValueChange={(value) => handleSelectChange('utilities', value)}>
