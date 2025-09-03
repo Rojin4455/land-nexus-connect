@@ -491,7 +491,7 @@ export const landDealsApi = {
 
     // Toggle Buy Box active status
     toggleBuyBoxActive: async (buyerId: string): Promise<ApiResponse<any>> => {
-      const response = await api.post(`/buyers/${buyerId}/buybox/toggle/`);
+      const response = await api.patch(`/buyers/${buyerId}/buybox/toggle/`);
       return { success: true, data: response.data };
     },
 
