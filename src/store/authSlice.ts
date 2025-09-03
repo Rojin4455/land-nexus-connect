@@ -3,6 +3,11 @@ import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
+// Helper function to check if error message is readable
+const isReadableError = (error: any): boolean => {
+  return typeof error === 'string' && error.trim().length > 0 && error.length < 500;
+};
+
 interface User {
   id: number;
   username: string;
@@ -70,16 +75,16 @@ export const loginUser = createAsyncThunk(
       // Extract specific error message from API response
       if (error.response?.data) {
         const errorData = error.response.data;
-        if (errorData.detail) return rejectWithValue(errorData.detail);
-        if (errorData.message) return rejectWithValue(errorData.message);
-        if (errorData.error) return rejectWithValue(errorData.error);
-        if (typeof errorData === 'string') return rejectWithValue(errorData);
+        if (errorData.detail && isReadableError(errorData.detail)) return rejectWithValue(errorData.detail);
+        if (errorData.message && isReadableError(errorData.message)) return rejectWithValue(errorData.message);
+        if (errorData.error && isReadableError(errorData.error)) return rejectWithValue(errorData.error);
+        if (isReadableError(errorData)) return rejectWithValue(errorData);
         // Handle field-specific errors
-        if (errorData.username) return rejectWithValue(`Username: ${errorData.username[0]}`);
-        if (errorData.password) return rejectWithValue(`Password: ${errorData.password[0]}`);
-        if (errorData.non_field_errors) return rejectWithValue(errorData.non_field_errors[0]);
+        if (errorData.username && Array.isArray(errorData.username) && isReadableError(errorData.username[0])) return rejectWithValue(`Username: ${errorData.username[0]}`);
+        if (errorData.password && Array.isArray(errorData.password) && isReadableError(errorData.password[0])) return rejectWithValue(`Password: ${errorData.password[0]}`);
+        if (errorData.non_field_errors && Array.isArray(errorData.non_field_errors) && isReadableError(errorData.non_field_errors[0])) return rejectWithValue(errorData.non_field_errors[0]);
       }
-      return rejectWithValue(error.message || 'Invalid credentials. Please check your username and password.');
+      return rejectWithValue('Invalid credentials. Please check your username and password.');
     }
   }
 );
@@ -107,16 +112,16 @@ export const loginAdmin = createAsyncThunk(
       // Extract specific error message from API response
       if (error.response?.data) {
         const errorData = error.response.data;
-        if (errorData.detail) return rejectWithValue(errorData.detail);
-        if (errorData.message) return rejectWithValue(errorData.message);
-        if (errorData.error) return rejectWithValue(errorData.error);
-        if (typeof errorData === 'string') return rejectWithValue(errorData);
+        if (errorData.detail && isReadableError(errorData.detail)) return rejectWithValue(errorData.detail);
+        if (errorData.message && isReadableError(errorData.message)) return rejectWithValue(errorData.message);
+        if (errorData.error && isReadableError(errorData.error)) return rejectWithValue(errorData.error);
+        if (isReadableError(errorData)) return rejectWithValue(errorData);
         // Handle field-specific errors
-        if (errorData.username) return rejectWithValue(`Username: ${errorData.username[0]}`);
-        if (errorData.password) return rejectWithValue(`Password: ${errorData.password[0]}`);
-        if (errorData.non_field_errors) return rejectWithValue(errorData.non_field_errors[0]);
+        if (errorData.username && Array.isArray(errorData.username) && isReadableError(errorData.username[0])) return rejectWithValue(`Username: ${errorData.username[0]}`);
+        if (errorData.password && Array.isArray(errorData.password) && isReadableError(errorData.password[0])) return rejectWithValue(`Password: ${errorData.password[0]}`);
+        if (errorData.non_field_errors && Array.isArray(errorData.non_field_errors) && isReadableError(errorData.non_field_errors[0])) return rejectWithValue(errorData.non_field_errors[0]);
       }
-      return rejectWithValue(error.message || 'Invalid admin credentials. Please verify your access level.');
+      return rejectWithValue('Invalid admin credentials. Please verify your access level.');
     }
   }
 );
@@ -133,18 +138,33 @@ export const signupUser = createAsyncThunk(
       // Extract specific error message from API response
       if (error.response?.data) {
         const errorData = error.response.data;
-        if (errorData.detail) return rejectWithValue(errorData.detail);
-        if (errorData.message) return rejectWithValue(errorData.message);
-        if (errorData.error) return rejectWithValue(errorData.error);
-        if (typeof errorData === 'string') return rejectWithValue(errorData);
+        if (errorData.detail && isReadableError(errorData.detail)) return rejectWithValue(errorData.detail);
+        if (errorData.message && isReadableError(errorData.message)) return rejectWithValue(errorData.message);
+        if (errorData.error && isReadableError(errorData.error)) return rejectWithValue(errorData.error);
+        if (isReadableError(errorData)) return rejectWithValue(errorData);
         // Handle field-specific errors
-        if (errorData.username) return rejectWithValue(`Username: ${Array.isArray(errorData.username) ? errorData.username[0] : errorData.username}`);
-        if (errorData.email) return rejectWithValue(`Email: ${Array.isArray(errorData.email) ? errorData.email[0] : errorData.email}`);
-        if (errorData.password) return rejectWithValue(`Password: ${Array.isArray(errorData.password) ? errorData.password[0] : errorData.password}`);
-        if (errorData.phone) return rejectWithValue(`Phone: ${Array.isArray(errorData.phone) ? errorData.phone[0] : errorData.phone}`);
-        if (errorData.non_field_errors) return rejectWithValue(Array.isArray(errorData.non_field_errors) ? errorData.non_field_errors[0] : errorData.non_field_errors);
+        if (errorData.username) {
+          const usernameError = Array.isArray(errorData.username) ? errorData.username[0] : errorData.username;
+          if (isReadableError(usernameError)) return rejectWithValue(`Username: ${usernameError}`);
+        }
+        if (errorData.email) {
+          const emailError = Array.isArray(errorData.email) ? errorData.email[0] : errorData.email;
+          if (isReadableError(emailError)) return rejectWithValue(`Email: ${emailError}`);
+        }
+        if (errorData.password) {
+          const passwordError = Array.isArray(errorData.password) ? errorData.password[0] : errorData.password;
+          if (isReadableError(passwordError)) return rejectWithValue(`Password: ${passwordError}`);
+        }
+        if (errorData.phone) {
+          const phoneError = Array.isArray(errorData.phone) ? errorData.phone[0] : errorData.phone;
+          if (isReadableError(phoneError)) return rejectWithValue(`Phone: ${phoneError}`);
+        }
+        if (errorData.non_field_errors) {
+          const nonFieldError = Array.isArray(errorData.non_field_errors) ? errorData.non_field_errors[0] : errorData.non_field_errors;
+          if (isReadableError(nonFieldError)) return rejectWithValue(nonFieldError);
+        }
       }
-      return rejectWithValue(error.message || 'Account creation failed. Please check your information and try again.');
+      return rejectWithValue('Account creation failed. Please check your information and try again.');
     }
   }
 );
