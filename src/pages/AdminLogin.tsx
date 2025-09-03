@@ -134,15 +134,6 @@ const AdminLogin = () => {
         >
           {isLoading ? "Authenticating..." : "Access Admin Portal"}
         </Button>
-
-        <div className="text-center">
-          <p className="text-sm text-muted-foreground">
-            Not an admin?{' '}
-            <Link to="/login" className="text-primary hover:underline">
-              User Login
-            </Link>
-          </p>
-        </div>
       </form>
     </AuthLayout>
   );
