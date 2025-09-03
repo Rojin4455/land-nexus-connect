@@ -154,8 +154,6 @@ export const landDealsApi = {
     if (dealData.acreage) formData.append('acreage', dealData.acreage.toString());
     if (dealData.zoning) formData.append('zoning', dealData.zoning);
     if (dealData.agreed_price) formData.append('agreed_price', dealData.agreed_price.toString());
-    if (dealData.estimated_aev) formData.append('estimated_aev', dealData.estimated_aev);
-    if (dealData.development_costs) formData.append('development_costs', dealData.development_costs);
     if (dealData.utilities) formData.append('utilities', dealData.utilities);
     if (dealData.access_type) formData.append('access_type', dealData.access_type);
     if (dealData.description) formData.append('description', dealData.description);
@@ -238,8 +236,6 @@ export const landDealsApi = {
       photos: property.files?.filter((f: any) => f.file_type === 'image')?.map((f: any) => f.file_url) || [],
       documents: property.files?.filter((f: any) => f.file_type !== 'image')?.map((f: any) => f.file_url) || [],
       description: property.description,
-      estimatedAEV: property.estimated_aev,
-      developmentCosts: property.development_costs,
       accessType: property.access_type_detail?.display_name,
       files: property.files || []
     };
