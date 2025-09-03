@@ -120,16 +120,11 @@ const UserLogin = () => {
           {isLoading ? 'Signing in...' : 'Sign in'}
         </Button>
         
-        <div className="text-center space-y-2">
+        <div className="text-center">
           <p className="text-sm text-muted-foreground">
             Don't have an account?{' '}
             <Link to="/signup" className="text-primary hover:underline">
               Sign up here
-            </Link>
-          </p>
-          <p className="text-sm text-muted-foreground">
-            <Link to="/admin/login" className="text-primary hover:underline">
-              Admin Login
             </Link>
           </p>
         </div>
