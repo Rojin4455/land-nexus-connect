@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -107,6 +108,7 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
     buyBoxLoaded: false,
     matchingStats: null as any,
     loadingMatchingStats: false,
+    togglingBuyBox: false,
   });
 
   const form = useForm<BuyBoxFormValues>({
@@ -401,6 +403,41 @@ const onSubmit = async (values: BuyBoxFormValues) => {
       toast({ title: "Failed to check match", description: e?.message || "", variant: "destructive" });
     } finally {
       updateState({ checkingMatch: false });
+    }
+  };
+
+  const toggleBuyBoxActive = async () => {
+    if (!buyer?.id || state.togglingBuyBox) return;
+    
+    try {
+      updateState({ togglingBuyBox: true });
+      const res = await landDealsApi.admin.toggleBuyBoxActive(String(buyer.id));
+      
+      if (res?.success) {
+        // Update the form value to reflect the new status
+        const newActiveStatus = res.data?.is_active ?? !form.getValues("activeBuyer");
+        form.setValue("activeBuyer", newActiveStatus);
+        
+        toast({ 
+          title: `Buy Box ${newActiveStatus ? 'Activated' : 'Deactivated'}`,
+          description: `This buyer is now ${newActiveStatus ? 'active' : 'inactive'} for property matching.`
+        });
+        onUpdated?.();
+      } else {
+        toast({ 
+          title: "Failed to toggle Buy Box status", 
+          description: "Please try again.",
+          variant: "destructive" 
+        });
+      }
+    } catch (e: any) {
+      toast({ 
+        title: "Failed to toggle Buy Box status", 
+        description: e?.message || "An error occurred", 
+        variant: "destructive" 
+      });
+    } finally {
+      updateState({ togglingBuyBox: false });
     }
   };
 
@@ -796,6 +833,26 @@ const onSubmit = async (values: BuyBoxFormValues) => {
                   <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 min-h-0">
                     <ScrollArea className="flex-1 pr-4">
                       <div className="space-y-6 p-1 pb-6">
+                        {/* Buy Box Toggle */}
+                        <div className="border rounded-lg p-4 bg-accent/20">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h4 className="font-semibold">Buy Box Status</h4>
+                              <p className="text-sm text-muted-foreground">Toggle buyer's property matching eligibility</p>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <span className="text-sm font-medium">
+                                {form.watch("activeBuyer") ? "Active" : "Inactive"}
+                              </span>
+                              <Switch
+                                checked={form.watch("activeBuyer")}
+                                onCheckedChange={toggleBuyBoxActive}
+                                disabled={state.togglingBuyBox}
+                              />
+                            </div>
+                          </div>
+                        </div>
+
                         {/* Top toggles */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <FormField

@@ -489,6 +489,12 @@ export const landDealsApi = {
       return { success: true, data: response.data };
     },
 
+    // Toggle Buy Box active status
+    toggleBuyBoxActive: async (buyerId: string): Promise<ApiResponse<any>> => {
+      const response = await api.post(`/buyers/${buyerId}/buybox/toggle/`);
+      return { success: true, data: response.data };
+    },
+
     // Delete buyer (soft delete)
     deleteBuyer: async (buyerId: string): Promise<ApiResponse<any>> => {
       const response = await api.delete(`/buyers/${buyerId}/delete/`);
