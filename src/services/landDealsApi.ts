@@ -506,6 +506,18 @@ export const landDealsApi = {
       const response = await api.get(`/buyers/${buyerId}/matching-stats/`);
       return { success: true, data: response.data };
     },
+
+    // Send deal to buyer
+    sendDealToBuyer: async (data: { buyer: number; deal: number; status: string; match_score: number }): Promise<ApiResponse<any>> => {
+      const response = await api.post('/buyers/send-to-buyer/', data);
+      return { success: true, data: response.data };
+    },
+
+    // Get deals sent to a buyer
+    getBuyerDealLogs: async (buyerId: string): Promise<ApiResponse<any[]>> => {
+      const response = await api.get(`/buyers/${buyerId}/deal-logs/`);
+      return { success: true, data: response.data };
+    },
   },
 
   // Conversation functions
