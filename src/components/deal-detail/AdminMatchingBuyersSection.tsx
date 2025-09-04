@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Users, Eye, Phone, Mail, DollarSign, MapPin, Target, Percent, AlertCircle, Loader2, Send } from 'lucide-react';
+import { Users, Eye, Phone, Mail, DollarSign, MapPin, Target, Percent, AlertCircle, Loader2 } from 'lucide-react';
 import { landDealsApi, handleApiError } from '@/services/landDealsApi';
 import { toast } from '@/hooks/use-toast';
 
@@ -35,7 +35,6 @@ const AdminMatchingBuyersSection = ({ propertyId }: AdminMatchingBuyersSectionPr
   const [selectedBuyer, setSelectedBuyer] = useState<MatchingBuyer | null>(null);
   const [buyerDetails, setBuyerDetails] = useState<any>(null);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
-  const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
     loadMatchingBuyers();
@@ -124,33 +123,6 @@ const AdminMatchingBuyersSection = ({ propertyId }: AdminMatchingBuyersSectionPr
   const handleViewDetails = (buyer: MatchingBuyer) => {
     setSelectedBuyer(buyer);
     loadBuyerDetails(buyer.id.toString());
-  };
-
-  const handleSendToBuyer = async (buyer: MatchingBuyer) => {
-    setIsSending(true);
-    try {
-      await landDealsApi.admin.sendDealToBuyer({
-        buyer: buyer.id,
-        deal: parseInt(propertyId),
-        status: 'sent',
-        match_score: buyer.match_score
-      });
-      
-      toast({
-        title: "Deal sent successfully",
-        description: `Deal has been sent to ${buyer.name}`,
-        variant: "default",
-      });
-    } catch (error) {
-      const errorMessage = handleApiError(error);
-      toast({
-        title: "Failed to send deal",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } finally {
-      setIsSending(false);
-    }
   };
 
   if (isLoading) {
@@ -351,29 +323,9 @@ const AdminMatchingBuyersSection = ({ propertyId }: AdminMatchingBuyersSectionPr
                                   <p className="text-muted-foreground">Unable to load buyer details.</p>
                                 </div>
                               )}
-                             </ScrollArea>
-                             
-                              <div className="flex justify-between pt-4 border-t">
-                                <Button
-                                  variant="outline"
-                                >
-                                  Close
-                                </Button>
-                                <Button
-                                  onClick={() => handleSendToBuyer(selectedBuyer!)}
-                                  disabled={isSending}
-                                  className="bg-primary hover:bg-primary/90"
-                                >
-                                  {isSending ? (
-                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                  ) : (
-                                    <Send className="h-4 w-4 mr-2" />
-                                  )}
-                                  {isSending ? 'Sending...' : 'Send to Buyer'}
-                                </Button>
-                              </div>
-                           </DialogContent>
-                         </Dialog>
+                            </ScrollArea>
+                          </DialogContent>
+                        </Dialog>
                       </div>
                     </div>
                   </CardContent>

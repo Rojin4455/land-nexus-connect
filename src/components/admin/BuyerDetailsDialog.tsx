@@ -15,7 +15,6 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
-import { Loader2 } from 'lucide-react';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { landDealsApi } from "@/services/landDealsApi";
 import AddressAutocomplete from '@/components/map/AddressAutocomplete';
@@ -107,8 +106,8 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
     propertyIdForMatch: "",
     matchScore: null as number | null,
     buyBoxLoaded: false,
-    dealLogs: [] as any[],
-    loadingDealLogs: false,
+    matchingStats: null as any,
+    loadingMatchingStats: false,
     togglingBuyBox: false,
   });
 
@@ -287,27 +286,34 @@ const loadBuyBox = async () => {
   }
 };
 
-  const loadDealLogs = async () => {
-    if (!buyer?.id || state.loadingDealLogs) return;
+  const loadMatchingStats = async () => {
+    if (!buyer?.id || state.loadingMatchingStats) return;
     
     try {
-      updateState({ loadingDealLogs: true });
-      const res = await landDealsApi.admin.getBuyerDealLogs(String(buyer.id));
+      updateState({ loadingMatchingStats: true });
+      const res = await landDealsApi.admin.getBuyerMatchingStats(String(buyer.id));
       
       if (res?.success && res.data) {
-        updateState({ dealLogs: res.data });
+        updateState({ matchingStats: res.data });
+      } else if (res?.data) {
+        updateState({ matchingStats: res.data });
       } else {
-        updateState({ dealLogs: [] });
+        updateState({ matchingStats: null });
+        toast({ 
+          title: "No matching data available", 
+          description: "This buyer doesn't have any matching statistics yet.",
+          variant: "default" 
+        });
       }
     } catch (e: any) {
-      updateState({ dealLogs: [] });
+      updateState({ matchingStats: null });
       toast({ 
-        title: "Failed to load sent deals", 
-        description: e?.message || "An error occurred while loading sent deals", 
+        title: "Failed to load matching stats", 
+        description: e?.message || "An error occurred while loading matching statistics", 
         variant: "destructive" 
       });
     } finally {
-      updateState({ loadingDealLogs: false });
+      updateState({ loadingMatchingStats: false });
     }
   };
 
@@ -439,8 +445,8 @@ const onSubmit = async (values: BuyBoxFormValues) => {
   const handleTabChange = (value: string) => {
     if (value === "buybox" && !state.buyBoxLoaded) {
       loadBuyBox();
-    } else if (value === "match" && !state.loadingDealLogs) {
-      loadDealLogs();
+    } else if (value === "match") {
+      loadMatchingStats();
     }
   };
 
@@ -451,8 +457,7 @@ const onSubmit = async (values: BuyBoxFormValues) => {
         buyBoxLoaded: false,
         matchScore: null,
         propertyIdForMatch: "",
-        dealLogs: [],
-        loadingDealLogs: false,
+        matchingStats: null,
       });
     }
   }, [open, buyer?.id]);
@@ -541,99 +546,243 @@ const onSubmit = async (values: BuyBoxFormValues) => {
   );
 
   const MatchingStatsDisplay = () => (
-    <div className="text-center py-8">
-      <div className="text-muted-foreground">Matching stats feature has been replaced with deal logs</div>
-    </div>
-  );
+    <div className="space-y-6 p-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Buyer Matching Results</h3>
+        <Button 
+          onClick={loadMatchingStats} 
+          disabled={state.loadingMatchingStats}
+          variant="outline"
+          size="sm"
+        >
+          {state.loadingMatchingStats ? "Loading..." : "Refresh"}
+        </Button>
+      </div>
 
-  const DealLogsDisplay = () => {
-    if (state.loadingDealLogs) {
-      return (
-        <div className="flex justify-center items-center h-32">
-          <div className="flex items-center gap-2">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            <span className="text-sm text-muted-foreground">Loading sent deals...</span>
+      {state.loadingMatchingStats ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-sm text-muted-foreground">Loading matching results...</div>
+        </div>
+      ) : state.matchingStats ? (
+        <div className="space-y-8">
+          {/* Buyer Profile & Status */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="border rounded-lg p-4 bg-card">
+              <h4 className="font-medium text-sm text-muted-foreground mb-2">Status</h4>
+              <div className="flex flex-col gap-2">
+                <Badge variant={state.matchingStats.buybox_criteria?.is_active ? "default" : "secondary"}>
+                  {state.matchingStats.buybox_criteria?.is_active ? "Active" : "Inactive"}
+                </Badge>
+                {state.matchingStats.buybox_criteria?.is_blacklisted && (
+                  <Badge variant="destructive">Blacklisted</Badge>
+                )}
+              </div>
+            </div>
+            <div className="border rounded-lg p-4 bg-card">
+              <h4 className="font-medium text-sm text-muted-foreground mb-2">Asset Type</h4>
+              <p className="text-lg font-semibold capitalize">
+                {state.matchingStats.buybox_criteria?.asset_type || "Not Set"}
+              </p>
+            </div>
+            <div className="border rounded-lg p-4 bg-card">
+              <h4 className="font-medium text-sm text-muted-foreground mb-2">Target Location</h4>
+              <p className="text-sm truncate">
+                {state.matchingStats.buybox_criteria?.address || "Not Specified"}
+              </p>
+            </div>
           </div>
-        </div>
-      );
-    }
 
-    if (!state.dealLogs || state.dealLogs.length === 0) {
-      return (
-        <div className="text-center py-8">
-          <div className="text-muted-foreground">No deals have been sent to this buyer</div>
-        </div>
-      );
-    }
+          {/* Algorithm Weights Display */}
+          <div className="border rounded-lg p-6 bg-accent/20">
+            <h4 className="font-medium text-lg mb-4">Weighted Matching Algorithm</h4>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
+              <div className="space-y-2">
+                <div className="text-2xl font-bold text-primary">40%</div>
+                <div className="text-xs font-medium">Location Match</div>
+                <div className="text-xs text-muted-foreground">City, County, Zip</div>
+              </div>
+              <div className="space-y-2">
+                <div className="text-2xl font-bold text-primary">30%</div>
+                <div className="text-xs font-medium">Land Type</div>
+                <div className="text-xs text-muted-foreground">Property Category</div>
+              </div>
+              <div className="space-y-2">
+                <div className="text-2xl font-bold text-primary">20%</div>
+                <div className="text-xs font-medium">Exit Strategy</div>
+                <div className="text-xs text-muted-foreground">Investment Plan</div>
+              </div>
+              <div className="space-y-2">
+                <div className="text-2xl font-bold text-primary">5%</div>
+                <div className="text-xs font-medium">Lot Size</div>
+                <div className="text-xs text-muted-foreground">Acreage Match</div>
+              </div>
+              <div className="space-y-2">
+                <div className="text-2xl font-bold text-primary">5%</div>
+                <div className="text-xs font-medium">Agreed Price</div>
+                <div className="text-xs text-muted-foreground">Price Range</div>
+              </div>
+            </div>
+          </div>
 
-    const formatDate = (dateString: string) => {
-      return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      });
-    };
-
-    const formatCurrency = (amount: number) => {
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 0
-      }).format(amount);
-    };
-
-    const getStatusBadge = (status: string) => {
-      const variants = {
-        sent: 'bg-blue-100 text-blue-800',
-        viewed: 'bg-yellow-100 text-yellow-800',
-        interested: 'bg-green-100 text-green-800',
-        declined: 'bg-red-100 text-red-800'
-      };
-      return variants[status as keyof typeof variants] || 'bg-gray-100 text-gray-800';
-    };
-
-    return (
-      <div className="space-y-4 p-1">
-        <div className="text-sm text-muted-foreground">
-          {state.dealLogs.length} deal{state.dealLogs.length === 1 ? '' : 's'} sent to this buyer
-        </div>
-        
-        <div className="space-y-3">
-          {state.dealLogs.map((log) => (
-            <div key={log.id} className="border rounded-lg p-4 space-y-3">
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <div className="font-medium">{log.deal_details?.address || 'Property Address'}</div>
-                  <div className="text-sm text-muted-foreground">
-                    {log.deal_details?.land_type} • {log.deal_details?.acreage} acres
+          {/* Performance Overview */}
+          <div>
+            <h4 className="font-medium text-lg mb-4">Performance Overview</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="border rounded-lg p-6 bg-card">
+                <h5 className="font-semibold text-sm text-muted-foreground mb-4">Recent Performance (30 Days)</h5>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Total Properties:</span>
+                    <span className="font-semibold text-lg">{state.matchingStats.matching_stats?.recent_performance?.total_properties_last_30_days || 0}</span>
                   </div>
-                </div>
-                <div className="flex flex-col items-end gap-2">
-                  <Badge className={getStatusBadge(log.status)}>
-                    {log.status.charAt(0).toUpperCase() + log.status.slice(1)}
-                  </Badge>
-                  <div className="text-sm text-muted-foreground">
-                    Match: {log.match_score}%
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Total Matches:</span>
+                    <span className="font-semibold text-lg">{state.matchingStats.matching_stats?.recent_performance?.total_matches_last_30_days || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Match Rate:</span>
+                    <span className="font-semibold text-lg">
+                      {state.matchingStats.matching_stats?.recent_performance?.match_rate_percentage !== undefined 
+                        ? `${Number(state.matchingStats.matching_stats.recent_performance.match_rate_percentage).toFixed(1)}%`
+                        : "0%"
+                      }
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Avg Score:</span>
+                    <span className="font-semibold text-lg">
+                      {state.matchingStats.matching_stats?.recent_performance?.avg_match_score !== undefined 
+                        ? `${Number(state.matchingStats.matching_stats.recent_performance.avg_match_score).toFixed(1)}%`
+                        : "0%"
+                      }
+                    </span>
                   </div>
                 </div>
               </div>
-              
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-muted-foreground">Price: </span>
-                  <span className="font-medium">{formatCurrency(log.deal_details?.asking_price || 0)}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Sent: </span>
-                  <span>{formatDate(log.sent_date)}</span>
+              <div className="border rounded-lg p-6 bg-card">
+                <h5 className="font-semibold text-sm text-muted-foreground mb-4">All Time Performance</h5>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Total Properties:</span>
+                    <span className="font-semibold text-lg">{state.matchingStats.matching_stats?.all_time_performance?.total_properties || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Total Matches:</span>
+                    <span className="font-semibold text-lg">{state.matchingStats.matching_stats?.all_time_performance?.total_matches || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Match Rate:</span>
+                    <span className="font-semibold text-lg">
+                      {state.matchingStats.matching_stats?.all_time_performance?.match_rate_percentage !== undefined 
+                        ? `${Number(state.matchingStats.matching_stats.all_time_performance.match_rate_percentage).toFixed(1)}%`
+                        : "0%"
+                      }
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Avg Score:</span>
+                    <span className="font-semibold text-lg">
+                      {state.matchingStats.matching_stats?.all_time_performance?.avg_match_score !== undefined 
+                        ? `${Number(state.matchingStats.matching_stats.all_time_performance.avg_match_score).toFixed(1)}%`
+                        : "0%"
+                      }
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
-          ))}
+          </div>
+
+          {/* Match Quality Breakdown */}
+          <div>
+            <h4 className="font-medium text-lg mb-4">Match Quality Breakdown</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="border rounded-lg p-6 text-center bg-card">
+                <div className="text-3xl font-bold text-green-600 mb-2">
+                  {state.matchingStats.matching_stats?.recent_performance?.good_fit_count || 0}
+                </div>
+                <div className="text-sm font-medium text-muted-foreground">Good Fit</div>
+                <div className="text-xs text-muted-foreground mt-1">(&gt;45% match)</div>
+              </div>
+              <div className="border rounded-lg p-6 text-center bg-card">
+                <div className="text-3xl font-bold text-yellow-600 mb-2">
+                  {state.matchingStats.matching_stats?.recent_performance?.marginal_fit_count || 0}
+                </div>
+                <div className="text-sm font-medium text-muted-foreground">Marginal Fit</div>
+                <div className="text-xs text-muted-foreground mt-1">(40-45% match)</div>
+              </div>
+              <div className="border rounded-lg p-6 text-center bg-card">
+                <div className="text-3xl font-bold text-red-600 mb-2">
+                  {state.matchingStats.matching_stats?.recent_performance?.poor_fit_count || 0}
+                </div>
+                <div className="text-sm font-medium text-muted-foreground">Poor Fit</div>
+                <div className="text-xs text-muted-foreground mt-1">(&lt;40% match)</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Recent Matches */}
+          {state.matchingStats.matching_results?.recent_matches?.length > 0 && (
+            <div>
+              <h4 className="font-medium text-lg mb-4">Recent Property Matches</h4>
+              <div className="border rounded-lg overflow-hidden">
+                <div className="max-h-80 overflow-y-auto">
+                  <div className="divide-y">
+                    {state.matchingStats.matching_results.recent_matches.map((match: any) => {
+                      const likelihood = getMatchLikelihood(match.match_score);
+                      return (
+                        <div key={match.property_id} className="p-4 hover:bg-accent/50 transition-colors">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1 min-w-0">
+                              <h6 className="font-medium text-sm mb-2">{match.display_name}</h6>
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-muted-foreground">
+                                <div>
+                                  <span className="font-medium">Type:</span> {match.land_type}
+                                </div>
+                                <div>
+                                  <span className="font-medium">Size:</span> {match.acreage} acres
+                                </div>
+                                <div>
+                                  <span className="font-medium">Price:</span> ${Number(match.agreed_price || 0).toLocaleString()}
+                                </div>
+                                <div>
+                                  <span className="font-medium">Address:</span> {match.address}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3 flex-shrink-0">
+                              <Badge 
+                                className={`text-xs ${likelihood.color}`}
+                              >
+                                {match.likelihood || likelihood.label}
+                              </Badge>
+                              <div className="text-right">
+                                <div className="font-semibold text-lg">{match.match_score}%</div>
+                                <div className="text-xs text-muted-foreground">Match Score</div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-      </div>
-    );
-  };
+      ) : (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <div className="text-sm text-muted-foreground mb-4">
+            No matching data available for this buyer
+          </div>
+          <Button onClick={loadMatchingStats} disabled={state.loadingMatchingStats}>
+            {state.loadingMatchingStats ? "Loading..." : "Load Matching Stats"}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -650,7 +799,7 @@ const onSubmit = async (values: BuyBoxFormValues) => {
               <TabsList className="mb-4 flex-shrink-0">
                 <TabsTrigger value="info">Buyer Info</TabsTrigger>
                 <TabsTrigger value="buybox">Buy Box Filters</TabsTrigger>
-                <TabsTrigger value="match">Sent Deals</TabsTrigger>
+                <TabsTrigger value="match">Match Score</TabsTrigger>
               </TabsList>
 
               {/* Buyer Info */}
@@ -897,7 +1046,7 @@ const onSubmit = async (values: BuyBoxFormValues) => {
 
               {/* Match Score */}
               <TabsContent value="match" className=" overflow-y-auto">
-                <DealLogsDisplay />
+                <MatchingStatsDisplay />
               </TabsContent>
             </Tabs>
           </div>
