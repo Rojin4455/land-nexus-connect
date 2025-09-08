@@ -586,7 +586,7 @@ const onSubmit = async (values: BuyBoxFormValues) => {
       const variants = {
         sent: 'bg-blue-100 text-blue-800',
         viewed: 'bg-yellow-100 text-yellow-800',
-        interested: 'bg-green-100 text-green-800',
+        accepted: 'bg-green-100 text-green-800',
         declined: 'bg-red-100 text-red-800'
       };
       return variants[status as keyof typeof variants] || 'bg-gray-100 text-gray-800';
@@ -595,7 +595,7 @@ const onSubmit = async (values: BuyBoxFormValues) => {
     return (
       <div className="space-y-4 p-1">
         <div className="text-sm text-muted-foreground">
-          {state.dealLogs.length} deal{state.dealLogs.length === 1 ? '' : 's'} sent to this buyer
+          Deal activity log for this buyer ({state.dealLogs.length} entries)
         </div>
         
         <div className="space-y-3">
@@ -603,9 +603,9 @@ const onSubmit = async (values: BuyBoxFormValues) => {
             <div key={log.id} className="border rounded-lg p-4 space-y-3">
               <div className="flex items-start justify-between">
                 <div className="space-y-1">
-                  <div className="font-medium">{log.deal_details?.address || 'Property Address'}</div>
+                  <div className="font-medium">{log.deal_address}</div>
                   <div className="text-sm text-muted-foreground">
-                    {log.deal_details?.land_type} • {log.deal_details?.acreage} acres
+                    Deal ID: #{log.deal}
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-2">
@@ -618,14 +618,15 @@ const onSubmit = async (values: BuyBoxFormValues) => {
                 </div>
               </div>
               
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-muted-foreground">Price: </span>
-                  <span className="font-medium">{formatCurrency(log.deal_details?.asking_price || 0)}</span>
-                </div>
+              <div className="flex justify-between items-center text-sm">
                 <div>
                   <span className="text-muted-foreground">Sent: </span>
                   <span>{formatDate(log.sent_date)}</span>
+                </div>
+                <div className="text-right">
+                  {log.status === 'accepted' && <span className="text-green-600 font-medium">✓ Buyer Interested</span>}
+                  {log.status === 'declined' && <span className="text-red-600 font-medium">✗ Buyer Declined</span>}
+                  {log.status === 'sent' && <span className="text-blue-600 font-medium">📧 Awaiting Response</span>}
                 </div>
               </div>
             </div>
@@ -650,7 +651,7 @@ const onSubmit = async (values: BuyBoxFormValues) => {
               <TabsList className="mb-4 flex-shrink-0">
                 <TabsTrigger value="info">Buyer Info</TabsTrigger>
                 <TabsTrigger value="buybox">Buy Box Filters</TabsTrigger>
-                <TabsTrigger value="match">Sent Deals</TabsTrigger>
+                <TabsTrigger value="match">Deal Log</TabsTrigger>
               </TabsList>
 
               {/* Buyer Info */}
