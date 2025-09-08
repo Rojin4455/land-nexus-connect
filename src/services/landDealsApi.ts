@@ -615,10 +615,14 @@ export const getBuyerDealDetails = async (dealLogId: string) => {
   }
 };
 
-export const updateBuyerDealStatus = async (dealLogId: string, action: 'accept' | 'reject'): Promise<any> => {
-  const response = await api.post(`/buyer-deals/${dealLogId}/response/`, { action });
+export const updateBuyerDealStatus = async (
+  dealLogId: string,
+  action: 'accept' | 'reject'
+): Promise<any> => {
+  const response = await api.patch(`/buyer-deals/${dealLogId}/response/`, { action });
   return response.data;
 };
+
 
 // Error handling utility
 export const handleApiError = (error: any): string => {
