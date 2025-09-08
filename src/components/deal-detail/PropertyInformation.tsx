@@ -8,12 +8,14 @@ interface PropertyInformationProps {
 }
 
 const PropertyInformation = ({ deal, formatCurrency }: PropertyInformationProps) => {
-  console.log("deal:", deal);
+  // Convert string coordinates to numbers for MapContainer
+  const latitude = deal.latitude ? parseFloat(deal.latitude) : undefined;
+  const longitude = deal.longitude ? parseFloat(deal.longitude) : undefined;
 
   return (
     <div className="space-y-6">
       {/* Map Section */}
-      {deal.address && (
+      {deal.address && latitude && longitude && (
         <Card className="card-elevated">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -24,13 +26,14 @@ const PropertyInformation = ({ deal, formatCurrency }: PropertyInformationProps)
           <CardContent>
             <MapContainer
               address={deal.address}
-              latitude={deal.latitude}
-              longitude={deal.longitude}
+              latitude={latitude}
+              longitude={longitude}
               height="h-80"
             />
           </CardContent>
         </Card>
       )}
+
       {/* Basic Information */}
       <Card className="card-elevated">
         <CardHeader>
@@ -48,17 +51,24 @@ const PropertyInformation = ({ deal, formatCurrency }: PropertyInformationProps)
               </div>
             )}
 
-            {deal.landType && (
+            {deal.land_type_detail && (
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Land Type</p>
-                <p className="text-foreground capitalize">{deal.landType}</p>
+                <p className="text-foreground">{deal.land_type_detail.display_name}</p>
               </div>
             )}
 
             {deal.acreage && (
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Lot Size (Acreage)</p>
+                <p className="text-sm font-medium text-muted-foreground">Acreage</p>
                 <p className="text-foreground">{deal.acreage} acres</p>
+              </div>
+            )}
+
+            {deal.lot_size && (
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Lot Size</p>
+                <p className="text-foreground">{deal.lot_size} {deal.lot_size_unit || 'sqft'}</p>
               </div>
             )}
 
@@ -69,17 +79,24 @@ const PropertyInformation = ({ deal, formatCurrency }: PropertyInformationProps)
               </div>
             )}
 
-            {deal.utilities && deal.utilities.length > 0 && (
+            {deal.utilities_detail && (
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Utilities</p>
-                <p className="text-foreground capitalize">{deal.utilities.join(', ')}</p>
+                <p className="text-foreground">{deal.utilities_detail.display_name}</p>
               </div>
             )}
 
-            {deal.accessType && (
+            {deal.access_type_detail && (
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Access</p>
-                <p className="text-foreground capitalize">{deal.accessType.replace('-', ' ')}</p>
+                <p className="text-sm font-medium text-muted-foreground">Access Type</p>
+                <p className="text-foreground">{deal.access_type_detail.display_name}</p>
+              </div>
+            )}
+
+            {deal.exit_strategy && (
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Exit Strategy</p>
+                <p className="text-foreground capitalize">{deal.exit_strategy}</p>
               </div>
             )}
           </div>
@@ -91,60 +108,136 @@ const PropertyInformation = ({ deal, formatCurrency }: PropertyInformationProps)
             </div>
           )}
 
-          {deal.coach && (
+          {deal.extra_notes && (
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Assigned Coach</p>
-              <p className="text-foreground">{deal.coach}</p>
+              <p className="text-sm font-medium text-muted-foreground">Extra Notes</p>
+              <p className="text-foreground">{deal.extra_notes}</p>
             </div>
           )}
 
-          {deal.status && (
+          {deal.parcel_id && (
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Status</p>
-              <p className="text-foreground capitalize">{deal.status}</p>
+              <p className="text-sm font-medium text-muted-foreground">Parcel ID</p>
+              <p className="text-foreground">{deal.parcel_id}</p>
             </div>
           )}
 
-          {deal.submittedOn && (
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Submitted On</p>
-              <p className="text-foreground">{new Date(deal.submittedOn).toLocaleString()}</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Financial Details */}
-      <Card className="card-elevated">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <DollarSign className="h-5 w-5 text-primary" />
-            Financial Details
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 gap-4">
-            {deal.agreedPrice !== undefined && (
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Agreed Price</span>
-                <span className="font-semibold text-lg">{formatCurrency(deal.agreedPrice)}</span>
+          <div className="grid grid-cols-2 gap-4">
+            {deal.status && (
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Status</p>
+                <p className="text-foreground capitalize">{deal.status}</p>
               </div>
             )}
-            {deal.estimatedAEV && (
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Estimated AEV</span>
-                <span className="font-medium">{formatCurrency(parseFloat(deal.estimatedAEV))}</span>
-              </div>
-            )}
-            {deal.developmentCosts && (
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Development Costs</span>
-                <span className="font-medium">{formatCurrency(parseFloat(deal.developmentCosts))}</span>
+
+            {deal.under_contract && (
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Under Contract</p>
+                <p className="text-foreground capitalize">{deal.under_contract}</p>
               </div>
             )}
           </div>
+
+          {deal.created_at && (
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Submitted On</p>
+              <p className="text-foreground">{new Date(deal.created_at).toLocaleString()}</p>
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      {/* Contact Information */}
+      {(deal.first_name || deal.last_name || deal.phone_number || deal.email || deal.llc_name) && (
+        <Card className="card-elevated">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MapPin className="h-5 w-5 text-primary" />
+              Contact Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-4">
+              {deal.llc_name && (
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">LLC Name</p>
+                  <p className="text-foreground">{deal.llc_name}</p>
+                </div>
+              )}
+
+              {(deal.first_name || deal.last_name) && (
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Name</p>
+                  <p className="text-foreground">{deal.first_name} {deal.last_name}</p>
+                </div>
+              )}
+
+              {deal.phone_number && (
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Phone</p>
+                  <p className="text-foreground">{deal.phone_number}</p>
+                </div>
+              )}
+
+              {deal.email && (
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Email</p>
+                  <p className="text-foreground">{deal.email}</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Financial Details */}
+      {deal.agreed_price && (
+        <Card className="card-elevated">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5 text-primary" />
+              Financial Details
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 gap-4">
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Agreed Price</span>
+                <span className="font-semibold text-lg">{formatCurrency(parseFloat(deal.agreed_price))}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Files Section */}
+      {deal.files && deal.files.length > 0 && (
+        <Card className="card-elevated">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MapPin className="h-5 w-5 text-primary" />
+              Attachments
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {deal.files.map((file: any, index: number) => (
+                <div key={index} className="flex items-center justify-between p-2 border rounded">
+                  <span className="text-sm">{file.original_name}</span>
+                  <a 
+                    href={file.file} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline text-sm"
+                  >
+                    Download
+                  </a>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
