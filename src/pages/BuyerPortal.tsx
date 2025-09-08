@@ -52,19 +52,19 @@ const BuyerPortal = () => {
     }
   };
 
-  const handleStatusUpdate = async (dealLogId: number, status: string) => {
+  const handleStatusUpdate = async (dealLogId: number, action: 'accept' | 'decline') => {
     try {
       setUpdating(true);
-      await updateBuyerDealStatus(dealLogId.toString(), status);
+      const response = await updateBuyerDealStatus(dealLogId.toString(), action);
       
-      // Update local state
+      // Update local state with the response data
       setDeals(deals.map(deal => 
-        deal.id === dealLogId ? { ...deal, status } : deal
+        deal.id === dealLogId ? { ...deal, status: response.status } : deal
       ));
       
       toast({
         title: "Success",
-        description: `Deal ${status === 'accepted' ? 'accepted' : 'declined'} successfully`,
+        description: `Deal ${action === 'accept' ? 'accepted' : 'declined'} successfully`,
       });
       
       setSelectedDeal(null);
@@ -106,10 +106,10 @@ const BuyerPortal = () => {
     }).format(amount);
   };
 
-  const loadDealDetails = async (dealId: number) => {
+  const loadDealDetails = async (dealLogId: number) => {
     try {
       setLoadingDetails(true);
-      const dealDetails = await getBuyerDealDetails(dealId.toString());
+      const dealDetails = await getBuyerDealDetails(dealLogId.toString());
       setSelectedDealDetails(dealDetails);
     } catch (error) {
       toast({
@@ -125,7 +125,7 @@ const BuyerPortal = () => {
   const handleViewDetails = async (deal: DealLog) => {
     setSelectedDeal(deal);
     setSelectedDealDetails(null);
-    await loadDealDetails(deal.deal);
+    await loadDealDetails(deal.id); // Use deal log ID instead of deal ID
   };
 
   if (loading) {
@@ -228,7 +228,7 @@ const BuyerPortal = () => {
                               </div>
                             ) : selectedDealDetails ? (
                               <PropertyInformation 
-                                deal={selectedDealDetails} 
+                                deal={selectedDealDetails.deal} 
                                 formatCurrency={formatCurrency} 
                               />
                             ) : (
@@ -241,7 +241,7 @@ const BuyerPortal = () => {
                             {selectedDeal.status === 'sent' && (
                               <div className="flex gap-3 pt-6 border-t bg-card p-4 rounded-lg">
                                 <Button
-                                  onClick={() => handleStatusUpdate(selectedDeal.id, 'accepted')}
+                                  onClick={() => handleStatusUpdate(selectedDeal.id, 'accept')}
                                   disabled={updating}
                                   className="flex-1"
                                   size="lg"
@@ -251,7 +251,7 @@ const BuyerPortal = () => {
                                 </Button>
                                 <Button
                                   variant="destructive"
-                                  onClick={() => handleStatusUpdate(selectedDeal.id, 'declined')}
+                                  onClick={() => handleStatusUpdate(selectedDeal.id, 'decline')}
                                   disabled={updating}
                                   className="flex-1"
                                   size="lg"

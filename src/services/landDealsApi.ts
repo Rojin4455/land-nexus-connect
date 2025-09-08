@@ -606,17 +606,17 @@ export const getBuyerDeals = async (buyerId: string): Promise<Array<any>> => {
 };
 
 // Get full deal details for buyer portal - public endpoint
-export const getBuyerDealDetails = async (dealId: string) => {
+export const getBuyerDealDetails = async (dealLogId: string) => {
   try {
-    const response = await api.get(`/property-submissions/${dealId}/`);
+    const response = await api.get(`/buyer-deals/${dealLogId}/`);
     return response.data;
   } catch (error) {
     throw error;
   }
 };
 
-export const updateBuyerDealStatus = async (dealLogId: string, status: string): Promise<any> => {
-  const response = await api.patch(`/buyers/deal-logs/${dealLogId}/`, { status });
+export const updateBuyerDealStatus = async (dealLogId: string, action: 'accept' | 'decline'): Promise<any> => {
+  const response = await api.post(`/buyer-deals/${dealLogId}/response/`, { action });
   return response.data;
 };
 
