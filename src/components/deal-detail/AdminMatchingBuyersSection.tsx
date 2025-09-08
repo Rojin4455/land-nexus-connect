@@ -36,6 +36,7 @@ const AdminMatchingBuyersSection = ({ propertyId }: AdminMatchingBuyersSectionPr
   const [buyerDetails, setBuyerDetails] = useState<any>(null);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [sentBuyerIds, setSentBuyerIds] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     loadMatchingBuyers();
@@ -135,6 +136,9 @@ const AdminMatchingBuyersSection = ({ propertyId }: AdminMatchingBuyersSectionPr
         status: 'sent',
         match_score: buyer.match_score
       });
+      
+      // Add buyer to sent list
+      setSentBuyerIds(prev => new Set(prev).add(buyer.id));
       
       toast({
         title: "Deal sent successfully",
@@ -359,18 +363,25 @@ const AdminMatchingBuyersSection = ({ propertyId }: AdminMatchingBuyersSectionPr
                                 >
                                   Close
                                 </Button>
-                                <Button
-                                  onClick={() => handleSendToBuyer(selectedBuyer!)}
-                                  disabled={isSending}
-                                  className="bg-primary hover:bg-primary/90"
-                                >
-                                  {isSending ? (
-                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                  ) : (
-                                    <Send className="h-4 w-4 mr-2" />
-                                  )}
-                                  {isSending ? 'Sending...' : 'Send to Buyer'}
-                                </Button>
+                                {!sentBuyerIds.has(selectedBuyer?.id || 0) && (
+                                  <Button
+                                    onClick={() => handleSendToBuyer(selectedBuyer!)}
+                                    disabled={isSending}
+                                    className="bg-primary hover:bg-primary/90"
+                                  >
+                                    {isSending ? (
+                                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                    ) : (
+                                      <Send className="h-4 w-4 mr-2" />
+                                    )}
+                                    {isSending ? 'Sending...' : 'Send to Buyer'}
+                                  </Button>
+                                )}
+                                {sentBuyerIds.has(selectedBuyer?.id || 0) && (
+                                  <div className="flex items-center gap-2 text-green-600">
+                                    <span className="text-sm font-medium">✓ Deal Already Sent</span>
+                                  </div>
+                                )}
                               </div>
                            </DialogContent>
                          </Dialog>
