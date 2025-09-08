@@ -605,6 +605,16 @@ export const getBuyerDeals = async (buyerId: string): Promise<Array<any>> => {
   return response.data;
 };
 
+// Get full deal details for buyer portal - public endpoint
+export const getBuyerDealDetails = async (dealId: string) => {
+  try {
+    const response = await api.get(`/property-submissions/${dealId}/`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const updateBuyerDealStatus = async (dealLogId: string, status: string): Promise<any> => {
   const response = await api.patch(`/buyers/deal-logs/${dealLogId}/`, { status });
   return response.data;

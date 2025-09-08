@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { getBuyerDeals, updateBuyerDealStatus } from '@/services/landDealsApi';
+import { getBuyerDeals, updateBuyerDealStatus, getBuyerDealDetails } from '@/services/landDealsApi';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Eye, CheckCircle, XCircle, MapPin } from 'lucide-react';
+import PropertyInformation from '@/components/deal-detail/PropertyInformation';
 
 interface DealLog {
   id: number;
@@ -24,6 +25,8 @@ const BuyerPortal = () => {
   const [deals, setDeals] = useState<DealLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDeal, setSelectedDeal] = useState<DealLog | null>(null);
+  const [selectedDealDetails, setSelectedDealDetails] = useState<any>(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
   const [updating, setUpdating] = useState(false);
   const { toast } = useToast();
 
@@ -95,6 +98,36 @@ const BuyerPortal = () => {
     });
   };
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0
+    }).format(amount);
+  };
+
+  const loadDealDetails = async (dealId: number) => {
+    try {
+      setLoadingDetails(true);
+      const dealDetails = await getBuyerDealDetails(dealId.toString());
+      setSelectedDealDetails(dealDetails);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load deal details",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingDetails(false);
+    }
+  };
+
+  const handleViewDetails = async (deal: DealLog) => {
+    setSelectedDeal(deal);
+    setSelectedDealDetails(null);
+    await loadDealDetails(deal.deal);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -152,65 +185,78 @@ const BuyerPortal = () => {
                         <Button 
                           variant="outline" 
                           className="w-full"
-                          onClick={() => setSelectedDeal(deal)}
+                          onClick={() => handleViewDetails(deal)}
                         >
                           <Eye className="h-4 w-4 mr-2" />
                           View Details & Respond
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
                           <DialogTitle className="flex items-center gap-2">
                             <MapPin className="h-5 w-5 text-primary" />
                             {selectedDeal?.deal_address}
                           </DialogTitle>
                           <DialogDescription>
-                            Match Score: {selectedDeal?.match_score}% • Sent on {selectedDeal && formatDate(selectedDeal.sent_date)}
+                            Deal ID: {selectedDeal?.deal} • Match Score: {selectedDeal?.match_score}% • Sent on {selectedDeal && formatDate(selectedDeal.sent_date)}
                           </DialogDescription>
                         </DialogHeader>
                         
                         {selectedDeal && (
                           <div className="space-y-6">
-                            <div className="grid grid-cols-2 gap-4">
-                              <div>
-                                <h4 className="font-semibold mb-2">Deal ID</h4>
-                                <p className="text-lg">{selectedDeal.deal}</p>
-                              </div>
+                            {/* Match Score and Status */}
+                            <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
                               <div>
                                 <h4 className="font-semibold mb-2">Match Score</h4>
-                                <p className="text-lg font-medium text-primary">{selectedDeal.match_score}%</p>
+                                <p className="text-2xl font-bold text-primary">{selectedDeal.match_score}%</p>
+                              </div>
+                              <div>
+                                <h4 className="font-semibold mb-2">Current Status</h4>
+                                <Badge className={getStatusColor(selectedDeal.status)}>
+                                  {selectedDeal.status.replace('_', ' ').toUpperCase()}
+                                </Badge>
                               </div>
                             </div>
+
+                            {/* Full Deal Details */}
+                            {loadingDetails ? (
+                              <div className="flex items-center justify-center py-12">
+                                <div className="text-center">
+                                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                                  <p className="text-muted-foreground">Loading deal details...</p>
+                                </div>
+                              </div>
+                            ) : selectedDealDetails ? (
+                              <PropertyInformation 
+                                deal={selectedDealDetails} 
+                                formatCurrency={formatCurrency} 
+                              />
+                            ) : (
+                              <div className="text-center py-8">
+                                <p className="text-muted-foreground">Deal details could not be loaded</p>
+                              </div>
+                            )}
                             
-                            <div>
-                              <h4 className="font-semibold mb-2">Property Location</h4>
-                              <p className="text-muted-foreground">{selectedDeal.deal_address}</p>
-                            </div>
-                            
-                            <div>
-                              <h4 className="font-semibold mb-2">Current Status</h4>
-                              <Badge className={getStatusColor(selectedDeal.status)}>
-                                {selectedDeal.status.replace('_', ' ').toUpperCase()}
-                              </Badge>
-                            </div>
-                            
+                            {/* Action Buttons */}
                             {selectedDeal.status === 'sent' && (
-                              <div className="flex gap-3 pt-4 border-t">
+                              <div className="flex gap-3 pt-6 border-t bg-card p-4 rounded-lg">
                                 <Button
                                   onClick={() => handleStatusUpdate(selectedDeal.id, 'accepted')}
                                   disabled={updating}
                                   className="flex-1"
+                                  size="lg"
                                 >
-                                  <CheckCircle className="h-4 w-4 mr-2" />
-                                  Accept Deal
+                                  <CheckCircle className="h-5 w-5 mr-2" />
+                                  Accept This Deal
                                 </Button>
                                 <Button
                                   variant="destructive"
                                   onClick={() => handleStatusUpdate(selectedDeal.id, 'declined')}
                                   disabled={updating}
                                   className="flex-1"
+                                  size="lg"
                                 >
-                                  <XCircle className="h-4 w-4 mr-2" />
+                                  <XCircle className="h-5 w-5 mr-2" />
                                   Decline Deal
                                 </Button>
                               </div>
