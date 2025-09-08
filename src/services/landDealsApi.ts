@@ -615,7 +615,7 @@ export const getBuyerDealDetails = async (dealLogId: string) => {
   }
 };
 
-export const updateBuyerDealStatus = async (dealLogId: string, action: 'accept' | 'decline'): Promise<any> => {
+export const updateBuyerDealStatus = async (dealLogId: string, action: 'accept' | 'reject'): Promise<any> => {
   const response = await api.post(`/buyer-deals/${dealLogId}/response/`, { action });
   return response.data;
 };

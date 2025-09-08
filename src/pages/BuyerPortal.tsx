@@ -52,7 +52,7 @@ const BuyerPortal = () => {
     }
   };
 
-  const handleStatusUpdate = async (dealLogId: number, action: 'accept' | 'decline') => {
+  const handleStatusUpdate = async (dealLogId: number, action: 'accept' | 'reject') => {
     try {
       setUpdating(true);
       const response = await updateBuyerDealStatus(dealLogId.toString(), action);
@@ -64,7 +64,7 @@ const BuyerPortal = () => {
       
       toast({
         title: "Success",
-        description: `Deal ${action === 'accept' ? 'accepted' : 'declined'} successfully`,
+        description: `Deal ${action === 'accept' ? 'accepted' : 'rejected'} successfully`,
       });
       
       setSelectedDeal(null);
@@ -251,7 +251,7 @@ const BuyerPortal = () => {
                                 </Button>
                                 <Button
                                   variant="destructive"
-                                  onClick={() => handleStatusUpdate(selectedDeal.id, 'decline')}
+                                  onClick={() => handleStatusUpdate(selectedDeal.id, 'reject')}
                                   disabled={updating}
                                   className="flex-1"
                                   size="lg"
