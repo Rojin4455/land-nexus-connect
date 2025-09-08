@@ -26,6 +26,9 @@ import AdminFormOptions from "./pages/AdminFormOptions";
 import AdminDealDetail from "./pages/AdminDealDetail";
 import AdminConversationCenter from "./pages/AdminConversationCenter";
 
+// Public pages
+import BuyerPortal from "./pages/BuyerPortal";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -58,6 +61,9 @@ const App = () => (
               <Route path="/admin/form-options" element={<AdminFormOptions />} />
               <Route path="/admin/deal/:id" element={<AdminDealDetail />} />
               <Route path="/admin/conversations" element={<AdminConversationCenter />} />
+              
+              {/* Public Routes */}
+              <Route path="/buyer/:buyerId/deals" element={<BuyerPortal />} />
               
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

@@ -600,6 +600,16 @@ export const getPublicBuyBoxCriteria = async (): Promise<Array<any>> => {
   return response.data;
 };
 
+export const getBuyerDeals = async (buyerId: string): Promise<Array<any>> => {
+  const response = await api.get(`/buyers/${buyerId}/deal-logs/`);
+  return response.data;
+};
+
+export const updateBuyerDealStatus = async (dealLogId: string, status: string): Promise<any> => {
+  const response = await api.patch(`/buyers/deal-logs/${dealLogId}/`, { status });
+  return response.data;
+};
+
 // Error handling utility
 export const handleApiError = (error: any): string => {
   if (error.response?.data?.message) {
