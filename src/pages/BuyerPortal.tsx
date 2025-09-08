@@ -6,25 +6,17 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, CheckCircle, XCircle, MapPin, DollarSign, Ruler } from 'lucide-react';
+import { Eye, CheckCircle, XCircle, MapPin } from 'lucide-react';
 
 interface DealLog {
   id: number;
   buyer: number;
+  buyer_name: string;
   deal: number;
+  deal_address: string;
   status: string;
   sent_date: string;
-  match_score: number;
-  deal_details: {
-    id: number;
-    address: string;
-    land_type: string;
-    acreage: number;
-    asking_price: number;
-    description?: string;
-    utilities?: string[];
-    access_type?: string;
-  };
+  match_score: string;
 }
 
 const BuyerPortal = () => {
@@ -95,14 +87,6 @@ const BuyerPortal = () => {
     }
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -146,7 +130,7 @@ const BuyerPortal = () => {
                       <div>
                         <CardTitle className="flex items-center gap-2">
                           <MapPin className="h-5 w-5 text-primary" />
-                          {deal.deal_details.address}
+                          {deal.deal_address}
                         </CardTitle>
                         <CardDescription>
                           Sent on {formatDate(deal.sent_date)} • Match Score: {deal.match_score}%
@@ -158,19 +142,9 @@ const BuyerPortal = () => {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                      <div className="flex items-center gap-2">
-                        <DollarSign className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-semibold">{formatPrice(deal.deal_details.asking_price)}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Ruler className="h-4 w-4 text-muted-foreground" />
-                        <span>{deal.deal_details.acreage} acres</span>
-                      </div>
-                      <div>
-                        <span className="text-sm text-muted-foreground">Type: </span>
-                        <span className="font-medium">{deal.deal_details.land_type}</span>
-                      </div>
+                    <div className="mb-4">
+                      <div className="text-sm text-muted-foreground mb-2">Deal ID: {deal.deal}</div>
+                      <div className="text-sm text-muted-foreground">Buyer: {deal.buyer_name}</div>
                     </div>
                     
                     <Dialog>
@@ -181,14 +155,14 @@ const BuyerPortal = () => {
                           onClick={() => setSelectedDeal(deal)}
                         >
                           <Eye className="h-4 w-4 mr-2" />
-                          View Full Details
+                          View Details & Respond
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                         <DialogHeader>
                           <DialogTitle className="flex items-center gap-2">
                             <MapPin className="h-5 w-5 text-primary" />
-                            {selectedDeal?.deal_details.address}
+                            {selectedDeal?.deal_address}
                           </DialogTitle>
                           <DialogDescription>
                             Match Score: {selectedDeal?.match_score}% • Sent on {selectedDeal && formatDate(selectedDeal.sent_date)}
@@ -199,46 +173,26 @@ const BuyerPortal = () => {
                           <div className="space-y-6">
                             <div className="grid grid-cols-2 gap-4">
                               <div>
-                                <h4 className="font-semibold mb-2">Price</h4>
-                                <p className="text-2xl font-bold text-primary">
-                                  {formatPrice(selectedDeal.deal_details.asking_price)}
-                                </p>
+                                <h4 className="font-semibold mb-2">Deal ID</h4>
+                                <p className="text-lg">{selectedDeal.deal}</p>
                               </div>
                               <div>
-                                <h4 className="font-semibold mb-2">Size</h4>
-                                <p className="text-lg">{selectedDeal.deal_details.acreage} acres</p>
+                                <h4 className="font-semibold mb-2">Match Score</h4>
+                                <p className="text-lg font-medium text-primary">{selectedDeal.match_score}%</p>
                               </div>
                             </div>
                             
                             <div>
-                              <h4 className="font-semibold mb-2">Land Type</h4>
-                              <p>{selectedDeal.deal_details.land_type}</p>
+                              <h4 className="font-semibold mb-2">Property Location</h4>
+                              <p className="text-muted-foreground">{selectedDeal.deal_address}</p>
                             </div>
                             
-                            {selectedDeal.deal_details.utilities && selectedDeal.deal_details.utilities.length > 0 && (
-                              <div>
-                                <h4 className="font-semibold mb-2">Utilities</h4>
-                                <div className="flex flex-wrap gap-2">
-                                  {selectedDeal.deal_details.utilities.map((utility, index) => (
-                                    <Badge key={index} variant="secondary">{utility}</Badge>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                            
-                            {selectedDeal.deal_details.access_type && (
-                              <div>
-                                <h4 className="font-semibold mb-2">Access Type</h4>
-                                <p>{selectedDeal.deal_details.access_type}</p>
-                              </div>
-                            )}
-                            
-                            {selectedDeal.deal_details.description && (
-                              <div>
-                                <h4 className="font-semibold mb-2">Description</h4>
-                                <p className="text-muted-foreground">{selectedDeal.deal_details.description}</p>
-                              </div>
-                            )}
+                            <div>
+                              <h4 className="font-semibold mb-2">Current Status</h4>
+                              <Badge className={getStatusColor(selectedDeal.status)}>
+                                {selectedDeal.status.replace('_', ' ').toUpperCase()}
+                              </Badge>
+                            </div>
                             
                             {selectedDeal.status === 'sent' && (
                               <div className="flex gap-3 pt-4 border-t">
