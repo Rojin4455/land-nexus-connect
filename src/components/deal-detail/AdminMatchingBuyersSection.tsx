@@ -64,6 +64,7 @@ const AdminMatchingBuyersSection = ({ propertyId }: AdminMatchingBuyersSectionPr
         }
 
         setMatchingBuyers(matches);
+        await preloadSentStatuses(matches);
       } else {
         toast({
           title: "Error loading matching buyers",
@@ -120,6 +121,28 @@ const AdminMatchingBuyersSection = ({ propertyId }: AdminMatchingBuyersSectionPr
       currency: 'USD',
       minimumFractionDigits: 0
     }).format(amount);
+  };
+
+  const preloadSentStatuses = async (buyers: MatchingBuyer[]) => {
+    const dealId = parseInt(propertyId);
+    try {
+      const results = await Promise.all(
+        buyers.map((b) =>
+          landDealsApi.admin.getBuyerDealLogs(b.id.toString())
+            .then((res) => ({ id: b.id, logs: res.data || [] }))
+            .catch(() => ({ id: b.id, logs: [] }))
+        )
+      );
+      const sentIds = new Set<number>();
+      results.forEach(({ id, logs }) => {
+        if (Array.isArray(logs) && logs.some((l: any) => Number(l.deal) === dealId)) {
+          sentIds.add(id);
+        }
+      });
+      setSentBuyerIds(sentIds);
+    } catch (e) {
+      // ignore errors
+    }
   };
 
   const handleViewDetails = (buyer: MatchingBuyer) => {
