@@ -106,17 +106,48 @@ const UserDashboard = () => {
   };
 
   const getStatusVariant = (status) => {
-    switch (status.toLowerCase()) {
-      case 'pending':
+    switch (status?.toLowerCase()) {
+      case 'submitted':
         return 'status-pending';
-      case 'under review':
+      case 'under_review_with_buyer':
         return 'status-reviewed';
-      case 'approved':
+      case 'buyer_approved':
         return 'status-approved';
-      case 'rejected':
+      case 'buyer_rejected':
+        return 'status-rejected';
+      case 'mls_pending':
+        return 'status-reviewed';
+      case 'mls_active':
+        return 'status-active';
+      case 'sold':
+        return 'status-approved';
+      case 'canceled':
         return 'status-rejected';
       default:
         return 'status-pending';
+    }
+  };
+
+  const getStatusDisplayName = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'submitted':
+        return 'Submitted';
+      case 'under_review_with_buyer':
+        return 'Under review with Buyer';
+      case 'buyer_approved':
+        return 'Buyer Approved';
+      case 'buyer_rejected':
+        return 'Buyer Rejected';
+      case 'mls_pending':
+        return 'MLS Listing - Pending';
+      case 'mls_active':
+        return 'MLS Active Listing';
+      case 'sold':
+        return 'Sold Deal';
+      case 'canceled':
+        return 'Canceled Deal';
+      default:
+        return status || 'Unknown';
     }
   };
 
@@ -161,11 +192,10 @@ const UserDashboard = () => {
   const filteredDeals = deals.filter(deal => {
     const matchesSearch = (deal.address || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (deal.id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (deal.landType || '').toLowerCase().includes(searchTerm.toLowerCase());
+      (deal.landType || deal.land_type_detail?.display_name || '').toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = !statusFilter || 
-      (deal.status || '').toLowerCase().replace(/\s+/g, '_') === statusFilter.toLowerCase() ||
-      (deal.status || '').toLowerCase() === statusFilter.toLowerCase().replace('_', ' ');
+      (deal.status || '').toLowerCase() === statusFilter.toLowerCase();
     
     return matchesSearch && matchesStatus;
   });
@@ -270,9 +300,13 @@ const UserDashboard = () => {
                     <SelectContent>
                       <SelectItem value="all">All Statuses</SelectItem>
                       <SelectItem value="submitted">Submitted</SelectItem>
-                      <SelectItem value="under_review">Under Review</SelectItem>
-                      <SelectItem value="approved">Approved</SelectItem>
-                      <SelectItem value="rejected">Rejected</SelectItem>
+                      <SelectItem value="under_review_with_buyer">Under review with Buyer</SelectItem>
+                      <SelectItem value="buyer_approved">Buyer Approved</SelectItem>
+                      <SelectItem value="buyer_rejected">Buyer Rejected</SelectItem>
+                      <SelectItem value="mls_pending">MLS Listing - Pending</SelectItem>
+                      <SelectItem value="mls_active">MLS Active Listing</SelectItem>
+                      <SelectItem value="sold">Sold Deal</SelectItem>
+                      <SelectItem value="canceled">Canceled Deal</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -334,7 +368,7 @@ const UserDashboard = () => {
                         </td>
                         <td className="p-4">
                           <Badge className={`${getStatusVariant(deal.status)} text-xs`}>
-                            {deal.status}
+                            {getStatusDisplayName(deal.status)}
                           </Badge>
                         </td>
                         <td className="p-4">
