@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,6 +15,7 @@ import { useAppSelector } from '@/hooks/useAppSelector';
 import { logoutUser } from '@/store/authSlice';
 import { landDealsApi } from '@/services/landDealsApi';
 import BuyerDetailsDialog from '@/components/admin/BuyerDetailsDialog';
+import { KanbanBoard } from '@/components/admin/KanbanBoard';
 import { 
   Users, 
   FileText, 
@@ -31,7 +33,9 @@ import {
   ChevronDown,
   Edit,
   Plus,
-  Trash2
+  Trash2,
+  LayoutGrid,
+  List
 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -46,6 +50,7 @@ const AdminDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [view, setView] = useState('deals'); // 'deals' or 'users'
+  const [viewMode, setViewMode] = useState('list'); // 'list' or 'kanban'
   const [loading, setLoading] = useState(false);
   const adminEmail = user?.email || localStorage.getItem('adminEmail') || 'admin@example.com';
 
@@ -719,100 +724,130 @@ const AdminDashboard = () => {
                   </table>
                 </div>
               )
-            ) :(
-                // Deals Table
-                filteredDeals.length === 0 ? (
-                  <div className="text-center py-12">
-                    <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-foreground mb-2">
-                      {searchTerm ? 'No deals found' : selectedUser ? 'No deals for this user' : 'No deals submitted yet'}
-                    </h3>
-                    <p className="text-muted-foreground">
-                      {searchTerm ? 'Try adjusting your search terms' : 'Deal submissions will appear here'}
-                    </p>
+              ) :(
+                // Deals View with Tabs
+                <Tabs value={viewMode} onValueChange={setViewMode} className="w-full">
+                  <div className="flex items-center justify-between mb-6">
+                    <TabsList className="grid w-64 grid-cols-2">
+                      <TabsTrigger value="list" className="flex items-center space-x-2">
+                        <List className="h-4 w-4" />
+                        <span>List View</span>
+                      </TabsTrigger>
+                      <TabsTrigger value="kanban" className="flex items-center space-x-2">
+                        <LayoutGrid className="h-4 w-4" />
+                        <span>Kanban View</span>
+                      </TabsTrigger>
+                    </TabsList>
                   </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b border-border">
-                          <th className="text-left p-4 font-medium text-muted-foreground">Deal ID</th>
-                          <th className="text-left p-4 font-medium text-muted-foreground">Location</th>
-                          <th className="text-left p-4 font-medium text-muted-foreground">Type</th>
-                          <th className="text-left p-4 font-medium text-muted-foreground">Value</th>
-                          <th className="text-left p-4 font-medium text-muted-foreground">Submitted</th>
-                          <th className="text-left p-4 font-medium text-muted-foreground">Status</th>
-                          <th className="text-left p-4 font-medium text-muted-foreground">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredDeals.map((deal) => (
-                          <tr key={deal.id} className="border-b border-border hover:bg-secondary/30 transition-colors">
-                            <td className="p-4">
-                              <span className="font-mono text-sm font-medium text-primary">{deal.id}</span>
-                            </td>
-                            <td className="p-4">
-                              <div className="flex items-start space-x-2">
-                                <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                                <div>
-                                  <p className="font-medium text-foreground text-sm line-clamp-1">{deal.address || 'No address'}</p>
-                                  <p className="text-xs text-muted-foreground">{deal.acreage || 'N/A'} acres</p>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="p-4">
-                              <span className="text-sm text-foreground capitalize">{deal.landType}</span>
-                            </td>
-                            <td className="p-4">
-                              <span className="text-sm font-medium text-foreground">
-                                {formatCurrency(deal.agreedPrice || 0)}
-                              </span>
-                            </td>
-                            <td className="p-4">
-                              <div className="flex items-center space-x-2">
-                                <Calendar className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-sm text-foreground">{deal.submittedOn ? formatDate(deal.submittedOn) : 'N/A'}</span>
-                              </div>
-                            </td>
-                            <td className="p-4">
-                              <div className="flex items-center space-x-2">
-                                <Badge variant={getStatusVariant(deal.status)} className="text-xs">
-                                  {getStatusDisplayName(deal.status)}
-                                </Badge>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => {
-                                    setDealToUpdate(deal);
-                                    setSelectedStatus(deal.status);
-                                    setStatusUpdateOpen(true);
-                                  }}
-                                  className="text-xs h-6 px-2"
-                                >
-                                  <Edit className="h-3 w-3 mr-1" />
-                                  Update
-                                </Button>
-                              </div>
-                            </td>
-                            <td className="p-4">
-                              <div className="flex items-center space-x-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => navigate(`/admin/deal/${deal.id}`)}
-                                  className="hover:bg-primary hover:text-primary-foreground"
-                                >
-                                  <Eye className="h-4 w-4 mr-1" />
-                                  View Details
-                                </Button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )
+
+                  <TabsContent value="list">
+                    {filteredDeals.length === 0 ? (
+                      <div className="text-center py-12">
+                        <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold text-foreground mb-2">
+                          {searchTerm ? 'No deals found' : selectedUser ? 'No deals for this user' : 'No deals submitted yet'}
+                        </h3>
+                        <p className="text-muted-foreground">
+                          {searchTerm ? 'Try adjusting your search terms' : 'Deal submissions will appear here'}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead>
+                            <tr className="border-b border-border">
+                              <th className="text-left p-4 font-medium text-muted-foreground">Deal ID</th>
+                              <th className="text-left p-4 font-medium text-muted-foreground">Location</th>
+                              <th className="text-left p-4 font-medium text-muted-foreground">Type</th>
+                              <th className="text-left p-4 font-medium text-muted-foreground">Value</th>
+                              <th className="text-left p-4 font-medium text-muted-foreground">Submitted</th>
+                              <th className="text-left p-4 font-medium text-muted-foreground">Status</th>
+                              <th className="text-left p-4 font-medium text-muted-foreground">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {filteredDeals.map((deal) => (
+                              <tr key={deal.id} className="border-b border-border hover:bg-secondary/30 transition-colors">
+                                <td className="p-4">
+                                  <span className="font-mono text-sm font-medium text-primary">{deal.id}</span>
+                                </td>
+                                <td className="p-4">
+                                  <div className="flex items-start space-x-2">
+                                    <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                                    <div>
+                                      <p className="font-medium text-foreground text-sm line-clamp-1">{deal.address || 'No address'}</p>
+                                      <p className="text-xs text-muted-foreground">{deal.lot_size || 'N/A'} {deal.lot_size_unit || 'acres'}</p>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="p-4">
+                                  <span className="text-sm text-foreground capitalize">{deal.land_type_name || deal.landType}</span>
+                                </td>
+                                <td className="p-4">
+                                  <span className="text-sm font-medium text-foreground">
+                                    {formatCurrency(deal.agreed_price || deal.agreedPrice || 0)}
+                                  </span>
+                                </td>
+                                <td className="p-4">
+                                  <div className="flex items-center space-x-2">
+                                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                                    <span className="text-sm text-foreground">{deal.created_at ? formatDate(deal.created_at) : formatDate(deal.submittedOn) || 'N/A'}</span>
+                                  </div>
+                                </td>
+                                <td className="p-4">
+                                  <div className="flex items-center space-x-2">
+                                    <Badge variant={getStatusVariant(deal.status)} className="text-xs">
+                                      {getStatusDisplayName(deal.status)}
+                                    </Badge>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        setDealToUpdate(deal);
+                                        setSelectedStatus(deal.status);
+                                        setStatusUpdateOpen(true);
+                                      }}
+                                      className="text-xs h-6 px-2"
+                                    >
+                                      <Edit className="h-3 w-3 mr-1" />
+                                      Update
+                                    </Button>
+                                  </div>
+                                </td>
+                                <td className="p-4">
+                                  <div className="flex items-center space-x-2">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => navigate(`/admin/deal/${deal.id}`)}
+                                      className="hover:bg-primary hover:text-primary-foreground"
+                                    >
+                                      <Eye className="h-4 w-4 mr-1" />
+                                      View Details
+                                    </Button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </TabsContent>
+
+                  <TabsContent value="kanban">
+                    <KanbanBoard 
+                      deals={filteredDeals}
+                      onStatusUpdate={(deal, newStatus, notes) => updateDealStatus(deal.id, newStatus, notes)}
+                      onDealClick={(deal) => navigate(`/admin/deal/${deal.id}`)}
+                      onEditStatus={(deal) => {
+                        setDealToUpdate(deal);
+                        setSelectedStatus(deal.status);
+                        setStatusUpdateOpen(true);
+                      }}
+                    />
+                  </TabsContent>
+                </Tabs>
               )}
             </CardContent>
           </Card>
