@@ -398,18 +398,23 @@ export const landDealsApi = {
     },
 
     // Get all deals (admin view)
-    getAllDeals: async (): Promise<ApiResponse<LandDeal[]>> => {
-      const response = await api.get('/data/properties/list-all/');
+    getAllDeals: async (statusFilter?: string): Promise<ApiResponse<LandDeal[]>> => {
+      let url = '/data/properties/list-all/';
+      if (statusFilter) {
+        url += `?status=${statusFilter}`;
+      }
+      const response = await api.get(url);
       const transformedData = response.data.map((property: any) => ({
         id: property.id.toString(),
         address: property.address,
         submittedOn: property.created_at,
         status: property.status,
         coach: 'Assigned Coach',
-        agreedPrice: parseFloat(property.asking_price),
-        landType: property.land_type_name,
+        agreedPrice: parseFloat(property.agreed_price || property.asking_price || 0),
+        landType: property.land_type_detail?.display_name || property.land_type_name,
         acreage: parseFloat(property.acreage),
-        totalFilesCount: property.total_files_count
+        totalFilesCount: property.total_files_count,
+        buyer_rejected_notes: property.buyer_rejected_notes
       }));
       
       return {
@@ -419,11 +424,15 @@ export const landDealsApi = {
     },
 
     // Update deal status
-    updateDealStatus: async (dealId: string, status: string): Promise<ApiResponse<{ id: string; status: string }>> => {
-      const response = await api.patch(`/data/properties/${dealId}/status/`, { status });
+    updateDealStatus: async (dealId: string, status: string, buyer_rejected_notes?: string): Promise<ApiResponse<{ id: string; status: string; buyer_rejected_notes?: string }>> => {
+      const payload: { status: string; buyer_rejected_notes?: string } = { status };
+      if (buyer_rejected_notes) {
+        payload.buyer_rejected_notes = buyer_rejected_notes;
+      }
+      const response = await api.patch(`/data/properties/${dealId}/status/`, payload);
       return {
         success: true,
-        data: { id: dealId, status }
+        data: response.data
       };
     },
 

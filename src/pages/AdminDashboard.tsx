@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { useAppSelector } from '@/hooks/useAppSelector';
@@ -77,8 +78,8 @@ const AdminDashboard = () => {
   const loadInitialData = async () => {
     setLoading(true);
     try {
-      // Load all deals
-      const dealsResponse = await landDealsApi.admin.getAllDeals();
+      // Load all deals with status filter
+      const dealsResponse = await landDealsApi.admin.getAllDeals(statusFilter);
       if (dealsResponse.success) {
         setDeals(dealsResponse.data);
       }
@@ -90,8 +91,8 @@ const AdminDashboard = () => {
       }
       const buyersResponse = await landDealsApi.admin.getBuyers();
       if (buyersResponse.success) {
-      setBuyers(buyersResponse.data);
-    }
+        setBuyers(buyersResponse.data);
+      }
 
     } catch (error) {
       console.error('Failed to load admin data:', error);
@@ -104,6 +105,13 @@ const AdminDashboard = () => {
       setLoading(false);
     }
   };
+
+  // Reload deals when status filter changes
+  useEffect(() => {
+    if (view === 'deals') {
+      loadInitialData();
+    }
+  }, [statusFilter, view]);
 
   const loadUserDeals = async (userId) => {
     setLoading(true);
@@ -124,34 +132,59 @@ const AdminDashboard = () => {
     }
   };
 
-  const updateDealStatus = async (dealId, newStatus) => {
+  // Status update modal state
+  const [statusUpdateOpen, setStatusUpdateOpen] = useState(false);
+  const [dealToUpdate, setDealToUpdate] = useState(null);
+  const [selectedStatus, setSelectedStatus] = useState('');
+  const [buyerRejectedNotes, setBuyerRejectedNotes] = useState('');
+
+  const updateDealStatus = async (dealId, newStatus, notes = null) => {
     try {
-      const response = await landDealsApi.admin.updateDealStatus(dealId, newStatus);
+      const response = await landDealsApi.admin.updateDealStatus(dealId, newStatus, notes);
       if (response.success) {
         // Update local state
         if (selectedUser) {
           setUserDeals(prev => prev.map(deal => 
-            deal.id === dealId ? { ...deal, status: newStatus } : deal
+            deal.id === dealId ? { ...deal, status: newStatus, buyer_rejected_notes: notes } : deal
           ));
         } else {
           setDeals(prev => prev.map(deal => 
-            deal.id === dealId ? { ...deal, status: newStatus } : deal
+            deal.id === dealId ? { ...deal, status: newStatus, buyer_rejected_notes: notes } : deal
           ));
         }
         
         toast({
           title: "Success",
-          description: `Deal status updated to ${newStatus}`,
+          description: `Deal status updated to ${newStatus.replace('_', ' ')}`,
         });
       }
     } catch (error) {
       console.error('Failed to update deal status:', error);
       toast({
         title: "Error",
-        description: "Failed to update deal status",
+        description: error.response?.data?.buyer_rejected_notes?.[0] || "Failed to update deal status",
         variant: "destructive",
       });
     }
+  };
+
+  const handleStatusUpdate = async () => {
+    if (!dealToUpdate || !selectedStatus) return;
+    
+    if (selectedStatus === 'buyer_rejected' && !buyerRejectedNotes.trim()) {
+      toast({
+        title: "Error",
+        description: "Buyer rejected notes are required when rejecting a deal",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    await updateDealStatus(dealToUpdate.id, selectedStatus, selectedStatus === 'buyer_rejected' ? buyerRejectedNotes : null);
+    setStatusUpdateOpen(false);
+    setDealToUpdate(null);
+    setSelectedStatus('');
+    setBuyerRejectedNotes('');
   };
 
   const handleCreateBuyer = async () => {
@@ -243,17 +276,39 @@ const AdminDashboard = () => {
   const getStatusVariant = (status) => {
     const statusLower = (status || '').toLowerCase();
     switch (statusLower) {
-      case 'pending':
-        return 'status-pending';
-      case 'under review':
-        return 'status-reviewed';
-      case 'approved':
-        return 'status-approved';
-      case 'rejected':
-        return 'status-rejected';
+      case 'submitted':
+        return 'default';
+      case 'under_review_with_buyer':
+        return 'secondary';
+      case 'buyer_approved':
+        return 'default';
+      case 'buyer_rejected':
+        return 'destructive';
+      case 'mls_listing_pending':
+        return 'secondary';
+      case 'mls_active_listing':
+        return 'default';
+      case 'sold_deal':
+        return 'default';
+      case 'canceled_deals':
+        return 'destructive';
       default:
-        return 'status-pending';
+        return 'default';
     }
+  };
+
+  const getStatusDisplayName = (status) => {
+    const statusMap = {
+      'submitted': 'Submitted',
+      'under_review_with_buyer': 'Under Review with Buyer',
+      'buyer_approved': 'Buyer Approved',
+      'buyer_rejected': 'Buyer Rejected',
+      'mls_listing_pending': 'MLS Listing Pending',
+      'mls_active_listing': 'MLS Active Listing',
+      'sold_deal': 'Sold Deal',
+      'canceled_deals': 'Canceled Deals'
+    };
+    return statusMap[status] || status;
   };
 
   const currentDeals = selectedUser ? userDeals : deals;
@@ -446,15 +501,19 @@ const AdminDashboard = () => {
                 <div className="flex items-center gap-4">
                   {view === 'deals' && (
                     <Select value={statusFilter || "all"} onValueChange={(value) => setStatusFilter(value === "all" ? "" : value)}>
-                      <SelectTrigger className="w-48">
+                      <SelectTrigger className="w-64">
                         <SelectValue placeholder="Filter by status" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All Statuses</SelectItem>
                         <SelectItem value="submitted">Submitted</SelectItem>
-                        <SelectItem value="under_review">Under Review</SelectItem>
-                        <SelectItem value="approved">Approved</SelectItem>
-                        <SelectItem value="rejected">Rejected</SelectItem>
+                        <SelectItem value="under_review_with_buyer">Under Review with Buyer</SelectItem>
+                        <SelectItem value="buyer_approved">Buyer Approved</SelectItem>
+                        <SelectItem value="buyer_rejected">Buyer Rejected</SelectItem>
+                        <SelectItem value="mls_listing_pending">MLS Listing Pending</SelectItem>
+                        <SelectItem value="mls_active_listing">MLS Active Listing</SelectItem>
+                        <SelectItem value="sold_deal">Sold Deal</SelectItem>
+                        <SelectItem value="canceled_deals">Canceled Deals</SelectItem>
                       </SelectContent>
                     </Select>
                   )}
@@ -717,19 +776,22 @@ const AdminDashboard = () => {
                             </td>
                             <td className="p-4">
                               <div className="flex items-center space-x-2">
-                                <Badge className={`${getStatusVariant(deal.status)} text-xs`}>
-                                  {deal.status}
+                                <Badge variant={getStatusVariant(deal.status)} className="text-xs">
+                                  {getStatusDisplayName(deal.status)}
                                 </Badge>
-                                <select
-                                  value={deal.status}
-                                  onChange={(e) => updateDealStatus(deal.id, e.target.value)}
-                                  className="text-xs border border-border rounded px-2 py-1 bg-background"
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    setDealToUpdate(deal);
+                                    setSelectedStatus(deal.status);
+                                    setStatusUpdateOpen(true);
+                                  }}
+                                  className="text-xs h-6 px-2"
                                 >
-                                  <option value="submitted">Submitted</option>
-                                  <option value="under_review">Under Review</option>
-                                  <option value="approved">Approved</option>
-                                  <option value="rejected">Rejected</option>
-                                </select>
+                                  <Edit className="h-3 w-3 mr-1" />
+                                  Update
+                                </Button>
                               </div>
                             </td>
                             <td className="p-4">
@@ -754,6 +816,61 @@ const AdminDashboard = () => {
               )}
             </CardContent>
           </Card>
+
+          {/* Status Update Dialog */}
+          <Dialog open={statusUpdateOpen} onOpenChange={setStatusUpdateOpen}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Update Deal Status</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="status">Status</Label>
+                  <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="submitted">Submitted</SelectItem>
+                      <SelectItem value="under_review_with_buyer">Under Review with Buyer</SelectItem>
+                      <SelectItem value="buyer_approved">Buyer Approved</SelectItem>
+                      <SelectItem value="buyer_rejected">Buyer Rejected</SelectItem>
+                      <SelectItem value="mls_listing_pending">MLS Listing Pending</SelectItem>
+                      <SelectItem value="mls_active_listing">MLS Active Listing</SelectItem>
+                      <SelectItem value="sold_deal">Sold Deal</SelectItem>
+                      <SelectItem value="canceled_deals">Canceled Deals</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {selectedStatus === 'buyer_rejected' && (
+                  <div>
+                    <Label htmlFor="notes">Buyer Rejected Notes *</Label>
+                    <Textarea
+                      id="notes"
+                      value={buyerRejectedNotes}
+                      onChange={(e) => setBuyerRejectedNotes(e.target.value)}
+                      placeholder="Please provide detailed feedback for the student..."
+                      className="mt-1"
+                      rows={4}
+                      required
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      These notes will be used in a templated message to provide feedback to the student.
+                    </p>
+                  </div>
+                )}
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setStatusUpdateOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleStatusUpdate}>
+                  Update Status
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>
