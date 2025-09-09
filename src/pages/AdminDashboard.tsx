@@ -284,13 +284,13 @@ const AdminDashboard = () => {
         return 'default';
       case 'buyer_rejected':
         return 'destructive';
-      case 'mls_listing_pending':
+      case 'mls_pending':
         return 'secondary';
-      case 'mls_active_listing':
+      case 'mls_active':
         return 'default';
-      case 'sold_deal':
+      case 'sold':
         return 'default';
-      case 'canceled_deals':
+      case 'canceled':
         return 'destructive';
       default:
         return 'default';
@@ -300,13 +300,13 @@ const AdminDashboard = () => {
   const getStatusDisplayName = (status) => {
     const statusMap = {
       'submitted': 'Submitted',
-      'under_review_with_buyer': 'Under Review with Buyer',
+      'under_review_with_buyer': 'Under review with Buyer',
       'buyer_approved': 'Buyer Approved',
       'buyer_rejected': 'Buyer Rejected',
-      'mls_listing_pending': 'MLS Listing Pending',
-      'mls_active_listing': 'MLS Active Listing',
-      'sold_deal': 'Sold Deal',
-      'canceled_deals': 'Canceled Deals'
+      'mls_pending': 'MLS Listing - Pending',
+      'mls_active': 'MLS Active Listing',
+      'sold': 'Sold Deal',
+      'canceled': 'Canceled Deal'
     };
     return statusMap[status] || status;
   };
@@ -504,17 +504,17 @@ const AdminDashboard = () => {
                       <SelectTrigger className="w-64">
                         <SelectValue placeholder="Filter by status" />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Statuses</SelectItem>
-                        <SelectItem value="submitted">Submitted</SelectItem>
-                        <SelectItem value="under_review_with_buyer">Under Review with Buyer</SelectItem>
-                        <SelectItem value="buyer_approved">Buyer Approved</SelectItem>
-                        <SelectItem value="buyer_rejected">Buyer Rejected</SelectItem>
-                        <SelectItem value="mls_listing_pending">MLS Listing Pending</SelectItem>
-                        <SelectItem value="mls_active_listing">MLS Active Listing</SelectItem>
-                        <SelectItem value="sold_deal">Sold Deal</SelectItem>
-                        <SelectItem value="canceled_deals">Canceled Deals</SelectItem>
-                      </SelectContent>
+                       <SelectContent>
+                         <SelectItem value="all">All Statuses</SelectItem>
+                         <SelectItem value="submitted">Submitted</SelectItem>
+                         <SelectItem value="under_review_with_buyer">Under review with Buyer</SelectItem>
+                         <SelectItem value="buyer_approved">Buyer Approved</SelectItem>
+                         <SelectItem value="buyer_rejected">Buyer Rejected</SelectItem>
+                         <SelectItem value="mls_pending">MLS Listing - Pending</SelectItem>
+                         <SelectItem value="mls_active">MLS Active Listing</SelectItem>
+                         <SelectItem value="sold">Sold Deal</SelectItem>
+                         <SelectItem value="canceled">Canceled Deal</SelectItem>
+                       </SelectContent>
                     </Select>
                   )}
                   {view === 'buyers' && (
@@ -830,16 +830,16 @@ const AdminDashboard = () => {
                     <SelectTrigger>
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="submitted">Submitted</SelectItem>
-                      <SelectItem value="under_review_with_buyer">Under Review with Buyer</SelectItem>
-                      <SelectItem value="buyer_approved">Buyer Approved</SelectItem>
-                      <SelectItem value="buyer_rejected">Buyer Rejected</SelectItem>
-                      <SelectItem value="mls_listing_pending">MLS Listing Pending</SelectItem>
-                      <SelectItem value="mls_active_listing">MLS Active Listing</SelectItem>
-                      <SelectItem value="sold_deal">Sold Deal</SelectItem>
-                      <SelectItem value="canceled_deals">Canceled Deals</SelectItem>
-                    </SelectContent>
+                     <SelectContent>
+                       <SelectItem value="submitted">Submitted</SelectItem>
+                       <SelectItem value="under_review_with_buyer">Under review with Buyer</SelectItem>
+                       <SelectItem value="buyer_approved">Buyer Approved</SelectItem>
+                       <SelectItem value="buyer_rejected">Buyer Rejected</SelectItem>
+                       <SelectItem value="mls_pending">MLS Listing - Pending</SelectItem>
+                       <SelectItem value="mls_active">MLS Active Listing</SelectItem>
+                       <SelectItem value="sold">Sold Deal</SelectItem>
+                       <SelectItem value="canceled">Canceled Deal</SelectItem>
+                     </SelectContent>
                   </Select>
                 </div>
                 
