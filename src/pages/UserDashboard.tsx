@@ -31,14 +31,12 @@ import {
   Search
 } from 'lucide-react';
 import { landDealsApi, handleApiError } from '@/services/landDealsApi';
-import { conversationsApi } from '@/services/conversationsApi';
 import { toast } from '@/hooks/use-toast';
 
 const UserDashboard = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, user, accessToken } = useAppSelector((state) => state.auth);
+  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
   const [deals, setDeals] = useState([]);
-  const [conversations, setConversations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -57,7 +55,6 @@ const UserDashboard = () => {
     }
 
     loadDeals();
-    loadConversations();
   }, [isAuthenticated, user, navigate]);
 
   const loadDeals = async () => {
@@ -106,26 +103,6 @@ const UserDashboard = () => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const loadConversations = async () => {
-    try {
-      if (accessToken) {
-        const conversationData = await conversationsApi.getInbox(accessToken);
-        setConversations(conversationData);
-      }
-    } catch (error) {
-      console.error('Error loading conversations:', error);
-      // Silently fail for conversations as it's not critical
-    }
-  };
-
-  const getUnreadCount = (dealId) => {
-    const conversation = conversations.find(conv => 
-      conv.property_submission_id === dealId || 
-      conv.property_submission_id === parseInt(dealId)
-    );
-    return conversation?.unread_count || 0;
   };
 
   const getStatusVariant = (status) => {
@@ -365,7 +342,6 @@ const UserDashboard = () => {
                       <th className="text-left p-4 font-medium text-muted-foreground">Submitted</th>
                       <th className="text-left p-4 font-medium text-muted-foreground">Status</th>
                       <th className="text-left p-4 font-medium text-muted-foreground">Coach</th>
-                      <th className="text-left p-4 font-medium text-muted-foreground">Messages</th>
                       <th className="text-left p-4 font-medium text-muted-foreground">Actions</th>
                     </tr>
                   </thead>
@@ -397,20 +373,6 @@ const UserDashboard = () => {
                         </td>
                         <td className="p-4">
                           <span className="text-sm text-foreground">{deal.coach}</span>
-                        </td>
-                        <td className="p-4">
-                          {(() => {
-                            const unreadCount = getUnreadCount(deal.id);
-                            return unreadCount > 0 ? (
-                              <div className="flex items-center gap-2">
-                                <Badge variant="destructive" className="text-xs">
-                                  {unreadCount} new
-                                </Badge>
-                              </div>
-                            ) : (
-                              <span className="text-xs text-muted-foreground">No new messages</span>
-                            );
-                          })()}
                         </td>
                         <td className="p-4">
                           <div className="flex gap-2">
