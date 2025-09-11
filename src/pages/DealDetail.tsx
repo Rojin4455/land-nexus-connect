@@ -20,6 +20,9 @@ const DealDetail = () => {
   
   // Get unread count from navigation state (from dashboard listing)
   const initialUnreadCount = location.state?.unread_count || 0;
+  
+  console.log("🔍 Navigation state:", location.state);
+  console.log("🔍 Initial unread count:", initialUnreadCount);
 
   console.log("deallll: ", deal)
 
@@ -36,6 +39,12 @@ const DealDetail = () => {
           ...response.data,
           unread_count: (response.data as any).unread_count ?? initialUnreadCount
         } as any);
+        
+        console.log("🔍 API response data:", response.data);
+        console.log("🔍 Final deal with unread count:", {
+          ...response.data,
+          unread_count: (response.data as any).unread_count ?? initialUnreadCount
+        });
       } else {
         toast({
           title: "Deal not found",
@@ -143,6 +152,10 @@ const DealDetail = () => {
       count: (deal as any)?.unread_count || 0
     }
   ];
+  
+  console.log("🔍 Tabs with counts:", tabs);
+  console.log("🔍 Deal object:", deal);
+  console.log("🔍 Conversation tab count:", (deal as any)?.unread_count);
 
   const renderTabContent = () => {
     switch (activeTab) {
