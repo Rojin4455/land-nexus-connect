@@ -64,33 +64,12 @@ const UserDashboard = () => {
       if (response.success) {
         setDeals(response.data);
       } else {
-        // Fallback to demo data if API fails
-        const demoDeals = [
-          {
-            id: 'DEAL-001',
-            address: '123 Mountain View Ave, Colorado Springs, CO',
-            submittedOn: '2024-01-15',
-            status: 'Under Review',
-            coach: 'Sarah Johnson',
-            agreedPrice: 125000,
-            landType: 'Residential'
-          },
-          {
-            id: 'DEAL-002', 
-            address: '456 Forest Trail, Boulder, CO',
-            submittedOn: '2024-01-10',
-            status: 'Approved',
-            coach: 'Mike Chen',
-            agreedPrice: 89000,
-            landType: 'Commercial'
-          }
-        ];
-        setDeals(demoDeals);
         toast({
-          title: "Using demo data",
-          description: "Could not connect to API, showing demo data.",
+          title: "Error loading deals",
+          description: "Could not load your deals. Please try again.",
           variant: "destructive",
         });
+        setDeals([]);
       }
     } catch (error) {
       const errorMessage = handleApiError(error);
@@ -99,7 +78,6 @@ const UserDashboard = () => {
         description: errorMessage,
         variant: "destructive",
       });
-      // Set empty array on error
       setDeals([]);
     } finally {
       setIsLoading(false);
@@ -107,51 +85,6 @@ const UserDashboard = () => {
   };
 
 
-  const getStatusVariant = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'submitted':
-        return 'status-pending';
-      case 'under_review_with_buyer':
-        return 'status-reviewed';
-      case 'buyer_approved':
-        return 'status-approved';
-      case 'buyer_rejected':
-        return 'status-rejected';
-      case 'mls_pending':
-        return 'status-reviewed';
-      case 'mls_active':
-        return 'status-active';
-      case 'sold':
-        return 'status-approved';
-      case 'canceled':
-        return 'status-rejected';
-      default:
-        return 'status-pending';
-    }
-  };
-
-  const getStatusDisplayName = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'submitted':
-        return 'Submitted';
-      case 'under_review_with_buyer':
-        return 'Under review with Buyer';
-      case 'buyer_approved':
-        return 'Buyer Approved';
-      case 'buyer_rejected':
-        return 'Buyer Rejected';
-      case 'mls_pending':
-        return 'MLS Listing - Pending';
-      case 'mls_active':
-        return 'MLS Active Listing';
-      case 'sold':
-        return 'Sold Deal';
-      case 'canceled':
-        return 'Canceled Deal';
-      default:
-        return status || 'Unknown';
-    }
-  };
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -190,16 +123,12 @@ const UserDashboard = () => {
     }
   };
 
-  // Filter deals based on search term and status
+  // Filter deals based on search term
   const filteredDeals = deals.filter(deal => {
     const matchesSearch = (deal.address || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (deal.id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (deal.landType || deal.land_type_detail?.display_name || '').toLowerCase().includes(searchTerm.toLowerCase());
+      (deal.property_submission_id?.toString() || '').includes(searchTerm.toLowerCase());
     
-    const matchesStatus = !statusFilter || 
-      (deal.status || '').toLowerCase() === statusFilter.toLowerCase();
-    
-    return matchesSearch && matchesStatus;
+    return matchesSearch;
   });
 
   if (isLoading) {
@@ -252,10 +181,8 @@ const UserDashboard = () => {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-foreground">
-                {formatCurrency(deals.reduce((sum, deal) => sum + deal.agreedPrice, 0))}
-              </div>
-              <p className="text-xs text-muted-foreground">Across all submissions</p>
+              <div className="text-2xl font-bold text-foreground">N/A</div>
+              <p className="text-xs text-muted-foreground">Data not available</p>
             </CardContent>
           </Card>
 
@@ -266,9 +193,9 @@ const UserDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-foreground">
-                {deals.filter(deal => deal.status.toLowerCase().includes('review')).length}
+                {deals.filter(deal => deal.last_message).length}
               </div>
-              <p className="text-xs text-muted-foreground">Awaiting coach feedback</p>
+              <p className="text-xs text-muted-foreground">Properties with messages</p>
             </CardContent>
           </Card>
         </div>
@@ -282,35 +209,17 @@ const UserDashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {/* Search and Filter Controls */}
+            {/* Search Controls */}
             {deals.length > 0 && (
               <div className="flex items-center justify-between mb-6">
                 <div className="relative flex-1 max-w-md">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search deals by address, ID, or type..."
+                    placeholder="Search deals by address or ID..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
                   />
-                </div>
-                <div className="flex items-center gap-4">
-                  <Select value={statusFilter || "all"} onValueChange={(value) => setStatusFilter(value === "all" ? "" : value)}>
-                    <SelectTrigger className="w-48">
-                      <SelectValue placeholder="Filter by status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Statuses</SelectItem>
-                      <SelectItem value="submitted">Submitted</SelectItem>
-                      <SelectItem value="under_review_with_buyer">Under review with Buyer</SelectItem>
-                      <SelectItem value="buyer_approved">Buyer Approved</SelectItem>
-                      <SelectItem value="buyer_rejected">Buyer Rejected</SelectItem>
-                      <SelectItem value="mls_pending">MLS Listing - Pending</SelectItem>
-                      <SelectItem value="mls_active">MLS Active Listing</SelectItem>
-                      <SelectItem value="sold">Sold Deal</SelectItem>
-                      <SelectItem value="canceled">Canceled Deal</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
             )}
@@ -339,42 +248,42 @@ const UserDashboard = () => {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-border">
-                      <th className="text-left p-4 font-medium text-muted-foreground">Deal ID</th>
-                      <th className="text-left p-4 font-medium text-muted-foreground">Location</th>
-                      <th className="text-left p-4 font-medium text-muted-foreground">Submitted</th>
-                      <th className="text-left p-4 font-medium text-muted-foreground">Status</th>
-                      <th className="text-left p-4 font-medium text-muted-foreground">Coach</th>
+                      <th className="text-left p-4 font-medium text-muted-foreground">Property ID</th>
+                      <th className="text-left p-4 font-medium text-muted-foreground">Address</th>
+                      <th className="text-left p-4 font-medium text-muted-foreground">Last Message</th>
                       <th className="text-left p-4 font-medium text-muted-foreground">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredDeals.map((deal) => (
-                      <tr key={deal.id} className="border-b border-border hover:bg-secondary/50 transition-colors">
+                      <tr key={deal.property_submission_id} className="border-b border-border hover:bg-secondary/50 transition-colors">
                         <td className="p-4">
-                          <span className="font-mono text-sm font-medium text-primary">{deal.id}</span>
+                          <span className="font-mono text-sm font-medium text-primary">#{deal.property_submission_id}</span>
                         </td>
                         <td className="p-4">
                           <div className="flex items-start space-x-2">
                             <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                             <div>
                               <p className="font-medium text-foreground text-sm">{deal.address}</p>
-                              <p className="text-xs text-muted-foreground">{formatCurrency(deal.agreedPrice)} • {deal.landType}</p>
+                              {deal.last_message && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Last: "{deal.last_message}"
+                                </p>
+                              )}
                             </div>
                           </div>
                         </td>
                         <td className="p-4">
-                          <div className="flex items-center space-x-2">
-                            <Calendar className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm text-foreground">{formatDate(deal.submittedOn)}</span>
-                          </div>
-                        </td>
-                        <td className="p-4">
-                          <Badge className={`${getStatusVariant(deal.status)} text-xs`}>
-                            {getStatusDisplayName(deal.status)}
-                          </Badge>
-                        </td>
-                        <td className="p-4">
-                          <span className="text-sm text-foreground">{deal.coach}</span>
+                          {deal.last_message_timestamp ? (
+                            <div className="flex items-center space-x-2">
+                              <Calendar className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm text-foreground">
+                                {formatDate(deal.last_message_timestamp)}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">No messages</span>
+                          )}
                         </td>
                         <td className="p-4">
                           <div className="flex gap-2">
@@ -382,7 +291,7 @@ const UserDashboard = () => {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => navigate(`/deal/${deal.id}`)}
+                                onClick={() => navigate(`/deal/${deal.property_submission_id}`)}
                                 className="hover:bg-primary hover:text-primary-foreground"
                               >
                                 <Eye className="h-4 w-4 mr-1" />
@@ -423,7 +332,7 @@ const UserDashboard = () => {
                                 <AlertDialogFooter>
                                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                                   <AlertDialogAction
-                                    onClick={() => handleDeleteDeal(deal.id)}
+                                    onClick={() => handleDeleteDeal(deal.property_submission_id)}
                                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                   >
                                     Delete Property
