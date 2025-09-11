@@ -60,16 +60,10 @@ const UserDashboard = () => {
 
   const loadDeals = async () => {
     try {
-      console.log('🔍 Starting to load deals...');
       const response = await landDealsApi.getUserLandDeals();
-      console.log('📡 API Response:', response);
-      
       if (response.success) {
-        console.log('✅ Success! Deals data:', response.data);
-        console.log('🔎 First deal structure:', response.data[0]);
         setDeals(response.data);
       } else {
-        console.log('❌ API Response not successful');
         toast({
           title: "Error loading deals",
           description: "Could not load your deals. Please try again.",
@@ -78,7 +72,6 @@ const UserDashboard = () => {
         setDeals([]);
       }
     } catch (error) {
-      console.error('💥 Error in loadDeals:', error);
       const errorMessage = handleApiError(error);
       toast({
         title: "Error loading deals",
@@ -117,23 +110,14 @@ const UserDashboard = () => {
 
   // Filter deals based on search term
   const filteredDeals = deals.filter(deal => {
-    console.log('🔍 Filtering deal:', deal);
+    const searchTerm_lower = searchTerm.toLowerCase();
+    const address = deal.address || '';
+    const propertyId = deal.property_submission_id ? deal.property_submission_id.toString() : '';
     
-    try {
-      const searchTerm_lower = searchTerm.toLowerCase();
-      const address = deal.address || '';
-      const propertyId = deal.property_submission_id ? deal.property_submission_id.toString() : '';
-      
-      console.log('🔎 Search terms:', { searchTerm_lower, address, propertyId });
-      
-      const matchesSearch = address.toLowerCase().includes(searchTerm_lower) ||
-        propertyId.includes(searchTerm_lower);
-      
-      return matchesSearch;
-    } catch (error) {
-      console.error('💥 Error in filter function for deal:', deal, error);
-      return true; // Include the deal if there's an error to avoid hiding it
-    }
+    const matchesSearch = address.toLowerCase().includes(searchTerm_lower) ||
+      propertyId.includes(searchTerm_lower);
+    
+    return matchesSearch;
   });
 
   if (isLoading) {
@@ -260,9 +244,7 @@ const UserDashboard = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredDeals.map((deal) => {
-                      console.log('🎨 Rendering deal:', deal);
-                      return (
+                    {filteredDeals.map((deal) => (
                       <tr key={deal.property_submission_id} className="border-b border-border hover:bg-secondary/50 transition-colors">
                         <td className="p-4">
                           <span className="font-mono text-sm font-medium text-primary">#{deal.property_submission_id}</span>
@@ -354,8 +336,7 @@ const UserDashboard = () => {
                           </div>
                         </td>
                       </tr>
-                      );
-                    })}
+                    ))}
                   </tbody>
                 </table>
               </div>

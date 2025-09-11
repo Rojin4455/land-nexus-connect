@@ -195,17 +195,22 @@ export const landDealsApi = {
   // Fetch all land deals for the current user
   getUserLandDeals: async (): Promise<ApiResponse<LandDeal[]>> => {
     const response = await api.get('/data/properties/list/');
-    // Transform the response to match our interface
+    // Transform the response to match our interface based on the actual API structure
     const transformedData = response.data.map((property: any) => ({
-      id: property.id.toString(),
+      id: property.property_submission_id,
+      property_submission_id: property.property_submission_id,
       address: property.address,
-      submittedOn: property.created_at,
-      status: property.status,
-      coach: 'Assigned Coach', // Default value since not in response
-      agreedPrice: parseFloat(property.asking_price),
-      landType: property.land_type_name,
-      acreage: parseFloat(property.acreage),
-      totalFilesCount: property.total_files_count
+      last_message: property.last_message,
+      last_message_timestamp: property.last_message_timestamp,
+      unread_count: property.unread_count,
+      // Default/placeholder values for fields not in API response
+      submittedOn: new Date().toISOString(),
+      status: 'submitted',
+      coach: 'Assigned Coach',
+      agreedPrice: 0,
+      landType: 'Unknown',
+      acreage: 0,
+      totalFilesCount: 0
     }));
     
     return {
