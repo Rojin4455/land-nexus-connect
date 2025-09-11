@@ -124,7 +124,7 @@ const DealDetail = () => {
       id: 'conversation',
       label: 'Conversation',
       icon: MessageCircle,
-      count: null
+      count: deal?.unread_count || 0
     }
   ];
 
@@ -189,11 +189,15 @@ const DealDetail = () => {
                 <span className="font-medium">{tab.label}</span>
                 {tab.count !== null && tab.count > 0 && (
                   <Badge 
-                    variant="secondary" 
+                    variant={tab.id === 'conversation' && tab.count > 0 ? "destructive" : "secondary"}
                     className={`ml-1 text-xs ${
                       activeTab === tab.id 
-                        ? 'bg-primary-foreground/20 text-primary-foreground' 
-                        : 'bg-primary/10 text-primary'
+                        ? tab.id === 'conversation' && tab.count > 0
+                          ? 'bg-destructive text-destructive-foreground'
+                          : 'bg-primary-foreground/20 text-primary-foreground'
+                        : tab.id === 'conversation' && tab.count > 0
+                          ? 'bg-destructive text-destructive-foreground'
+                          : 'bg-primary/10 text-primary'
                     }`}
                   >
                     {tab.count}

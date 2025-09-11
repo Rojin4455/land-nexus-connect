@@ -225,7 +225,8 @@ export const landDealsApi = {
     // Transform the response to match our interface
     const property = response.data;
     const transformedData = {
-      id: property.id.toString(),
+      id: property.id ? property.id.toString() : property.property_submission_id?.toString(),
+      property_submission_id: property.property_submission_id || property.id,
       address: property.address,
       latitude: property.latitude,
       longitude: property.longitude,
@@ -233,16 +234,20 @@ export const landDealsApi = {
       submittedOn: property.created_at,
       status: property.status,
       coach: 'Assigned Coach', // Default value since not in response
-      agreedPrice: parseFloat(property.asking_price),
+      agreedPrice: parseFloat(property.asking_price || property.agreed_price || 0),
       landType: property.land_type_detail?.display_name || property.land_type_name,
-      acreage: parseFloat(property.acreage),
+      acreage: parseFloat(property.acreage || property.lot_size || 0),
       zoning: property.zoning,
       utilities: property.utilities_detail?.display_name ? [property.utilities_detail.display_name] : [],
       photos: property.files?.filter((f: any) => f.file_type === 'image')?.map((f: any) => f.file_url) || [],
       documents: property.files?.filter((f: any) => f.file_type !== 'image')?.map((f: any) => f.file_url) || [],
       description: property.description,
       accessType: property.access_type_detail?.display_name,
-      files: property.files || []
+      files: property.files || [],
+      // Include unread count from API response
+      unread_count: property.unread_count || 0,
+      last_message: property.last_message,
+      last_message_timestamp: property.last_message_timestamp
     };
     
     return {
