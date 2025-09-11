@@ -32,14 +32,12 @@ import {
   MessageCircle
 } from 'lucide-react';
 import { landDealsApi, handleApiError } from '@/services/landDealsApi';
-import { conversationsApi, ConversationInboxItem } from '@/services/conversationsApi';
 import { toast } from '@/hooks/use-toast';
 
 const UserDashboard = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
   const [deals, setDeals] = useState([]);
-  const [conversations, setConversations] = useState<ConversationInboxItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -58,7 +56,6 @@ const UserDashboard = () => {
     }
 
     loadDeals();
-    loadConversations();
   }, [isAuthenticated, user, navigate]);
 
   const loadDeals = async () => {
@@ -109,22 +106,6 @@ const UserDashboard = () => {
     }
   };
 
-  const loadConversations = async () => {
-    try {
-      const response = await conversationsApi.getInbox();
-      if (response.success) {
-        setConversations(response.data);
-      }
-    } catch (error) {
-      console.error('Error loading conversations:', error);
-      // Don't show toast for conversations error, it's secondary data
-    }
-  };
-
-  const getUnreadCount = (dealId: number) => {
-    const conversation = conversations.find(conv => conv.property_submission_id === dealId);
-    return conversation?.unread_count || 0;
-  };
 
   const getStatusVariant = (status) => {
     switch (status?.toLowerCase()) {
@@ -407,13 +388,13 @@ const UserDashboard = () => {
                                 <Eye className="h-4 w-4 mr-1" />
                                 View
                               </Button>
-                              {getUnreadCount(deal.id) > 0 && (
+                              {deal.unread_count > 0 && (
                                 <div className="absolute -top-2 -right-2 flex items-center">
                                   <Badge 
                                     variant="destructive" 
                                     className="px-1.5 py-0.5 text-xs min-w-[20px] h-5 flex items-center justify-center rounded-full"
                                   >
-                                    {getUnreadCount(deal.id)}
+                                    {deal.unread_count}
                                   </Badge>
                                   <MessageCircle className="h-3 w-3 text-destructive ml-1" />
                                 </div>
