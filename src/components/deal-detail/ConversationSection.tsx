@@ -25,6 +25,8 @@ const ConversationSection = ({
 
   useEffect(() => {
     loadMessages();
+    // Mark messages as read when conversation is opened
+    markMessagesAsRead();
   }, [deal.id]);
 
   const loadMessages = async () => {
@@ -43,6 +45,19 @@ const ConversationSection = ({
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const markMessagesAsRead = async () => {
+    try {
+      await landDealsApi.conversations.markAsRead(deal.property_submission_id || deal.id);
+      // Update parent component about read status if callback provided
+      if (deal.onMarkAsRead) {
+        deal.onMarkAsRead();
+      }
+    } catch (error) {
+      // Silently handle error - don't show toast for this background operation
+      console.error('Error marking messages as read:', error);
     }
   };
 

@@ -47,6 +47,14 @@ const DealDetail = () => {
     }
   };
 
+  const handleMarkAsRead = () => {
+    // Update the deal's unread count to 0 when messages are marked as read
+    setDeal(prevDeal => ({
+      ...prevDeal,
+      unread_count: 0
+    }));
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -137,7 +145,7 @@ const DealDetail = () => {
       case 'conversation':
         return (
           <ConversationSection 
-            deal={deal}
+            deal={{...deal, onMarkAsRead: handleMarkAsRead}}
             formatDate={formatDate}
             getStatusVariant={getStatusVariant}
           />
