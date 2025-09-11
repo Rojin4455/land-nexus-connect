@@ -86,21 +86,6 @@ const UserDashboard = () => {
 
 
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
 
   const handleDeleteDeal = async (dealId: string) => {
     try {
@@ -125,8 +110,12 @@ const UserDashboard = () => {
 
   // Filter deals based on search term
   const filteredDeals = deals.filter(deal => {
-    const matchesSearch = (deal.address || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (deal.property_submission_id?.toString() || '').includes(searchTerm.toLowerCase());
+    const searchTerm_lower = searchTerm.toLowerCase();
+    const address = deal.address || '';
+    const propertyId = deal.property_submission_id ? deal.property_submission_id.toString() : '';
+    
+    const matchesSearch = address.toLowerCase().includes(searchTerm_lower) ||
+      propertyId.includes(searchTerm_lower);
     
     return matchesSearch;
   });
@@ -278,7 +267,11 @@ const UserDashboard = () => {
                             <div className="flex items-center space-x-2">
                               <Calendar className="h-4 w-4 text-muted-foreground" />
                               <span className="text-sm text-foreground">
-                                {formatDate(deal.last_message_timestamp)}
+                                {new Date(deal.last_message_timestamp).toLocaleDateString('en-US', {
+                                  year: 'numeric',
+                                  month: 'short',
+                                  day: 'numeric'
+                                })}
                               </span>
                             </div>
                           ) : (
@@ -297,13 +290,13 @@ const UserDashboard = () => {
                                 <Eye className="h-4 w-4 mr-1" />
                                 View
                               </Button>
-                              {deal.unread_count > 0 && (
+                              {(deal.unread_count && deal.unread_count > 0) && (
                                 <div className="absolute -top-2 -right-2 flex items-center">
                                   <Badge 
                                     variant="destructive" 
                                     className="px-1.5 py-0.5 text-xs min-w-[20px] h-5 flex items-center justify-center rounded-full"
                                   >
-                                    {deal.unread_count}
+                                    {deal.unread_count || 0}
                                   </Badge>
                                   <MessageCircle className="h-3 w-3 text-destructive ml-1" />
                                 </div>
@@ -332,7 +325,7 @@ const UserDashboard = () => {
                                 <AlertDialogFooter>
                                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                                   <AlertDialogAction
-                                    onClick={() => handleDeleteDeal(deal.property_submission_id)}
+                                    onClick={() => handleDeleteDeal(deal.property_submission_id?.toString() || '')}
                                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                   >
                                     Delete Property
