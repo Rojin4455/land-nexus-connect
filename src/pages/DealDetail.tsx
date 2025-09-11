@@ -35,15 +35,16 @@ const DealDetail = () => {
       const response = await landDealsApi.getLandDealById(id);
       if (response.success) {
         // Merge API data with navigation state data
+        // Prioritize navigation state unread_count over API response since it's more recent
         setDeal({
           ...response.data,
-          unread_count: (response.data as any).unread_count ?? initialUnreadCount
+          unread_count: initialUnreadCount > 0 ? initialUnreadCount : (response.data as any).unread_count || 0
         } as any);
         
         console.log("🔍 API response data:", response.data);
         console.log("🔍 Final deal with unread count:", {
           ...response.data,
-          unread_count: (response.data as any).unread_count ?? initialUnreadCount
+          unread_count: initialUnreadCount > 0 ? initialUnreadCount : (response.data as any).unread_count || 0
         });
       } else {
         toast({
