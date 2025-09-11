@@ -284,7 +284,9 @@ const UserDashboard = () => {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => navigate(`/deal/${deal.property_submission_id}`)}
+                                onClick={() => navigate(`/deal/${deal.property_submission_id}`, {
+                                  state: { unread_count: deal.unread_count }
+                                })}
                                 className="hover:bg-primary hover:text-primary-foreground"
                               >
                                 <Eye className="h-4 w-4 mr-1" />

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -13,9 +13,13 @@ import { toast } from '@/hooks/use-toast';
 const DealDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [deal, setDeal] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('details');
+  
+  // Get unread count from navigation state (from dashboard listing)
+  const initialUnreadCount = location.state?.unread_count || 0;
 
   console.log("deallll: ", deal)
 
@@ -27,7 +31,11 @@ const DealDetail = () => {
     try {
       const response = await landDealsApi.getLandDealById(id);
       if (response.success) {
-        setDeal(response.data);
+        // Merge API data with navigation state data
+        setDeal({
+          ...response.data,
+          unread_count: (response.data as any).unread_count ?? initialUnreadCount
+        } as any);
       } else {
         toast({
           title: "Deal not found",
@@ -52,7 +60,7 @@ const DealDetail = () => {
     setDeal(prevDeal => ({
       ...prevDeal,
       unread_count: 0
-    }));
+    } as any));
   };
 
   const formatDate = (dateString) => {
@@ -132,7 +140,7 @@ const DealDetail = () => {
       id: 'conversation',
       label: 'Conversation',
       icon: MessageCircle,
-      count: deal?.unread_count || 0
+      count: (deal as any)?.unread_count || 0
     }
   ];
 
