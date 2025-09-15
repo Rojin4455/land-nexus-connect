@@ -7,6 +7,18 @@
 /* Google Maps Autocomplete z-index fix for modals */
 .pac-container {
   z-index: 10000 !important;
+  /* Ensure pointer events work in modals */
+  pointer-events: auto !important;
+}
+
+/* Fix for autocomplete items in modals */
+.pac-container .pac-item {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+.pac-container .pac-item:hover {
+  background-color: #f5f5f5 !important;
 }
 
 @layer base {

@@ -42,6 +42,13 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
 
   const onLoad = (autoC: google.maps.places.Autocomplete) => {
     setAutocomplete(autoC);
+    
+    // Ensure autocomplete works in modals
+    const pacContainer = document.querySelector('.pac-container') as HTMLElement;
+    if (pacContainer) {
+      pacContainer.style.pointerEvents = 'auto';
+      pacContainer.style.zIndex = '10000';
+    }
   };
 
   const onPlaceChanged = () => {
