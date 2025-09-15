@@ -43,12 +43,23 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   const onLoad = (autoC: google.maps.places.Autocomplete) => {
     setAutocomplete(autoC);
     
-    // Ensure autocomplete works in modals
-    const pacContainer = document.querySelector('.pac-container') as HTMLElement;
-    if (pacContainer) {
-      pacContainer.style.pointerEvents = 'auto';
-      pacContainer.style.zIndex = '10000';
-    }
+    // Ensure autocomplete works in modals and prevent modal closing
+    setTimeout(() => {
+      const pacContainer = document.querySelector('.pac-container') as HTMLElement;
+      if (pacContainer) {
+        pacContainer.style.pointerEvents = 'auto';
+        pacContainer.style.zIndex = '10000';
+        
+        // Prevent modal closing when clicking on suggestions
+        pacContainer.addEventListener('click', (e) => {
+          e.stopPropagation();
+        });
+        
+        pacContainer.addEventListener('mousedown', (e) => {
+          e.stopPropagation();
+        });
+      }
+    }, 100);
   };
 
   const onPlaceChanged = () => {
@@ -70,19 +81,22 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
       const state = getComponent("administrative_area_level_1");
       const zip_code = getComponent("postal_code");
 
-      if (lat && lng && place_id) {
-        onChange(address, {
-          lat,
-          lng,
-          place_id,
-          city,
-          county,
-          state,
-          zip_code,
-        });
-      } else {
-        onChange(address); // fallback if no geometry
-      }
+      // Prevent any event bubbling that might close modals
+      setTimeout(() => {
+        if (lat && lng && place_id) {
+          onChange(address, {
+            lat,
+            lng,
+            place_id,
+            city,
+            county,
+            state,
+            zip_code,
+          });
+        } else {
+          onChange(address); // fallback if no geometry
+        }
+      }, 0);
     }
   };
 

@@ -9,12 +9,16 @@
   z-index: 10000 !important;
   /* Ensure pointer events work in modals */
   pointer-events: auto !important;
+  /* Prevent modal closing when interacting with suggestions */
+  position: relative !important;
 }
 
 /* Fix for autocomplete items in modals */
 .pac-container .pac-item {
   pointer-events: auto !important;
   cursor: pointer !important;
+  /* Prevent event bubbling that closes modals */
+  position: relative !important;
 }
 
 .pac-container .pac-item:hover {
