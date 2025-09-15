@@ -477,33 +477,40 @@ const onSubmit = async (values: BuyBoxFormValues) => {
     />
   );
 
-  const RangeFields = ({ minName, maxName, label, integer = false }: { minName: keyof BuyBoxFormValues; maxName: keyof BuyBoxFormValues; label: string; integer?: boolean }) => (
-    <div className="space-y-2">
-      <Label>{label}</Label>
-      <div className="grid grid-cols-2 gap-2">
-        <Input 
-          type="number" 
-          value={form.watch(minName as any) ?? ""} 
-          onChange={(e) => {
-            const value = e.target.value;
-            const numValue = value === "" ? null : Number(value);
-            form.setValue(minName as any, integer && numValue ? Math.trunc(numValue) : numValue);
-          }} 
-          placeholder="Min" 
-        />
-        <Input 
-          type="number" 
-          value={form.watch(maxName as any) ?? ""} 
-          onChange={(e) => {
-            const value = e.target.value;
-            const numValue = value === "" ? null : Number(value);
-            form.setValue(maxName as any, integer && numValue ? Math.trunc(numValue) : numValue);
-          }} 
-          placeholder="Max" 
-        />
+  const RangeFields = ({ minName, maxName, label, integer = false }: { minName: keyof BuyBoxFormValues; maxName: keyof BuyBoxFormValues; label: string; integer?: boolean }) => {
+    const minValue = form.watch(minName as any);
+    const maxValue = form.watch(maxName as any);
+    
+    return (
+      <div className="space-y-2">
+        <Label>{label}</Label>
+        <div className="grid grid-cols-2 gap-2">
+          <Input 
+            type="number" 
+            value={minValue ?? ""} 
+            onChange={(e) => {
+              const value = e.target.value;
+              const numValue = value === "" ? null : Number(value);
+              form.setValue(minName as any, integer && numValue ? Math.trunc(numValue) : numValue, { shouldValidate: false });
+            }} 
+            onBlur={() => form.trigger(minName as any)}
+            placeholder="Min" 
+          />
+          <Input 
+            type="number" 
+            value={maxValue ?? ""} 
+            onChange={(e) => {
+              const value = e.target.value;
+              const numValue = value === "" ? null : Number(value);
+              form.setValue(maxName as any, integer && numValue ? Math.trunc(numValue) : numValue, { shouldValidate: false });
+            }} 
+            onBlur={() => form.trigger(maxName as any)}
+            placeholder="Max" 
+          />
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const CheckboxGroup = ({ name, label, options }: { name: keyof BuyBoxFormValues; label: string; options: readonly string[] }) => (
     <FormField

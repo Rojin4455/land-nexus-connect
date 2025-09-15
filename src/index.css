@@ -4,6 +4,11 @@
 
 /* Professional Real Estate Platform Design System */
 
+/* Google Maps Autocomplete z-index fix for modals */
+.pac-container {
+  z-index: 10000 !important;
+}
+
 @layer base {
   :root {
     /* Professional real estate color palette */
