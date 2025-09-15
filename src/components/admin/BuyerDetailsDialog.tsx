@@ -481,25 +481,41 @@ const onSubmit = async (values: BuyBoxFormValues) => {
     <div className="space-y-2">
       <Label>{label}</Label>
       <div className="grid grid-cols-2 gap-2">
-        <Input 
-          type="number" 
-          value={form.watch(minName as any) ?? ""} 
-          onChange={(e) => {
-            const value = e.target.value;
-            const numValue = value === "" ? null : Number(value);
-            form.setValue(minName as any, integer && numValue ? Math.trunc(numValue) : numValue);
-          }} 
-          placeholder="Min" 
+        <FormField
+          control={form.control}
+          name={minName as any}
+          render={({ field }) => (
+            <FormControl>
+              <Input 
+                type="number" 
+                value={field.value ?? ""} 
+                onChange={(e) => {
+                  const value = e.target.value;
+                  const numValue = value === "" ? null : Number(value);
+                  field.onChange(integer && numValue ? Math.trunc(numValue) : numValue);
+                }} 
+                placeholder="Min" 
+              />
+            </FormControl>
+          )}
         />
-        <Input 
-          type="number" 
-          value={form.watch(maxName as any) ?? ""} 
-          onChange={(e) => {
-            const value = e.target.value;
-            const numValue = value === "" ? null : Number(value);
-            form.setValue(maxName as any, integer && numValue ? Math.trunc(numValue) : numValue);
-          }} 
-          placeholder="Max" 
+        <FormField
+          control={form.control}
+          name={maxName as any}
+          render={({ field }) => (
+            <FormControl>
+              <Input 
+                type="number" 
+                value={field.value ?? ""} 
+                onChange={(e) => {
+                  const value = e.target.value;
+                  const numValue = value === "" ? null : Number(value);
+                  field.onChange(integer && numValue ? Math.trunc(numValue) : numValue);
+                }} 
+                placeholder="Max" 
+              />
+            </FormControl>
+          )}
         />
       </div>
     </div>
@@ -767,25 +783,33 @@ const onSubmit = async (values: BuyBoxFormValues) => {
 
                         {/* Address field */}
                         <section className="space-y-4">
-                          <div className="space-y-2">
-                            <Label>Target Address / Location</Label>
-                            <AddressAutocomplete
-                              value={form.watch("address") || ""}
-                              onChange={(address, locationData) => {
-                                form.setValue("address", address);
-                                if (locationData) {
-                                  form.setValue("latitude", locationData.lat);
-                                  form.setValue("longitude", locationData.lng);
-                                  form.setValue("place_id", locationData.place_id);
-                                }
-                              }}
-                              placeholder="Enter target investment address..."
-                              className="w-full"
-                            />
-                            <p className="text-sm text-muted-foreground">
-                              Specify the target address or area for investments
-                            </p>
-                          </div>
+                          <FormField
+                            control={form.control}
+                            name="address"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Target Address / Location</FormLabel>
+                                <FormControl>
+                                  <AddressAutocomplete
+                                    value={field.value || ""}
+                                    onChange={(address, locationData) => {
+                                      field.onChange(address);
+                                      if (locationData) {
+                                        form.setValue("latitude", locationData.lat);
+                                        form.setValue("longitude", locationData.lng);
+                                        form.setValue("place_id", locationData.place_id);
+                                      }
+                                    }}
+                                    placeholder="Enter target investment address..."
+                                    className="w-full"
+                                  />
+                                </FormControl>
+                                <FormDescription>
+                                  Specify the target address or area for investments
+                                </FormDescription>
+                              </FormItem>
+                            )}
+                          />
                         </section>
 
                         {/* Strategies and desired types */}
