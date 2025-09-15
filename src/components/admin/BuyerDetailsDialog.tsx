@@ -487,7 +487,15 @@ const onSubmit = async (values: BuyBoxFormValues) => {
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <Input type="number" value={field.value ?? ""} onChange={(e) => field.onChange(numOrNull(e.target.value, integer))} placeholder="Min" />
+                <Input 
+                  type="number" 
+                  value={field.value ?? ""} 
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    field.onChange(value === "" ? null : (integer ? Math.trunc(Number(value)) || null : Number(value) || null));
+                  }} 
+                  placeholder="Min" 
+                />
               </FormControl>
             </FormItem>
           )}
@@ -498,7 +506,15 @@ const onSubmit = async (values: BuyBoxFormValues) => {
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <Input type="number" value={field.value ?? ""} onChange={(e) => field.onChange(numOrNull(e.target.value, integer))} placeholder="Max" />
+                <Input 
+                  type="number" 
+                  value={field.value ?? ""} 
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    field.onChange(value === "" ? null : (integer ? Math.trunc(Number(value)) || null : Number(value) || null));
+                  }} 
+                  placeholder="Max" 
+                />
               </FormControl>
             </FormItem>
           )}
@@ -775,7 +791,7 @@ const onSubmit = async (values: BuyBoxFormValues) => {
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Target Address / Location</FormLabel>
-                                <FormControl>
+                                <div>
                                   <AddressAutocomplete
                                     value={field.value || ""}
                                     onChange={(address, locationData) => {
@@ -789,7 +805,7 @@ const onSubmit = async (values: BuyBoxFormValues) => {
                                     placeholder="Enter target investment address..."
                                     className="w-full"
                                   />
-                                </FormControl>
+                                </div>
                                 <FormDescription>
                                   Specify the target address or area for investments
                                 </FormDescription>
