@@ -92,12 +92,14 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   const onLoad = (autoC: google.maps.places.Autocomplete) => {
     setAutocomplete(autoC);
     
-    // Set up observer for pac-container
+    // Set up observer for pac-container - but DON'T interfere with events
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         if (mutation.type === 'childList') {
           const pacContainer = document.querySelector('.pac-container') as HTMLElement;
           if (pacContainer) {
+            console.log('Autocomplete suggestions appeared');
+            
             // Style the container
             pacContainer.style.position = 'fixed';
             pacContainer.style.zIndex = '99999';
@@ -115,22 +117,24 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
               pacContainer.style.minWidth = `${rect.width}px`;
             }
             
-            // Set global flag when starting interaction
+            // Set global flag when suggestions appear
             (window as any).__preventModalClose = true;
+            console.log('Set __preventModalClose to true');
             
-            // Add mousedown handler to set flag
-            pacContainer.addEventListener('mousedown', () => {
-              (window as any).__preventModalClose = true;
-              // Clear any existing timeout
-              if (interactionTimeoutRef.current) {
-                clearTimeout(interactionTimeoutRef.current);
-              }
-              // Set timeout to clear flag after interaction
-              interactionTimeoutRef.current = setTimeout(() => {
-                (window as any).__preventModalClose = false;
-              }, 500);
-            });
+            // Clear flag when suggestions disappear (with delay for click processing)
+            const checkVisibility = () => {
+              setTimeout(() => {
+                const stillVisible = document.querySelector('.pac-container') as HTMLElement;
+                if (!stillVisible || stillVisible.offsetHeight === 0 || stillVisible.style.display === 'none') {
+                  (window as any).__preventModalClose = false;
+                  console.log('Cleared __preventModalClose - suggestions hidden');
+                } else {
+                  checkVisibility(); // Keep checking
+                }
+              }, 200);
+            };
             
+            checkVisibility();
             observer.disconnect();
           }
         }
@@ -144,8 +148,10 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   };
 
   const onPlaceChanged = () => {
+    console.log('onPlaceChanged triggered!');
     if (autocomplete) {
       const place = autocomplete.getPlace();
+      console.log('Selected place:', place);
 
       const address = place.formatted_address || place.name || '';
       const lat = place.geometry?.location?.lat();
@@ -161,10 +167,11 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
       const state = getComponent("administrative_area_level_1");
       const zip_code = getComponent("postal_code");
 
-      // Clear the global flag after selection
+      // Clear the global flag after a short delay
       setTimeout(() => {
         (window as any).__preventModalClose = false;
-      }, 100);
+        console.log('Cleared __preventModalClose after selection');
+      }, 300);
 
       // Call onChange with the selected data
       if (lat && lng && place_id) {
