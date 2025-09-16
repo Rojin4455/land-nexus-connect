@@ -5,6 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Eye, CheckCircle, XCircle, MapPin } from 'lucide-react';
 import PropertyInformation from '@/components/deal-detail/PropertyInformation';
@@ -28,6 +30,8 @@ const BuyerPortal = () => {
   const [selectedDealDetails, setSelectedDealDetails] = useState<any>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [updating, setUpdating] = useState(false);
+  const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [rejectNote, setRejectNote] = useState('');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -52,10 +56,10 @@ const BuyerPortal = () => {
     }
   };
 
-  const handleStatusUpdate = async (dealLogId: number, action: 'accept' | 'reject') => {
+  const handleStatusUpdate = async (dealLogId: number, action: 'accept' | 'reject', note?: string) => {
     try {
       setUpdating(true);
-      const response = await updateBuyerDealStatus(dealLogId.toString(), action);
+      const response = await updateBuyerDealStatus(dealLogId.toString(), action, note);
       
       // Update local state with the response data
       setDeals(deals.map(deal => 
@@ -68,6 +72,8 @@ const BuyerPortal = () => {
       });
       
       setSelectedDeal(null);
+      setShowRejectDialog(false);
+      setRejectNote('');
     } catch (error) {
       toast({
         title: "Error",
@@ -76,6 +82,19 @@ const BuyerPortal = () => {
       });
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const handleRejectClick = () => {
+    setShowRejectDialog(true);
+  };
+
+  const handleRejectConfirm = async () => {
+    if (selectedDeal && rejectNote.trim()) {
+      await handleStatusUpdate(selectedDeal.id, 'reject', rejectNote.trim());
+    } else if (selectedDeal) {
+      // Allow rejection without note if they really want to
+      await handleStatusUpdate(selectedDeal.id, 'reject');
     }
   };
 
@@ -251,7 +270,7 @@ const BuyerPortal = () => {
                                 </Button>
                                 <Button
                                   variant="destructive"
-                                  onClick={() => handleStatusUpdate(selectedDeal.id, 'reject')}
+                                  onClick={handleRejectClick}
                                   disabled={updating}
                                   className="flex-1"
                                   size="lg"
@@ -263,6 +282,50 @@ const BuyerPortal = () => {
                             )}
                           </div>
                         )}
+
+                        {/* Reject Note Dialog */}
+                        <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
+                          <DialogContent className="max-w-md">
+                            <DialogHeader>
+                              <DialogTitle>Decline Deal</DialogTitle>
+                              <DialogDescription>
+                                Please provide a reason for declining this deal (optional)
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-4">
+                              <div>
+                                <Label htmlFor="reject-note">Reason for declining</Label>
+                                <Textarea
+                                  id="reject-note"
+                                  placeholder="e.g., Not interested due to location, price too high, etc."
+                                  value={rejectNote}
+                                  onChange={(e) => setRejectNote(e.target.value)}
+                                  className="mt-2"
+                                />
+                              </div>
+                              <div className="flex gap-3">
+                                <Button
+                                  variant="outline"
+                                  onClick={() => {
+                                    setShowRejectDialog(false);
+                                    setRejectNote('');
+                                  }}
+                                  className="flex-1"
+                                >
+                                  Cancel
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  onClick={handleRejectConfirm}
+                                  disabled={updating}
+                                  className="flex-1"
+                                >
+                                  {updating ? 'Declining...' : 'Decline Deal'}
+                                </Button>
+                              </div>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
                       </DialogContent>
                     </Dialog>
                   </CardContent>
