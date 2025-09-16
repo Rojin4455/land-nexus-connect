@@ -35,10 +35,57 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
 
-  const { isLoaded } = useLoadScript({
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_API_KEY,
+  const googleApiKey = import.meta.env.VITE_GOOGLE_API_KEY;
+  
+  console.log('Google API Key:', googleApiKey ? 'Present' : 'Missing');
+  
+  const { isLoaded, loadError } = useLoadScript({
+    googleMapsApiKey: googleApiKey,
     libraries: ['places'],
   });
+
+  if (loadError) {
+    console.error('Error loading Google Maps:', loadError);
+    return (
+      <div className="relative w-full">
+        <div className="relative">
+          <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+          <Input
+            type="text"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={placeholder}
+            required={required}
+            className={`pl-10 ${className}`}
+          />
+        </div>
+        <div className="text-xs text-destructive mt-1">
+          Google Maps failed to load. Please check your API key.
+        </div>
+      </div>
+    );
+  }
+
+  if (!googleApiKey) {
+    return (
+      <div className="relative w-full">
+        <div className="relative">
+          <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+          <Input
+            type="text"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={placeholder}
+            required={required}
+            className={`pl-10 ${className}`}
+          />
+        </div>
+        <div className="text-xs text-warning mt-1">
+          Google Maps API key is missing. Address autocomplete is disabled.
+        </div>
+      </div>
+    );
+  }
 
   const onLoad = (autoC: google.maps.places.Autocomplete) => {
     setAutocomplete(autoC);
