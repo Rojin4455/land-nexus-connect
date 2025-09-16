@@ -92,13 +92,17 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   const onLoad = (autoC: google.maps.places.Autocomplete) => {
     setAutocomplete(autoC);
     
-    // Set up observer for pac-container - but DON'T interfere with events
+    // Set flag immediately when autocomplete loads
+    (window as any).__preventModalClose = true;
+    console.log('Set __preventModalClose on autocomplete load');
+    
+    // Set up observer for pac-container styling only
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         if (mutation.type === 'childList') {
           const pacContainer = document.querySelector('.pac-container') as HTMLElement;
           if (pacContainer) {
-            console.log('Autocomplete suggestions appeared');
+            console.log('Styling autocomplete suggestions');
             
             // Style the container
             pacContainer.style.position = 'fixed';
@@ -117,24 +121,6 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
               pacContainer.style.minWidth = `${rect.width}px`;
             }
             
-            // Set global flag when suggestions appear
-            (window as any).__preventModalClose = true;
-            console.log('Set __preventModalClose to true');
-            
-            // Clear flag when suggestions disappear (with delay for click processing)
-            const checkVisibility = () => {
-              setTimeout(() => {
-                const stillVisible = document.querySelector('.pac-container') as HTMLElement;
-                if (!stillVisible || stillVisible.offsetHeight === 0 || stillVisible.style.display === 'none') {
-                  (window as any).__preventModalClose = false;
-                  console.log('Cleared __preventModalClose - suggestions hidden');
-                } else {
-                  checkVisibility(); // Keep checking
-                }
-              }, 200);
-            };
-            
-            checkVisibility();
             observer.disconnect();
           }
         }
@@ -167,12 +153,6 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
       const state = getComponent("administrative_area_level_1");
       const zip_code = getComponent("postal_code");
 
-      // Clear the global flag after a short delay
-      setTimeout(() => {
-        (window as any).__preventModalClose = false;
-        console.log('Cleared __preventModalClose after selection');
-      }, 300);
-
       // Call onChange with the selected data
       if (lat && lng && place_id) {
         onChange(address, {
@@ -187,7 +167,30 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
       } else {
         onChange(address); // fallback if no geometry
       }
+
+      // Clear the global flag after form update completes
+      setTimeout(() => {
+        (window as any).__preventModalClose = false;
+        console.log('Cleared __preventModalClose after selection');
+      }, 500);
     }
+  };
+
+  // Add input event handlers to maintain the flag
+  const handleInputFocus = () => {
+    (window as any).__preventModalClose = true;
+    console.log('Set __preventModalClose on input focus');
+  };
+
+  const handleInputBlur = () => {
+    // Only clear if no suggestions are visible
+    setTimeout(() => {
+      const pacContainer = document.querySelector('.pac-container') as HTMLElement;
+      if (!pacContainer || pacContainer.offsetHeight === 0 || pacContainer.style.display === 'none') {
+        (window as any).__preventModalClose = false;
+        console.log('Cleared __preventModalClose on input blur');
+      }
+    }, 200);
   };
 
   if (!isLoaded) return null;
@@ -202,6 +205,8 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
             type="text"
             value={value}
             onChange={(e) => onChange(e.target.value)}
+            onFocus={handleInputFocus}
+            onBlur={handleInputBlur}
             placeholder={placeholder}
             required={required}
             className={`pl-10 ${className}`}
