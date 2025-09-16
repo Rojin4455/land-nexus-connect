@@ -37,6 +37,7 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
+  const interactionTimeoutRef = useRef<NodeJS.Timeout>();
 
   const googleApiKey = import.meta.env.VITE_GOOGLE_API_KEY || localStorage.getItem("google_api_key");
   
@@ -91,7 +92,7 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   const onLoad = (autoC: google.maps.places.Autocomplete) => {
     setAutocomplete(autoC);
     
-    // Set up a more robust observer for pac-container
+    // Set up observer for pac-container
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         if (mutation.type === 'childList') {
@@ -114,14 +115,21 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
               pacContainer.style.minWidth = `${rect.width}px`;
             }
             
-            // Only prevent event bubbling, not the default behavior
-            pacContainer.addEventListener('mousedown', (e) => {
-              e.stopPropagation();
-            }, { capture: true });
+            // Set global flag when starting interaction
+            (window as any).__preventModalClose = true;
             
-            pacContainer.addEventListener('click', (e) => {
-              e.stopPropagation();
-            }, { capture: true });
+            // Add mousedown handler to set flag
+            pacContainer.addEventListener('mousedown', () => {
+              (window as any).__preventModalClose = true;
+              // Clear any existing timeout
+              if (interactionTimeoutRef.current) {
+                clearTimeout(interactionTimeoutRef.current);
+              }
+              // Set timeout to clear flag after interaction
+              interactionTimeoutRef.current = setTimeout(() => {
+                (window as any).__preventModalClose = false;
+              }, 500);
+            });
             
             observer.disconnect();
           }
@@ -133,32 +141,6 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
       childList: true,
       subtree: true
     });
-    
-    // Monitor for pac-items and add event handling
-    const itemObserver = new MutationObserver(() => {
-      const pacItems = document.querySelectorAll('.pac-item');
-      pacItems.forEach(item => {
-        if (!item.hasAttribute('data-event-handled')) {
-          item.setAttribute('data-event-handled', 'true');
-          
-          // Only stop propagation, don't prevent default
-          item.addEventListener('mousedown', (e) => {
-            e.stopPropagation();
-          }, { capture: false });
-          
-          item.addEventListener('click', (e) => {
-            e.stopPropagation();
-          }, { capture: false });
-        }
-      });
-    });
-    
-    setTimeout(() => {
-      itemObserver.observe(document.body, {
-        childList: true,
-        subtree: true
-      });
-    }, 100);
   };
 
   const onPlaceChanged = () => {
@@ -179,22 +161,25 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
       const state = getComponent("administrative_area_level_1");
       const zip_code = getComponent("postal_code");
 
-      // Prevent any event bubbling that might close modals
+      // Clear the global flag after selection
       setTimeout(() => {
-        if (lat && lng && place_id) {
-          onChange(address, {
-            lat,
-            lng,
-            place_id,
-            city,
-            county,
-            state,
-            zip_code,
-          });
-        } else {
-          onChange(address); // fallback if no geometry
-        }
-      }, 0);
+        (window as any).__preventModalClose = false;
+      }, 100);
+
+      // Call onChange with the selected data
+      if (lat && lng && place_id) {
+        onChange(address, {
+          lat,
+          lng,
+          place_id,
+          city,
+          county,
+          state,
+          zip_code,
+        });
+      } else {
+        onChange(address); // fallback if no geometry
+      }
     }
   };
 

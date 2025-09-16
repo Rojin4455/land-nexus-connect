@@ -682,23 +682,10 @@ const onSubmit = async (values: BuyBoxFormValues) => {
     <Dialog 
       open={open} 
       onOpenChange={(newOpen) => {
-        // Prevent closing if user is interacting with Google Places autocomplete
-        if (!newOpen) {
-          const pacContainer = document.querySelector('.pac-container') as HTMLElement;
-          
-          // Check if autocomplete dropdown is visible and active
-          if (pacContainer && pacContainer.offsetHeight > 0 && pacContainer.style.display !== 'none') {
-            console.log('Preventing modal close - autocomplete is active');
-            // Allow a short delay for Google to process the selection
-            setTimeout(() => {
-              const stillVisible = document.querySelector('.pac-container') as HTMLElement;
-              if (!stillVisible || stillVisible.offsetHeight === 0) {
-                // Autocomplete closed, safe to proceed if user still wants to close
-                return;
-              }
-            }, 50);
-            return;
-          }
+        // Check global flag to prevent closing during autocomplete interaction
+        if (!newOpen && (window as any).__preventModalClose) {
+          console.log('Preventing modal close - autocomplete interaction in progress');
+          return;
         }
         
         onOpenChange(newOpen);
