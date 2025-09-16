@@ -684,21 +684,20 @@ const onSubmit = async (values: BuyBoxFormValues) => {
       onOpenChange={(newOpen) => {
         // Prevent closing if user is interacting with Google Places autocomplete
         if (!newOpen) {
-          const pacContainer = document.querySelector('.pac-container');
-          const pacItems = document.querySelectorAll('.pac-item');
+          const pacContainer = document.querySelector('.pac-container') as HTMLElement;
           
-          // Check if any pac elements are currently being interacted with
-          if (pacContainer && (pacContainer as HTMLElement).style.display !== 'none') {
-            console.log('Preventing modal close - user interacting with autocomplete');
+          // Check if autocomplete dropdown is visible and active
+          if (pacContainer && pacContainer.offsetHeight > 0 && pacContainer.style.display !== 'none') {
+            console.log('Preventing modal close - autocomplete is active');
+            // Allow a short delay for Google to process the selection
+            setTimeout(() => {
+              const stillVisible = document.querySelector('.pac-container') as HTMLElement;
+              if (!stillVisible || stillVisible.offsetHeight === 0) {
+                // Autocomplete closed, safe to proceed if user still wants to close
+                return;
+              }
+            }, 50);
             return;
-          }
-          
-          // Check if any pac-item has focus or is being hovered
-          for (let item of pacItems) {
-            if (item.matches(':hover') || item.matches(':focus')) {
-              console.log('Preventing modal close - pac-item is active');
-              return;
-            }
           }
         }
         

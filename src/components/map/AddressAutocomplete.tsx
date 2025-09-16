@@ -114,34 +114,14 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
               pacContainer.style.minWidth = `${rect.width}px`;
             }
             
-            // CRITICAL: Prevent modal closing when clicking suggestions
+            // Only prevent event bubbling, not the default behavior
             pacContainer.addEventListener('mousedown', (e) => {
-              e.preventDefault();
               e.stopPropagation();
-              e.stopImmediatePropagation();
             }, { capture: true });
             
             pacContainer.addEventListener('click', (e) => {
-              e.preventDefault();
               e.stopPropagation();
-              e.stopImmediatePropagation();
             }, { capture: true });
-            
-            // Also prevent on all pac-item elements
-            const pacItems = pacContainer.querySelectorAll('.pac-item');
-            pacItems.forEach(item => {
-              item.addEventListener('mousedown', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                e.stopImmediatePropagation();
-              }, { capture: true });
-              
-              item.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                e.stopImmediatePropagation();
-              }, { capture: true });
-            });
             
             observer.disconnect();
           }
@@ -154,23 +134,21 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
       subtree: true
     });
     
-    // Also set up a continuous monitor for new pac-items
+    // Monitor for pac-items and add event handling
     const itemObserver = new MutationObserver(() => {
       const pacItems = document.querySelectorAll('.pac-item');
       pacItems.forEach(item => {
         if (!item.hasAttribute('data-event-handled')) {
           item.setAttribute('data-event-handled', 'true');
+          
+          // Only stop propagation, don't prevent default
           item.addEventListener('mousedown', (e) => {
-            e.preventDefault();
             e.stopPropagation();
-            e.stopImmediatePropagation();
-          }, { capture: true });
+          }, { capture: false });
           
           item.addEventListener('click', (e) => {
-            e.preventDefault();
             e.stopPropagation();
-            e.stopImmediatePropagation();
-          }, { capture: true });
+          }, { capture: false });
         }
       });
     });
