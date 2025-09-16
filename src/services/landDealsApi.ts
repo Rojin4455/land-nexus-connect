@@ -247,7 +247,28 @@ export const landDealsApi = {
       // Include unread count from API response
       unread_count: property.unread_count || 0,
       last_message: property.last_message,
-      last_message_timestamp: property.last_message_timestamp
+      last_message_timestamp: property.last_message_timestamp,
+      // Contact information fields
+      llc_name: property.llc_name,
+      first_name: property.first_name,
+      last_name: property.last_name,
+      phone_number: property.phone_number,
+      email: property.email,
+      under_contract: property.under_contract,
+      parcel_id: property.parcel_id,
+      agreed_price: property.agreed_price,
+      lot_size: property.lot_size,
+      lot_size_unit: property.lot_size_unit,
+      exit_strategy: property.exit_strategy,
+      extra_notes: property.extra_notes,
+      created_at: property.created_at,
+      updated_at: property.updated_at,
+      land_type_detail: property.land_type_detail,
+      utilities_detail: property.utilities_detail,
+      access_type_detail: property.access_type_detail,
+      user_detail: property.user_detail,
+      total_files_count: property.total_files_count,
+      ghl_contact_id: property.ghl_contact_id
     };
     
     return {

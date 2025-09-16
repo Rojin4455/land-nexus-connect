@@ -245,6 +245,10 @@ const AdminDealDetail = () => {
   ];
 
   const renderTabContent = () => {
+    if (!deal) {
+      return <div>Loading deal data...</div>;
+    }
+    
     switch (activeTab) {
       case 'details':
         return <PropertyInformationAdmin deal={deal} formatCurrency={formatCurrency} />;
