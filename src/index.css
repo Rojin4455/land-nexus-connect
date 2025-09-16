@@ -33,7 +33,17 @@
   border-bottom: none !important;
 }
 
-/* Ensure dialog content can scroll when pac-container is present */
+/* Prevent modal closing - critical styles */
+.pac-container,
+.pac-container * {
+  pointer-events: auto !important;
+}
+
+/* Ensure dialog content allows pac-container to be visible */
+[role="dialog"] {
+  overflow: visible !important;
+}
+
 .dialog-content {
   overflow: visible !important;
 }

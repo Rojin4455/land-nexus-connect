@@ -142,6 +142,35 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
               pacContainer.style.minWidth = `${rect.width}px`;
             }
             
+            // CRITICAL: Prevent modal closing when clicking suggestions
+            pacContainer.addEventListener('mousedown', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              e.stopImmediatePropagation();
+            }, { capture: true });
+            
+            pacContainer.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              e.stopImmediatePropagation();
+            }, { capture: true });
+            
+            // Also prevent on all pac-item elements
+            const pacItems = pacContainer.querySelectorAll('.pac-item');
+            pacItems.forEach(item => {
+              item.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+              }, { capture: true });
+              
+              item.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+              }, { capture: true });
+            });
+            
             observer.disconnect();
           }
         }
@@ -152,6 +181,34 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
       childList: true,
       subtree: true
     });
+    
+    // Also set up a continuous monitor for new pac-items
+    const itemObserver = new MutationObserver(() => {
+      const pacItems = document.querySelectorAll('.pac-item');
+      pacItems.forEach(item => {
+        if (!item.hasAttribute('data-event-handled')) {
+          item.setAttribute('data-event-handled', 'true');
+          item.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+          }, { capture: true });
+          
+          item.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+          }, { capture: true });
+        }
+      });
+    });
+    
+    setTimeout(() => {
+      itemObserver.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+    }, 100);
   };
 
   const onPlaceChanged = () => {

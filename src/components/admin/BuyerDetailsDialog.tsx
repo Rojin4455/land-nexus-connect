@@ -679,7 +679,32 @@ const onSubmit = async (values: BuyBoxFormValues) => {
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog 
+      open={open} 
+      onOpenChange={(newOpen) => {
+        // Prevent closing if user is interacting with Google Places autocomplete
+        if (!newOpen) {
+          const pacContainer = document.querySelector('.pac-container');
+          const pacItems = document.querySelectorAll('.pac-item');
+          
+          // Check if any pac elements are currently being interacted with
+          if (pacContainer && (pacContainer as HTMLElement).style.display !== 'none') {
+            console.log('Preventing modal close - user interacting with autocomplete');
+            return;
+          }
+          
+          // Check if any pac-item has focus or is being hovered
+          for (let item of pacItems) {
+            if (item.matches(':hover') || item.matches(':focus')) {
+              console.log('Preventing modal close - pac-item is active');
+              return;
+            }
+          }
+        }
+        
+        onOpenChange(newOpen);
+      }}
+    >
       <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle>Buyer Details</DialogTitle>
