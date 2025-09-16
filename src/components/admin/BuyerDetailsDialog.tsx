@@ -478,31 +478,54 @@ const onSubmit = async (values: BuyBoxFormValues) => {
   );
 
   const RangeFields = ({ minName, maxName, label, integer = false }: { minName: keyof BuyBoxFormValues; maxName: keyof BuyBoxFormValues; label: string; integer?: boolean }) => {
-    const minValue = form.watch(minName as any);
-    const maxValue = form.watch(maxName as any);
+    // Use local state instead of form.watch() to prevent re-renders during typing
+    const [localMinValue, setLocalMinValue] = useState("");
+    const [localMaxValue, setLocalMaxValue] = useState("");
+    
+    // Initialize local state from form values when component mounts
+    useEffect(() => {
+      const formMinValue = form.getValues(minName as any);
+      const formMaxValue = form.getValues(maxName as any);
+      setLocalMinValue(formMinValue?.toString() || "");
+      setLocalMaxValue(formMaxValue?.toString() || "");
+    }, [minName, maxName]);
     
     const handleMinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value;
-      
-      if (value === "") {
-        form.setValue(minName as any, null, { shouldValidate: false });
-      } else {
-        const numValue = parseFloat(value);
-        if (!isNaN(numValue)) {
-          form.setValue(minName as any, integer ? Math.trunc(numValue) : numValue, { shouldValidate: false });
-        }
-      }
+      setLocalMinValue(value);
     };
     
     const handleMaxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value;
-      
-      if (value === "") {
-        form.setValue(maxName as any, null, { shouldValidate: false });
+      setLocalMaxValue(value);
+    };
+    
+    const handleMinBlur = () => {
+      if (localMinValue === "") {
+        form.setValue(minName as any, null, { shouldValidate: true });
       } else {
-        const numValue = parseFloat(value);
+        const numValue = parseFloat(localMinValue);
         if (!isNaN(numValue)) {
-          form.setValue(maxName as any, integer ? Math.trunc(numValue) : numValue, { shouldValidate: false });
+          form.setValue(minName as any, integer ? Math.trunc(numValue) : numValue, { shouldValidate: true });
+        } else {
+          // Reset to form value if invalid
+          const formValue = form.getValues(minName as any);
+          setLocalMinValue(formValue?.toString() || "");
+        }
+      }
+    };
+    
+    const handleMaxBlur = () => {
+      if (localMaxValue === "") {
+        form.setValue(maxName as any, null, { shouldValidate: true });
+      } else {
+        const numValue = parseFloat(localMaxValue);
+        if (!isNaN(numValue)) {
+          form.setValue(maxName as any, integer ? Math.trunc(numValue) : numValue, { shouldValidate: true });
+        } else {
+          // Reset to form value if invalid
+          const formValue = form.getValues(maxName as any);
+          setLocalMaxValue(formValue?.toString() || "");
         }
       }
     };
@@ -513,17 +536,17 @@ const onSubmit = async (values: BuyBoxFormValues) => {
         <div className="grid grid-cols-2 gap-2">
           <input
             type="number" 
-            value={minValue ?? ""} 
+            value={localMinValue} 
             onChange={handleMinChange}
-            onBlur={() => form.trigger(minName as any)}
+            onBlur={handleMinBlur}
             placeholder="Min"
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           />
           <input
             type="number" 
-            value={maxValue ?? ""} 
+            value={localMaxValue} 
             onChange={handleMaxChange}
-            onBlur={() => form.trigger(maxName as any)}
+            onBlur={handleMaxBlur}
             placeholder="Max"
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           />
