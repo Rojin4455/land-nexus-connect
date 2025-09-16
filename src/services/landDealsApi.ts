@@ -636,14 +636,9 @@ export const getBuyerDealDetails = async (dealLogId: string) => {
 
 export const updateBuyerDealStatus = async (
   dealLogId: string,
-  action: 'accept' | 'reject',
-  rejectNote?: string
+  action: 'accept' | 'reject'
 ): Promise<any> => {
-  const payload: any = { action };
-  if (action === 'reject' && rejectNote) {
-    payload.reject_note = rejectNote;
-  }
-  const response = await api.patch(`/buyer-deals/${dealLogId}/response/`, payload);
+  const response = await api.patch(`/buyer-deals/${dealLogId}/response/`, { action });
   return response.data;
 };
 
