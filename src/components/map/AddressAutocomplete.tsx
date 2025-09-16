@@ -97,16 +97,8 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
     setTimeout(() => {
       const pacContainer = document.querySelector('.pac-container') as HTMLElement;
       if (pacContainer) {
-        // Position the container relative to the input field
-        const inputRect = inputRef.current?.getBoundingClientRect();
-        if (inputRect) {
-          pacContainer.style.position = 'absolute';
-          pacContainer.style.top = '100%';
-          pacContainer.style.left = '0';
-          pacContainer.style.width = '100%';
-          pacContainer.style.zIndex = '10000';
-          pacContainer.style.pointerEvents = 'auto';
-        }
+        pacContainer.style.pointerEvents = 'auto';
+        pacContainer.style.zIndex = '10000';
         
         // Prevent modal closing when clicking on suggestions
         pacContainer.addEventListener('click', (e) => {
