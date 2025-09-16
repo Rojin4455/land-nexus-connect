@@ -3,6 +3,9 @@ import { Autocomplete, useLoadScript } from '@react-google-maps/api';
 import { Input } from '@/components/ui/input';
 import { MapPin } from 'lucide-react';
 
+// Keep libraries array static to prevent script reloading
+const libraries: ("places")[] = ["places"];
+
 // Define full location type
 interface LocationData {
   lat: number;
@@ -41,7 +44,7 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: googleApiKey,
-    libraries: ['places'],
+    libraries,
   });
 
   if (loadError) {
