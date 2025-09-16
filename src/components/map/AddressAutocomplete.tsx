@@ -38,14 +38,16 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
 
-  const googleApiKey = import.meta.env.VITE_GOOGLE_API_KEY;
-  
-  console.log('Google API Key:', googleApiKey ? 'Present' : 'Missing');
+  const googleApiKey = import.meta.env.VITE_GOOGLE_API_KEY || localStorage.getItem("google_api_key");
   
   const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: googleApiKey,
+    googleMapsApiKey: googleApiKey || "AIzaSyBGne_zMAku_bLUciu4ko0-MMSg4VG-uHc", // Fallback for development
     libraries,
   });
+  
+  console.log('Google API Key:', googleApiKey ? 'Present' : 'Using fallback');
+  console.log('Google Maps isLoaded:', isLoaded);
+  console.log('Google Maps loadError:', loadError);
 
   if (loadError) {
     console.error('Error loading Google Maps:', loadError);
@@ -84,7 +86,7 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
           />
         </div>
         <div className="text-xs text-warning mt-1">
-          Google Maps API key is missing. Address autocomplete is disabled.
+          Using fallback API key - set VITE_GOOGLE_API_KEY for production
         </div>
       </div>
     );
@@ -92,30 +94,7 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
 
   const onLoad = (autoC: google.maps.places.Autocomplete) => {
     setAutocomplete(autoC);
-    
-    // Ensure autocomplete works in modals and prevent modal closing
-    setTimeout(() => {
-      const pacContainer = document.querySelector('.pac-container') as HTMLElement;
-      if (pacContainer && inputRef.current) {
-        // Position relative to the input's parent container
-        const inputContainer = inputRef.current.closest('.relative') as HTMLElement;
-        if (inputContainer) {
-          inputContainer.appendChild(pacContainer);
-        }
-        
-        pacContainer.style.pointerEvents = 'auto';
-        pacContainer.style.zIndex = '10000';
-        
-        // Prevent modal closing when clicking on suggestions
-        pacContainer.addEventListener('click', (e) => {
-          e.stopPropagation();
-        });
-        
-        pacContainer.addEventListener('mousedown', (e) => {
-          e.stopPropagation();
-        });
-      }
-    }, 100);
+    console.log('Autocomplete loaded');
   };
 
   const onPlaceChanged = () => {

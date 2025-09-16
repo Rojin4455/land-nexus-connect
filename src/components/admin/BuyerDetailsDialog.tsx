@@ -481,44 +481,50 @@ const onSubmit = async (values: BuyBoxFormValues) => {
     const minValue = form.watch(minName as any);
     const maxValue = form.watch(maxName as any);
     
-    const handleMinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value;
-      if (value === "") {
-        form.setValue(minName as any, null, { shouldValidate: false });
-      } else {
-        const numValue = parseFloat(value);
-        if (!isNaN(numValue)) {
-          form.setValue(minName as any, integer ? Math.trunc(numValue) : numValue, { shouldValidate: false });
-        }
-      }
-    };
+    console.log(`RangeFields - ${label}:`, { minValue, maxValue });
     
-    const handleMaxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleMinChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value;
+      console.log(`Min ${label} change:`, value);
       if (value === "") {
-        form.setValue(maxName as any, null, { shouldValidate: false });
+        form.setValue(minName as any, null, { shouldValidate: false, shouldDirty: true });
       } else {
         const numValue = parseFloat(value);
         if (!isNaN(numValue)) {
-          form.setValue(maxName as any, integer ? Math.trunc(numValue) : numValue, { shouldValidate: false });
+          form.setValue(minName as any, integer ? Math.trunc(numValue) : numValue, { shouldValidate: false, shouldDirty: true });
         }
       }
-    };
+    }, [minName, integer, label, form]);
+    
+    const handleMaxChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      console.log(`Max ${label} change:`, value);
+      if (value === "") {
+        form.setValue(maxName as any, null, { shouldValidate: false, shouldDirty: true });
+      } else {
+        const numValue = parseFloat(value);
+        if (!isNaN(numValue)) {
+          form.setValue(maxName as any, integer ? Math.trunc(numValue) : numValue, { shouldValidate: false, shouldDirty: true });
+        }
+      }
+    }, [maxName, integer, label, form]);
     
     return (
       <div className="space-y-2">
         <Label>{label}</Label>
         <div className="grid grid-cols-2 gap-2">
           <Input 
+            key={`${minName}-${minValue}`}
             type="number" 
-            value={minValue ?? ""} 
+            defaultValue={minValue ?? ""} 
             onChange={handleMinChange} 
             onBlur={() => form.trigger(minName as any)}
             placeholder="Min" 
           />
           <Input 
+            key={`${maxName}-${maxValue}`}
             type="number" 
-            value={maxValue ?? ""} 
+            defaultValue={maxValue ?? ""} 
             onChange={handleMaxChange} 
             onBlur={() => form.trigger(maxName as any)}
             placeholder="Max" 
