@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -478,56 +478,71 @@ const onSubmit = async (values: BuyBoxFormValues) => {
   );
 
   const RangeFields = ({ minName, maxName, label, integer = false }: { minName: keyof BuyBoxFormValues; maxName: keyof BuyBoxFormValues; label: string; integer?: boolean }) => {
+    const minInputRef = useRef<HTMLInputElement>(null);
+    const maxInputRef = useRef<HTMLInputElement>(null);
+    
     const minValue = form.watch(minName as any);
     const maxValue = form.watch(maxName as any);
     
-    console.log(`RangeFields - ${label}:`, { minValue, maxValue });
+    // Initialize input values when component mounts or values change from external source
+    React.useEffect(() => {
+      if (minInputRef.current && minInputRef.current.value !== String(minValue ?? "")) {
+        minInputRef.current.value = String(minValue ?? "");
+      }
+      if (maxInputRef.current && maxInputRef.current.value !== String(maxValue ?? "")) {
+        maxInputRef.current.value = String(maxValue ?? "");
+      }
+    }, [minValue, maxValue]);
     
-    const handleMinChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleMinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value;
-      console.log(`Min ${label} change:`, value);
+      console.log(`Min ${label} input:`, value);
+      
       if (value === "") {
-        form.setValue(minName as any, null, { shouldValidate: false, shouldDirty: true });
+        form.setValue(minName as any, null, { shouldValidate: false });
       } else {
         const numValue = parseFloat(value);
         if (!isNaN(numValue)) {
-          form.setValue(minName as any, integer ? Math.trunc(numValue) : numValue, { shouldValidate: false, shouldDirty: true });
+          form.setValue(minName as any, integer ? Math.trunc(numValue) : numValue, { shouldValidate: false });
         }
       }
-    }, [minName, integer, label, form]);
+    };
     
-    const handleMaxChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleMaxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value;
-      console.log(`Max ${label} change:`, value);
+      console.log(`Max ${label} input:`, value);
+      
       if (value === "") {
-        form.setValue(maxName as any, null, { shouldValidate: false, shouldDirty: true });
+        form.setValue(maxName as any, null, { shouldValidate: false });
       } else {
         const numValue = parseFloat(value);
         if (!isNaN(numValue)) {
-          form.setValue(maxName as any, integer ? Math.trunc(numValue) : numValue, { shouldValidate: false, shouldDirty: true });
+          form.setValue(maxName as any, integer ? Math.trunc(numValue) : numValue, { shouldValidate: false });
         }
       }
-    }, [maxName, integer, label, form]);
+    };
     
     return (
       <div className="space-y-2">
         <Label>{label}</Label>
         <div className="grid grid-cols-2 gap-2">
-          <Input 
-            key={`${minName}-${minValue}`}
+          <input
+            ref={minInputRef}
             type="number" 
             defaultValue={minValue ?? ""} 
-            onChange={handleMinChange} 
+            onChange={handleMinChange}
             onBlur={() => form.trigger(minName as any)}
-            placeholder="Min" 
+            placeholder="Min"
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           />
-          <Input 
-            key={`${maxName}-${maxValue}`}
+          <input
+            ref={maxInputRef}
             type="number" 
             defaultValue={maxValue ?? ""} 
-            onChange={handleMaxChange} 
+            onChange={handleMaxChange}
             onBlur={() => form.trigger(maxName as any)}
-            placeholder="Max" 
+            placeholder="Max"
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           />
         </div>
       </div>

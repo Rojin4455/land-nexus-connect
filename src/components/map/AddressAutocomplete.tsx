@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Autocomplete, useLoadScript } from '@react-google-maps/api';
 import { Input } from '@/components/ui/input';
 import { MapPin } from 'lucide-react';
@@ -37,6 +37,7 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
+  const [debugInfo, setDebugInfo] = useState<string[]>([]);
 
   const googleApiKey = import.meta.env.VITE_GOOGLE_API_KEY || localStorage.getItem("google_api_key");
   
@@ -45,9 +46,27 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
     libraries,
   });
   
-  console.log('Google API Key:', googleApiKey ? 'Present' : 'Using fallback');
-  console.log('Google Maps isLoaded:', isLoaded);
-  console.log('Google Maps loadError:', loadError);
+  useEffect(() => {
+    const info = [];
+    info.push(`API Key: ${googleApiKey ? 'Present' : 'Using fallback'}`);
+    info.push(`Is Loaded: ${isLoaded}`);
+    info.push(`Load Error: ${loadError ? loadError.message : 'None'}`);
+    setDebugInfo(info);
+    
+    if (isLoaded) {
+      // Check for pac-container in DOM periodically
+      const checkPacContainer = setInterval(() => {
+        const pacContainer = document.querySelector('.pac-container');
+        if (pacContainer) {
+          console.log('Found pac-container:', pacContainer);
+          setDebugInfo(prev => [...prev, 'pac-container found in DOM']);
+          clearInterval(checkPacContainer);
+        }
+      }, 500);
+      
+      return () => clearInterval(checkPacContainer);
+    }
+  }, [isLoaded, loadError, googleApiKey]);
 
   if (loadError) {
     console.error('Error loading Google Maps:', loadError);
@@ -94,7 +113,45 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
 
   const onLoad = (autoC: google.maps.places.Autocomplete) => {
     setAutocomplete(autoC);
-    console.log('Autocomplete loaded');
+    console.log('Autocomplete loaded successfully');
+    setDebugInfo(prev => [...prev, 'Autocomplete component loaded']);
+    
+    // Set up a more robust observer for pac-container
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'childList') {
+          const pacContainer = document.querySelector('.pac-container') as HTMLElement;
+          if (pacContainer) {
+            console.log('pac-container detected via MutationObserver');
+            setDebugInfo(prev => [...prev, 'pac-container detected and styled']);
+            
+            // Style the container
+            pacContainer.style.position = 'fixed';
+            pacContainer.style.zIndex = '99999';
+            pacContainer.style.backgroundColor = 'white';
+            pacContainer.style.border = '1px solid #ccc';
+            pacContainer.style.borderRadius = '6px';
+            pacContainer.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+            pacContainer.style.pointerEvents = 'auto';
+            
+            // Position it near the input
+            if (inputRef.current) {
+              const rect = inputRef.current.getBoundingClientRect();
+              pacContainer.style.top = `${rect.bottom + window.scrollY + 2}px`;
+              pacContainer.style.left = `${rect.left + window.scrollX}px`;
+              pacContainer.style.minWidth = `${rect.width}px`;
+            }
+            
+            observer.disconnect();
+          }
+        }
+      });
+    });
+    
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
   };
 
   const onPlaceChanged = () => {
@@ -152,9 +209,14 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
             className={`pl-10 ${className}`}
           />
         </Autocomplete>
-        {/* Container for positioning autocomplete suggestions */}
-        <div className="pac-target" />
       </div>
+      {debugInfo.length > 0 && (
+        <div className="text-xs text-muted-foreground mt-1 space-y-1">
+          {debugInfo.map((info, index) => (
+            <div key={index}>• {info}</div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
