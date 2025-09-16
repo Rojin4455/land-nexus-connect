@@ -96,7 +96,13 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
     // Ensure autocomplete works in modals and prevent modal closing
     setTimeout(() => {
       const pacContainer = document.querySelector('.pac-container') as HTMLElement;
-      if (pacContainer) {
+      if (pacContainer && inputRef.current) {
+        // Position relative to the input's parent container
+        const inputContainer = inputRef.current.closest('.relative') as HTMLElement;
+        if (inputContainer) {
+          inputContainer.appendChild(pacContainer);
+        }
+        
         pacContainer.style.pointerEvents = 'auto';
         pacContainer.style.zIndex = '10000';
         
@@ -167,6 +173,8 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
             className={`pl-10 ${className}`}
           />
         </Autocomplete>
+        {/* Container for positioning autocomplete suggestions */}
+        <div className="pac-target" />
       </div>
     </div>
   );
