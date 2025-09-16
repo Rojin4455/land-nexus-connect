@@ -481,6 +481,30 @@ const onSubmit = async (values: BuyBoxFormValues) => {
     const minValue = form.watch(minName as any);
     const maxValue = form.watch(maxName as any);
     
+    const handleMinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      if (value === "") {
+        form.setValue(minName as any, null, { shouldValidate: false });
+      } else {
+        const numValue = parseFloat(value);
+        if (!isNaN(numValue)) {
+          form.setValue(minName as any, integer ? Math.trunc(numValue) : numValue, { shouldValidate: false });
+        }
+      }
+    };
+    
+    const handleMaxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      if (value === "") {
+        form.setValue(maxName as any, null, { shouldValidate: false });
+      } else {
+        const numValue = parseFloat(value);
+        if (!isNaN(numValue)) {
+          form.setValue(maxName as any, integer ? Math.trunc(numValue) : numValue, { shouldValidate: false });
+        }
+      }
+    };
+    
     return (
       <div className="space-y-2">
         <Label>{label}</Label>
@@ -488,22 +512,14 @@ const onSubmit = async (values: BuyBoxFormValues) => {
           <Input 
             type="number" 
             value={minValue ?? ""} 
-            onChange={(e) => {
-              const value = e.target.value;
-              const numValue = value === "" ? null : Number(value);
-              form.setValue(minName as any, integer && numValue ? Math.trunc(numValue) : numValue, { shouldValidate: false });
-            }} 
+            onChange={handleMinChange} 
             onBlur={() => form.trigger(minName as any)}
             placeholder="Min" 
           />
           <Input 
             type="number" 
             value={maxValue ?? ""} 
-            onChange={(e) => {
-              const value = e.target.value;
-              const numValue = value === "" ? null : Number(value);
-              form.setValue(maxName as any, integer && numValue ? Math.trunc(numValue) : numValue, { shouldValidate: false });
-            }} 
+            onChange={handleMaxChange} 
             onBlur={() => form.trigger(maxName as any)}
             placeholder="Max" 
           />
@@ -772,23 +788,25 @@ const onSubmit = async (values: BuyBoxFormValues) => {
                           />
                         </div>
 
-                        {/* Address field */}
+                         {/* Address field */}
                         <section className="space-y-4">
-                          <div className="space-y-2">
+                          <div className="space-y-2 relative">
                             <Label>Target Address / Location</Label>
-                            <AddressAutocomplete
-                              value={form.watch("address") || ""}
-                              onChange={(address, locationData) => {
-                                form.setValue("address", address);
-                                if (locationData) {
-                                  form.setValue("latitude", locationData.lat);
-                                  form.setValue("longitude", locationData.lng);
-                                  form.setValue("place_id", locationData.place_id);
-                                }
-                              }}
-                              placeholder="Enter target investment address..."
-                              className="w-full"
-                            />
+                            <div className="relative">
+                              <AddressAutocomplete
+                                value={form.watch("address") || ""}
+                                onChange={(address, locationData) => {
+                                  form.setValue("address", address);
+                                  if (locationData) {
+                                    form.setValue("latitude", locationData.lat);
+                                    form.setValue("longitude", locationData.lng);
+                                    form.setValue("place_id", locationData.place_id);
+                                  }
+                                }}
+                                placeholder="Enter target investment address..."
+                                className="w-full"
+                              />
+                            </div>
                             <p className="text-sm text-muted-foreground">
                               Specify the target address or area for investments
                             </p>
