@@ -37,7 +37,6 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
-  const [debugInfo, setDebugInfo] = useState<string[]>([]);
 
   const googleApiKey = import.meta.env.VITE_GOOGLE_API_KEY || localStorage.getItem("google_api_key");
   
@@ -45,28 +44,6 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
     googleMapsApiKey: googleApiKey || "AIzaSyBGne_zMAku_bLUciu4ko0-MMSg4VG-uHc", // Fallback for development
     libraries,
   });
-  
-  useEffect(() => {
-    const info = [];
-    info.push(`API Key: ${googleApiKey ? 'Present' : 'Using fallback'}`);
-    info.push(`Is Loaded: ${isLoaded}`);
-    info.push(`Load Error: ${loadError ? loadError.message : 'None'}`);
-    setDebugInfo(info);
-    
-    if (isLoaded) {
-      // Check for pac-container in DOM periodically
-      const checkPacContainer = setInterval(() => {
-        const pacContainer = document.querySelector('.pac-container');
-        if (pacContainer) {
-          console.log('Found pac-container:', pacContainer);
-          setDebugInfo(prev => [...prev, 'pac-container found in DOM']);
-          clearInterval(checkPacContainer);
-        }
-      }, 500);
-      
-      return () => clearInterval(checkPacContainer);
-    }
-  }, [isLoaded, loadError, googleApiKey]);
 
   if (loadError) {
     console.error('Error loading Google Maps:', loadError);
@@ -113,8 +90,6 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
 
   const onLoad = (autoC: google.maps.places.Autocomplete) => {
     setAutocomplete(autoC);
-    console.log('Autocomplete loaded successfully');
-    setDebugInfo(prev => [...prev, 'Autocomplete component loaded']);
     
     // Set up a more robust observer for pac-container
     const observer = new MutationObserver((mutations) => {
@@ -122,9 +97,6 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
         if (mutation.type === 'childList') {
           const pacContainer = document.querySelector('.pac-container') as HTMLElement;
           if (pacContainer) {
-            console.log('pac-container detected via MutationObserver');
-            setDebugInfo(prev => [...prev, 'pac-container detected and styled']);
-            
             // Style the container
             pacContainer.style.position = 'fixed';
             pacContainer.style.zIndex = '99999';
@@ -214,7 +186,6 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   const onPlaceChanged = () => {
     if (autocomplete) {
       const place = autocomplete.getPlace();
-      console.log("place", place);
 
       const address = place.formatted_address || place.name || '';
       const lat = place.geometry?.location?.lat();
@@ -267,13 +238,6 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
           />
         </Autocomplete>
       </div>
-      {debugInfo.length > 0 && (
-        <div className="text-xs text-muted-foreground mt-1 space-y-1">
-          {debugInfo.map((info, index) => (
-            <div key={index}>• {info}</div>
-          ))}
-        </div>
-      )}
     </div>
   );
 };
