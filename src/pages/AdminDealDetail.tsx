@@ -84,11 +84,16 @@ const AdminDealDetail = () => {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+    if (!dateString) return 'N/A';
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch (error) {
+      return 'Invalid Date';
+    }
   };
 
   const formatCurrency = (amount) => {
@@ -242,7 +247,6 @@ const AdminDealDetail = () => {
   const renderTabContent = () => {
     switch (activeTab) {
       case 'details':
-        console.log("dealll:", deal)
         return <PropertyInformationAdmin deal={deal} formatCurrency={formatCurrency} />;
       case 'documents':
         return <AdminDocumentsSection deal={deal} />;

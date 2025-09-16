@@ -67,20 +67,18 @@ const PropertyInformationAdmin = ({ deal, formatCurrency }: PropertyInformationP
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            {deal.llc_name && (
-              <div>
-                <label className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-                  <Building className="h-4 w-4" />
-                  LLC Name
-                </label>
-                <Input value={deal.llc_name} disabled className="bg-gray-100 cursor-not-allowed" />
-              </div>
-            )}
+            <div>
+              <label className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                <Building className="h-4 w-4" />
+                LLC Name
+              </label>
+              <Input value={deal.llc_name || 'N/A'} disabled className="bg-gray-100 cursor-not-allowed" />
+            </div>
             
             <div>
               <label className="text-sm font-medium text-muted-foreground">Name</label>
               <Input 
-                value={`${deal.first_name} ${deal.last_name}`} 
+                value={`${deal.first_name || ''} ${deal.last_name || ''}`.trim() || 'N/A'} 
                 disabled 
                 className="bg-gray-100 cursor-not-allowed" 
               />
@@ -91,7 +89,7 @@ const PropertyInformationAdmin = ({ deal, formatCurrency }: PropertyInformationP
                 <Phone className="h-4 w-4" />
                 Phone Number
               </label>
-              <Input value={deal.phone_number} disabled className="bg-gray-100 cursor-not-allowed" />
+              <Input value={deal.phone_number || 'N/A'} disabled className="bg-gray-100 cursor-not-allowed" />
             </div>
 
             <div>
@@ -99,21 +97,17 @@ const PropertyInformationAdmin = ({ deal, formatCurrency }: PropertyInformationP
                 <Mail className="h-4 w-4" />
                 Email
               </label>
-              <Input value={deal.email} disabled className="bg-gray-100 cursor-not-allowed" />
+              <Input value={deal.email || 'N/A'} disabled className="bg-gray-100 cursor-not-allowed" />
             </div>
 
-            {deal.user_detail && (
-              <>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Username</label>
-                  <Input value={deal.user_detail.username} disabled className="bg-gray-100 cursor-not-allowed" />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">User Email</label>
-                  <Input value={deal.user_detail.email} disabled className="bg-gray-100 cursor-not-allowed" />
-                </div>
-              </>
-            )}
+            <div>
+              <label className="text-sm font-medium text-muted-foreground">Username</label>
+              <Input value={deal.user_detail?.username || 'N/A'} disabled className="bg-gray-100 cursor-not-allowed" />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-muted-foreground">User Email</label>
+              <Input value={deal.user_detail?.email || 'N/A'} disabled className="bg-gray-100 cursor-not-allowed" />
+            </div>
           </div>
         </CardContent>
       </Card>
