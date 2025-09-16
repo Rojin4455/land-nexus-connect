@@ -18,8 +18,6 @@ const PropertyInformationAdmin = ({ deal, formatCurrency }: PropertyInformationP
     acreage: deal.acreage || '',
     zoning: deal.zoning || '',
     agreedPrice: deal.agreed_price || '',
-    estimatedAEV: deal.estimatedAEV || '',
-    developmentCosts: deal.developmentCosts || '',
     description: deal.description || '',
     extra_notes: deal.extra_notes || '',
   });
@@ -37,8 +35,6 @@ const PropertyInformationAdmin = ({ deal, formatCurrency }: PropertyInformationP
         ...formData,
         acreage: parseFloat(formData.acreage),
         agreedPrice: parseFloat(formData.agreedPrice),
-        estimatedAEV: parseFloat(formData.estimatedAEV),
-        developmentCosts: parseFloat(formData.developmentCosts),
       };
 
       const response = await landDealsApi.admin.updatePropertyDetails(deal.id, payload);
@@ -244,24 +240,6 @@ const PropertyInformationAdmin = ({ deal, formatCurrency }: PropertyInformationP
                 type="number"
                 value={formData.agreedPrice}
                 onChange={e => handleChange('agreedPrice', e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-muted-foreground">Estimated AEV</label>
-              <Input
-                type="number"
-                value={formData.estimatedAEV}
-                onChange={e => handleChange('estimatedAEV', e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-muted-foreground">Development Costs</label>
-              <Input
-                type="number"
-                value={formData.developmentCosts}
-                onChange={e => handleChange('developmentCosts', e.target.value)}
               />
             </div>
           </div>
