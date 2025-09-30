@@ -7,11 +7,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from '@/hooks/use-toast';
 import AddressAutocomplete from '@/components/map/AddressAutocomplete';
-import { Upload, X, FileText, Image, Video } from 'lucide-react';
+import { Upload, X, FileText, Image, Video, AlertCircle } from 'lucide-react';
 import { landDealsApi, handleApiError } from '@/services/landDealsApi';
+import { profileApi } from '@/services/profileApi';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { fetchAllFormOptions } from '@/store/formOptionsSlice';
@@ -27,6 +29,7 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
   const dispatch = useAppDispatch();
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [profileIncomplete, setProfileIncomplete] = useState(false);
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
 
   const { utilities, landTypes, accessTypes, loading: formOptionsLoading } = useAppSelector((state) => state.formOptions);
@@ -65,7 +68,42 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
     }
 
     dispatch(fetchAllFormOptions());
-  }, [dispatch, isAuthenticated, navigate, onOpenChange]);
+    
+    // Load user profile when modal opens
+    if (open) {
+      loadUserProfile();
+    }
+  }, [dispatch, isAuthenticated, navigate, onOpenChange, open]);
+
+  const loadUserProfile = async () => {
+    try {
+      const profile = await profileApi.getProfile();
+      
+      // Check if all required fields are present
+      const isComplete = profile.first_name && profile.last_name && 
+                        profile.email && profile.llc_name && profile.phone;
+      
+      if (!isComplete) {
+        setProfileIncomplete(true);
+      } else {
+        setProfileIncomplete(false);
+        // Auto-fill contact information from profile
+        setFormData(prev => ({
+          ...prev,
+          llc_name: profile.llc_name || '',
+          first_name: profile.first_name || '',
+          last_name: profile.last_name || '',
+          phone_number: profile.phone || '',
+          email: profile.email || ''
+        }));
+      }
+    } catch (error: any) {
+      console.error('Error loading profile:', error);
+      if (error.response?.status === 404) {
+        setProfileIncomplete(true);
+      }
+    }
+  };
 
   const utilitiesOptions = utilities ? transformFormOptionsForSelect(utilities) : [];
   const landTypesOptions = landTypes ? transformFormOptionsForSelect(landTypes) : [];
@@ -230,6 +268,26 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
         <DialogHeader>
           <DialogTitle>Submit New Deal</DialogTitle>
         </DialogHeader>
+        
+        {/* Profile Incomplete Warning */}
+        {profileIncomplete && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Please complete your profile before submitting a deal. Your contact information will be auto-filled from your profile.
+              <Button 
+                variant="link" 
+                className="ml-2 p-0 h-auto font-semibold"
+                onClick={() => {
+                  onOpenChange(false);
+                  navigate('/profile');
+                }}
+              >
+                Complete Profile
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
         
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Information */}
