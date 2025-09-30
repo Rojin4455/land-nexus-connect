@@ -64,25 +64,25 @@ export interface UpdateProfileData {
 export const profileApi = {
   // Get user profile
   getProfile: async (): Promise<UserProfile> => {
-    const response = await api.get('/api/auth/profile/');
+    const response = await api.get('/auth/profile/');
     return response.data;
   },
 
   // Create new profile
   createProfile: async (data: CreateProfileData): Promise<UserProfile> => {
-    const response = await api.post('/api/auth/profile/', data);
+    const response = await api.post('/auth/profile/', data);
     return response.data;
   },
 
   // Update profile (full update)
   updateProfile: async (data: CreateProfileData): Promise<UserProfile> => {
-    const response = await api.put('/api/auth/profile/', data);
+    const response = await api.put('/auth/profile/', data);
     return response.data;
   },
 
   // Partial update profile
   patchProfile: async (data: UpdateProfileData): Promise<UserProfile> => {
-    const response = await api.patch('/api/auth/profile/', data);
+    const response = await api.patch('/auth/profile/', data);
     return response.data;
   },
 };
