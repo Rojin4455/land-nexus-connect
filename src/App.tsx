@@ -19,6 +19,7 @@ import UserDashboard from "./pages/UserDashboard";
 import SubmitDeal from "./pages/SubmitDeal";
 import DealDetail from "./pages/DealDetail";
 import BuyBoxCriteria from "./pages/BuyBoxCriteria";
+import UserProfile from "./pages/UserProfile";
 
 // Admin portal pages
 import AdminDashboard from "./pages/AdminDashboard";
@@ -55,6 +56,7 @@ const App = () => (
             <Route path="/submit-deal" element={<SubmitDeal />} />
             <Route path="/criteria" element={<BuyBoxCriteria />} />
             <Route path="/deal/:id" element={<DealDetail />} />
+            <Route path="/profile" element={<UserProfile />} />
               
               {/* Admin Portal Routes */}
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
