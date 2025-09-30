@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
-import { Loader2, User, Mail, Phone, Building2, Lock } from 'lucide-react';
+import { Loader2, User, Mail, Phone, Building2, Lock, Edit } from 'lucide-react';
 import { profileApi, UserProfile as UserProfileType } from '@/services/profileApi';
 import { useAppSelector } from '@/hooks/useAppSelector';
 
@@ -18,6 +18,7 @@ const UserProfile = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [profileExists, setProfileExists] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -128,6 +129,7 @@ const UserProfile = () => {
         // Update existing profile
         const updated = await profileApi.updateProfile(formData);
         setProfileData(updated);
+        setIsEditing(false);
         toast({
           title: 'Success',
           description: 'Profile updated successfully',
@@ -137,6 +139,7 @@ const UserProfile = () => {
         const created = await profileApi.createProfile(formData);
         setProfileData(created);
         setProfileExists(true);
+        setIsEditing(false);
         toast({
           title: 'Success',
           description: 'Profile created successfully',
@@ -165,142 +168,236 @@ const UserProfile = () => {
     );
   }
 
+  // Show edit form if creating new profile or in edit mode
+  if (!profileExists || isEditing) {
+    return (
+      <DashboardLayout activeTab="profile">
+        <div className="max-w-3xl mx-auto">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                {profileExists ? 'Edit Profile' : 'Create Profile'}
+              </CardTitle>
+              <CardDescription>
+                {profileExists 
+                  ? 'Update your personal information and contact details' 
+                  : 'Complete your profile to get started'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {profileData && (
+                  <div className="bg-muted/50 p-4 rounded-lg cursor-not-allowed">
+                    <Label className="text-sm text-muted-foreground flex items-center gap-1.5">
+                      Username <Lock className="h-3.5 w-3.5 text-destructive" />
+                    </Label>
+                    <p className="font-medium">{profileData.username}</p>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="first_name">
+                      First Name <span className="text-destructive">*</span>
+                    </Label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="first_name"
+                        name="first_name"
+                        value={formData.first_name}
+                        onChange={handleInputChange}
+                        placeholder="John"
+                        className="pl-9"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="last_name">
+                      Last Name <span className="text-destructive">*</span>
+                    </Label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="last_name"
+                        name="last_name"
+                        value={formData.last_name}
+                        onChange={handleInputChange}
+                        placeholder="Doe"
+                        className="pl-9"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email">
+                    Email <span className="text-destructive">*</span>
+                  </Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      placeholder="john@example.com"
+                      className="pl-9"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="llc_name">
+                    LLC Name <span className="text-destructive">*</span>
+                  </Label>
+                  <div className="relative">
+                    <Building2 className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="llc_name"
+                      name="llc_name"
+                      value={formData.llc_name}
+                      onChange={handleInputChange}
+                      placeholder="Doe Holdings LLC"
+                      className="pl-9"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="phone">
+                    Phone Number <span className="text-destructive">*</span>
+                  </Label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="phone"
+                      name="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      placeholder="(555) 123-4567"
+                      className="pl-9"
+                      required
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">Format: (XXX) XXX-XXXX</p>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <Button type="submit" disabled={saving} className="flex-1">
+                    {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {profileExists ? 'Update Profile' : 'Create Profile'}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      if (profileExists) {
+                        setIsEditing(false);
+                        // Reset form data to original profile data
+                        if (profileData) {
+                          setFormData({
+                            first_name: profileData.first_name || '',
+                            last_name: profileData.last_name || '',
+                            email: profileData.email || '',
+                            llc_name: profileData.llc_name || '',
+                            phone: profileData.phone || '',
+                          });
+                        }
+                      } else {
+                        navigate('/dashboard');
+                      }
+                    }}
+                    disabled={saving}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Show read-only view
   return (
     <DashboardLayout activeTab="profile">
       <div className="max-w-3xl mx-auto">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              {profileExists ? 'Edit Profile' : 'Create Profile'}
-            </CardTitle>
-            <CardDescription>
-              {profileExists 
-                ? 'Update your personal information and contact details' 
-                : 'Complete your profile to get started'}
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  My Profile
+                </CardTitle>
+                <CardDescription>
+                  Your personal information and contact details
+                </CardDescription>
+              </div>
+              <Button onClick={() => setIsEditing(true)}>
+                <Edit className="mr-2 h-4 w-4" />
+                Edit Profile
+              </Button>
+            </div>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {profileData && (
-                <div className="bg-muted/50 p-4 rounded-lg cursor-not-allowed">
-                  <Label className="text-sm text-muted-foreground flex items-center gap-1.5">
-                    Username <Lock className="h-3.5 w-3.5 text-destructive" />
-                  </Label>
-                  <p className="font-medium">{profileData.username}</p>
-                </div>
-              )}
+          <CardContent className="space-y-6">
+            <div className="bg-muted/50 p-4 rounded-lg">
+              <Label className="text-sm text-muted-foreground">Username</Label>
+              <p className="font-medium mt-1">{profileData?.username}</p>
+            </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="first_name">
-                    First Name <span className="text-destructive">*</span>
-                  </Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="first_name"
-                      name="first_name"
-                      value={formData.first_name}
-                      onChange={handleInputChange}
-                      placeholder="John"
-                      className="pl-9"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="last_name">
-                    Last Name <span className="text-destructive">*</span>
-                  </Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="last_name"
-                      name="last_name"
-                      value={formData.last_name}
-                      onChange={handleInputChange}
-                      placeholder="Doe"
-                      className="pl-9"
-                      required
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="email">
-                  Email <span className="text-destructive">*</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <Label className="text-sm text-muted-foreground flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  First Name
                 </Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    placeholder="john@example.com"
-                    className="pl-9"
-                    required
-                  />
-                </div>
+                <p className="font-medium mt-1">{profileData?.first_name}</p>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="llc_name">
-                  LLC Name <span className="text-destructive">*</span>
+              <div>
+                <Label className="text-sm text-muted-foreground flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  Last Name
                 </Label>
-                <div className="relative">
-                  <Building2 className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="llc_name"
-                    name="llc_name"
-                    value={formData.llc_name}
-                    onChange={handleInputChange}
-                    placeholder="Doe Holdings LLC"
-                    className="pl-9"
-                    required
-                  />
-                </div>
+                <p className="font-medium mt-1">{profileData?.last_name}</p>
               </div>
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="phone">
-                  Phone Number <span className="text-destructive">*</span>
-                </Label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    placeholder="(555) 123-4567"
-                    className="pl-9"
-                    required
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">Format: (XXX) XXX-XXXX</p>
-              </div>
+            <div>
+              <Label className="text-sm text-muted-foreground flex items-center gap-2">
+                <Mail className="h-4 w-4" />
+                Email
+              </Label>
+              <p className="font-medium mt-1">{profileData?.email}</p>
+            </div>
 
-              <div className="flex gap-3 pt-4">
-                <Button type="submit" disabled={saving} className="flex-1">
-                  {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {profileExists ? 'Update Profile' : 'Create Profile'}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => navigate('/dashboard')}
-                  disabled={saving}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </form>
+            <div>
+              <Label className="text-sm text-muted-foreground flex items-center gap-2">
+                <Building2 className="h-4 w-4" />
+                LLC Name
+              </Label>
+              <p className="font-medium mt-1">{profileData?.llc_name}</p>
+            </div>
+
+            <div>
+              <Label className="text-sm text-muted-foreground flex items-center gap-2">
+                <Phone className="h-4 w-4" />
+                Phone Number
+              </Label>
+              <p className="font-medium mt-1">{profileData?.phone}</p>
+            </div>
           </CardContent>
         </Card>
       </div>
