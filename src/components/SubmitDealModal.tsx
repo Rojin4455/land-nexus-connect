@@ -308,7 +308,7 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="md:col-span-2 form-field">
-                <Label htmlFor="address" className="form-label">Lot Address / Location *</Label>
+                <Label htmlFor="address" className="form-label">Lot Address / Location</Label>
                 <AddressAutocomplete
                   value={formData.address}
                   onChange={(address, coordinates) => {
@@ -321,9 +321,11 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
                     }));
                   }}
                   placeholder="123 Main St, City, State, ZIP"
-                  required
                   className="form-input"
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Either address or parcel ID below is required
+                </p>
               </div>
 
               <div className="form-field">
@@ -463,6 +465,38 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
                 </Select>
               </div>
 
+              <div className="form-field">
+                <Label htmlFor="parcel_id" className="form-label">Parcel ID or APN</Label>
+                <Input
+                  id="parcel_id"
+                  name="parcel_id"
+                  placeholder="Property Parcel ID"
+                  value={formData.parcel_id}
+                  onChange={handleInputChange}
+                  className="form-input"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Required if address is not provided above
+                </p>
+              </div>
+
+              <div className="form-field">
+                <Label htmlFor="exit_strategy" className="form-label">Exit Strategy *</Label>
+                <Select value={formData.exit_strategy} onValueChange={(value) => handleSelectChange('exit_strategy', value)}>
+                  <SelectTrigger className="form-input">
+                    <SelectValue placeholder="Select exit strategy" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="infill">Infill Lot Development</SelectItem>
+                    <SelectItem value="flip">Buy & Flip</SelectItem>
+                    <SelectItem value="subdivide">Subdivide & Sell</SelectItem>
+                    <SelectItem value="seller_financing">Seller Financing</SelectItem>
+                    <SelectItem value="rezoning">Entitlement/Rezoning</SelectItem>
+                    <SelectItem value="mobile_home">Mobile Home Lot</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
                <div className="md:col-span-2 form-field">
                  <Label htmlFor="description" className="form-label">Land Description</Label>
                  <Textarea
@@ -550,34 +584,6 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
               </div>
 
 
-              <div className="form-field">
-                <Label htmlFor="parcel_id" className="form-label">Parcel ID</Label>
-                <Input
-                  id="parcel_id"
-                  name="parcel_id"
-                  placeholder="Property Parcel ID"
-                  value={formData.parcel_id}
-                  onChange={handleInputChange}
-                  className="form-input"
-                />
-              </div>
-
-               <div className="form-field">
-                 <Label htmlFor="exit_strategy" className="form-label">Exit Strategy *</Label>
-                 <Select value={formData.exit_strategy} onValueChange={(value) => handleSelectChange('exit_strategy', value)}>
-                   <SelectTrigger className="form-input">
-                     <SelectValue placeholder="Select exit strategy" />
-                   </SelectTrigger>
-                   <SelectContent>
-                     <SelectItem value="infill">Infill Lot Development</SelectItem>
-                     <SelectItem value="flip">Buy & Flip</SelectItem>
-                     <SelectItem value="subdivide">Subdivide & Sell</SelectItem>
-                     <SelectItem value="seller_financing">Seller Financing</SelectItem>
-                     <SelectItem value="rezoning">Entitlement/Rezoning</SelectItem>
-                     <SelectItem value="mobile_home">Mobile Home Lot</SelectItem>
-                   </SelectContent>
-                 </Select>
-               </div>
 
               <div className="md:col-span-2 form-field">
                 <Label htmlFor="extra_notes" className="form-label">Additional Notes</Label>
