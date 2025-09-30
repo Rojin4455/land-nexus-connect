@@ -262,12 +262,23 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
     }
   };
 
+  const handleOpenChange = (isOpen: boolean) => {
+    // Prevent closing when address autocomplete is active
+    if (!isOpen && (window as any).__preventModalClose) {
+      console.log('Prevented modal close due to address selection');
+      return;
+    }
+    onOpenChange(isOpen);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="max-w-5xl h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle>Submit New Deal</DialogTitle>
         </DialogHeader>
+        
+        <div className="flex-1 overflow-y-auto pr-2">{/* Scrollable content wrapper */}
         
         {/* Profile Incomplete Warning */}
         {profileIncomplete && (
@@ -652,7 +663,7 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
             <Button 
               type="button" 
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={() => handleOpenChange(false)}
             >
               Cancel
             </Button>
@@ -665,6 +676,7 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
             </Button>
           </div>
         </form>
+        </div>{/* End scrollable content wrapper */}
       </DialogContent>
     </Dialog>
   );
