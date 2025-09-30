@@ -69,9 +69,32 @@ const UserProfile = () => {
     }
   };
 
+  const formatPhoneNumber = (value: string) => {
+    // Remove all non-numeric characters
+    const numbers = value.replace(/\D/g, '');
+    
+    // Limit to 10 digits
+    const limited = numbers.slice(0, 10);
+    
+    // Format as (XXX) XXX-XXXX
+    if (limited.length <= 3) {
+      return limited;
+    } else if (limited.length <= 6) {
+      return `(${limited.slice(0, 3)}) ${limited.slice(3)}`;
+    } else {
+      return `(${limited.slice(0, 3)}) ${limited.slice(3, 6)}-${limited.slice(6)}`;
+    }
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    if (name === 'phone') {
+      const formatted = formatPhoneNumber(value);
+      setFormData(prev => ({ ...prev, [name]: formatted }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -85,6 +108,19 @@ const UserProfile = () => {
         variant: 'destructive',
       });
       return;
+    }
+
+    // Validate phone format if provided
+    if (formData.phone && formData.phone.trim() !== '') {
+      const phoneRegex = /^\(\d{3}\) \d{3}-\d{4}$/;
+      if (!phoneRegex.test(formData.phone)) {
+        toast({
+          title: 'Validation Error',
+          description: 'Phone number must be in format (XXX) XXX-XXXX',
+          variant: 'destructive',
+        });
+        return;
+      }
     }
 
     try {
@@ -237,10 +273,11 @@ const UserProfile = () => {
                     type="tel"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    placeholder="+1 555 123 4567"
+                    placeholder="(555) 123-4567"
                     className="pl-9"
                   />
                 </div>
+                <p className="text-xs text-muted-foreground">Format: (XXX) XXX-XXXX</p>
               </div>
 
               <div className="flex gap-3 pt-4">
