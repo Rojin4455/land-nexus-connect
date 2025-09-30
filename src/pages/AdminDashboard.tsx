@@ -620,8 +620,6 @@ const AdminDashboard = () => {
                           <th className="text-left p-4 font-medium text-muted-foreground">Username</th>
                           <th className="text-left p-4 font-medium text-muted-foreground">Email</th>
                           <th className="text-left p-4 font-medium text-muted-foreground">Name</th>
-                          <th className="text-left p-4 font-medium text-muted-foreground">Joined</th>
-                          <th className="text-left p-4 font-medium text-muted-foreground">Status</th>
                           <th className="text-left p-4 font-medium text-muted-foreground">Actions</th>
                         </tr>
                       </thead>
@@ -643,26 +641,32 @@ const AdminDashboard = () => {
                               </span>
                             </td>
                             <td className="p-4">
-                              <span className="text-sm text-foreground">{formatDate(user.date_joined)}</span>
-                            </td>
-                            <td className="p-4">
-                              <Badge className={user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
-                                {user.is_active ? 'Active' : 'Inactive'}
-                              </Badge>
-                            </td>
-                            <td className="p-4">
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => {
-                                  setSelectedUser(user);
-                                  setView('deals');
-                                  loadUserDeals(user.id);
+                                onClick={async () => {
+                                  try {
+                                    const response = await landDealsApi.admin.getUserDetailsWithDeals(user.id);
+                                    if (response.success) {
+                                      console.log('User details:', response.data);
+                                      toast({
+                                        title: "User Details",
+                                        description: "User details loaded successfully",
+                                      });
+                                    }
+                                  } catch (error) {
+                                    console.error('Failed to load user details:', error);
+                                    toast({
+                                      title: "Error",
+                                      description: "Failed to load user details",
+                                      variant: "destructive",
+                                    });
+                                  }
                                 }}
                                 className="hover:bg-primary hover:text-primary-foreground"
                               >
                                 <Eye className="h-4 w-4 mr-1" />
-                                View Deals
+                                View Details
                               </Button>
                             </td>
                           </tr>

@@ -403,6 +403,15 @@ export const landDealsApi = {
       };
     },
 
+    // Get details for a specific user with their deals
+    getUserDetailsWithDeals: async (userId: number): Promise<ApiResponse<any>> => {
+      const response = await api.get(`/auth/users/${userId}/details/`);
+      return {
+        success: true,
+        data: response.data
+      };
+    },
+
     // Get deals for a specific user
     getUserDeals: async (userId: number): Promise<ApiResponse<LandDeal[]>> => {
       const response = await api.get(`/data/properties/list/${userId}/`);
