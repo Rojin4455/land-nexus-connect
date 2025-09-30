@@ -390,7 +390,7 @@ const AdminDashboard = () => {
                 onClick={() => setView('users')}
               >
                 <Users className="h-4 w-4 mr-2" />
-                JV Partners
+                Users
               </Button>
               <Button
                 variant={view === 'deals' ? 'default' : 'outline'}
