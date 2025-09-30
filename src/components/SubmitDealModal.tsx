@@ -263,6 +263,11 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
   };
 
   const handleOpenChange = (isOpen: boolean) => {
+    // Prevent closing when address autocomplete is active
+    if (!isOpen && (window as any).__preventModalClose) {
+      console.log('Prevented modal close due to address selection');
+      return;
+    }
     if (!isOpen) {
       // Clear the flag when closing
       (window as any).__preventModalClose = false;
@@ -280,9 +285,13 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent 
         className="max-w-5xl h-[90vh] flex flex-col"
-        onCloseAutoFocus={(e) => {
-          // Clear flag when closing via X button
-          (window as any).__preventModalClose = false;
+        onPointerDownOutside={(e) => {
+          // Check if clicking X button or overlay to force close
+          const target = e.target as HTMLElement;
+          if (target.closest('[data-dialog-close]') || target.getAttribute('data-radix-dialog-overlay') !== null) {
+            forceClose();
+            e.preventDefault();
+          }
         }}
       >
         <DialogHeader className="flex-shrink-0">
