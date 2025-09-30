@@ -271,9 +271,21 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
     onOpenChange(isOpen);
   };
 
+  const forceClose = () => {
+    // Force close regardless of autocomplete state
+    (window as any).__preventModalClose = false;
+    onOpenChange(false);
+  };
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-5xl h-[90vh] flex flex-col">
+      <DialogContent className="max-w-5xl h-[90vh] flex flex-col" onInteractOutside={(e) => {
+        // Allow closing with X button even if autocomplete is active
+        if ((e.target as HTMLElement).closest('[data-radix-dialog-overlay]') || 
+            (e.target as HTMLElement).closest('[role="dialog"]')) {
+          return;
+        }
+      }}>
         <DialogHeader className="flex-shrink-0">
           <DialogTitle>Submit New Deal</DialogTitle>
         </DialogHeader>
@@ -669,7 +681,7 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
             <Button 
               type="button" 
               variant="outline"
-              onClick={() => handleOpenChange(false)}
+              onClick={forceClose}
             >
               Cancel
             </Button>
