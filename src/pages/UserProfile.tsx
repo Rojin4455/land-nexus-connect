@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
-import { Loader2, User, Mail, Phone, Building2 } from 'lucide-react';
+import { Loader2, User, Mail, Phone, Building2, Lock } from 'lucide-react';
 import { profileApi, UserProfile as UserProfileType } from '@/services/profileApi';
 import { useAppSelector } from '@/hooks/useAppSelector';
 
@@ -186,7 +186,9 @@ const UserProfile = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
               {profileData && (
                 <div className="bg-muted/50 p-4 rounded-lg">
-                  <Label className="text-sm text-muted-foreground">Username (Read-only)</Label>
+                  <Label className="text-sm text-muted-foreground flex items-center gap-1.5">
+                    Username <Lock className="h-3.5 w-3.5" />
+                  </Label>
                   <p className="font-medium">{profileData.username}</p>
                 </div>
               )}
