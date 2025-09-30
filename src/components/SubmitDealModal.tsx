@@ -263,10 +263,9 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
   };
 
   const handleOpenChange = (isOpen: boolean) => {
-    // Prevent closing when address autocomplete is active
-    if (!isOpen && (window as any).__preventModalClose) {
-      console.log('Prevented modal close due to address selection');
-      return;
+    if (!isOpen) {
+      // Clear the flag when closing
+      (window as any).__preventModalClose = false;
     }
     onOpenChange(isOpen);
   };
@@ -279,13 +278,13 @@ const SubmitDealModal = ({ open, onOpenChange }: SubmitDealModalProps) => {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-5xl h-[90vh] flex flex-col" onInteractOutside={(e) => {
-        // Allow closing with X button even if autocomplete is active
-        if ((e.target as HTMLElement).closest('[data-radix-dialog-overlay]') || 
-            (e.target as HTMLElement).closest('[role="dialog"]')) {
-          return;
-        }
-      }}>
+      <DialogContent 
+        className="max-w-5xl h-[90vh] flex flex-col"
+        onCloseAutoFocus={(e) => {
+          // Clear flag when closing via X button
+          (window as any).__preventModalClose = false;
+        }}
+      >
         <DialogHeader className="flex-shrink-0">
           <DialogTitle>Submit New Deal</DialogTitle>
         </DialogHeader>
