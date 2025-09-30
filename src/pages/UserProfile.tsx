@@ -183,9 +183,9 @@ const UserProfile = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               {profileData && (
-                <div className="bg-muted/50 p-4 rounded-lg">
+                <div className="bg-muted/50 p-4 rounded-lg cursor-not-allowed">
                   <Label className="text-sm text-muted-foreground flex items-center gap-1.5">
-                    Username <Lock className="h-3.5 w-3.5 text-destructive hover:text-destructive/80 transition-colors cursor-not-allowed" />
+                    Username <Lock className="h-3.5 w-3.5 text-destructive" />
                   </Label>
                   <p className="font-medium">{profileData.username}</p>
                 </div>
