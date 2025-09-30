@@ -101,26 +101,24 @@ const UserProfile = () => {
     e.preventDefault();
     
     // Validate required fields
-    if (!formData.first_name || !formData.last_name || !formData.email) {
+    if (!formData.first_name || !formData.last_name || !formData.email || !formData.llc_name || !formData.phone) {
       toast({
         title: 'Validation Error',
-        description: 'First name, last name, and email are required',
+        description: 'All fields are required',
         variant: 'destructive',
       });
       return;
     }
 
-    // Validate phone format if provided
-    if (formData.phone && formData.phone.trim() !== '') {
-      const phoneRegex = /^\(\d{3}\) \d{3}-\d{4}$/;
-      if (!phoneRegex.test(formData.phone)) {
-        toast({
-          title: 'Validation Error',
-          description: 'Phone number must be in format (XXX) XXX-XXXX',
-          variant: 'destructive',
-        });
-        return;
-      }
+    // Validate phone format
+    const phoneRegex = /^\(\d{3}\) \d{3}-\d{4}$/;
+    if (!phoneRegex.test(formData.phone)) {
+      toast({
+        title: 'Validation Error',
+        description: 'Phone number must be in format (XXX) XXX-XXXX',
+        variant: 'destructive',
+      });
+      return;
     }
 
     try {
@@ -187,7 +185,7 @@ const UserProfile = () => {
               {profileData && (
                 <div className="bg-muted/50 p-4 rounded-lg">
                   <Label className="text-sm text-muted-foreground flex items-center gap-1.5">
-                    Username <Lock className="h-3.5 w-3.5" />
+                    Username <Lock className="h-3.5 w-3.5 text-destructive hover:text-destructive/80 transition-colors cursor-not-allowed" />
                   </Label>
                   <p className="font-medium">{profileData.username}</p>
                 </div>
@@ -251,7 +249,9 @@ const UserProfile = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="llc_name">LLC Name</Label>
+                <Label htmlFor="llc_name">
+                  LLC Name <span className="text-destructive">*</span>
+                </Label>
                 <div className="relative">
                   <Building2 className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -261,12 +261,15 @@ const UserProfile = () => {
                     onChange={handleInputChange}
                     placeholder="Doe Holdings LLC"
                     className="pl-9"
+                    required
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
+                <Label htmlFor="phone">
+                  Phone Number <span className="text-destructive">*</span>
+                </Label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -277,6 +280,7 @@ const UserProfile = () => {
                     onChange={handleInputChange}
                     placeholder="(555) 123-4567"
                     className="pl-9"
+                    required
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">Format: (XXX) XXX-XXXX</p>
