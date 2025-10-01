@@ -270,6 +270,12 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 }) => {
   const [activeDeal, setActiveDeal] = React.useState<Deal | null>(null);
 
+  console.log('🗂️ KanbanBoard received deals:', {
+    totalDeals: deals.length,
+    dealIds: deals.map(d => d.id),
+    firstDeal: deals[0],
+  });
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -297,8 +303,13 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       activeData: active.data.current,
     });
     const dealId = parseInt(active.id.toString().replace('deal-', ''));
+    console.log('🔍 Looking for deal:', {
+      dealId,
+      dealIdType: typeof dealId,
+      availableDealIds: deals.map(d => ({ id: d.id, type: typeof d.id })),
+    });
     const deal = deals.find(d => d.id === dealId);
-    console.log('📦 Deal being dragged:', { dealId, dealStatus: deal?.status });
+    console.log('📦 Deal being dragged:', { dealId, deal, dealStatus: deal?.status });
     setActiveDeal(deal || null);
   };
 
