@@ -161,7 +161,7 @@ const DroppableColumn: React.FC<{
   return (
     <div 
       ref={setNodeRef}
-      className={`flex-1 space-y-0 overflow-y-auto transition-all duration-300 rounded-lg p-3 ${columnBg} ${
+      className={`space-y-0 max-h-[calc(100vh-280px)] overflow-y-auto transition-all duration-300 rounded-lg p-3 ${columnBg} ${
         isOver ? 'ring-2 ring-primary ring-offset-2 scale-[1.02] shadow-lg bg-primary/10' : ''
       }`}
     >
