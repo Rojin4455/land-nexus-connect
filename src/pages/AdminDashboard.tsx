@@ -15,6 +15,7 @@ import { useAppSelector } from '@/hooks/useAppSelector';
 import { logoutUser } from '@/store/authSlice';
 import { landDealsApi } from '@/services/landDealsApi';
 import BuyerDetailsDialog from '@/components/admin/BuyerDetailsDialog';
+import UserDetailsDialog from '@/components/admin/UserDetailsDialog';
 import { KanbanBoard } from '@/components/admin/KanbanBoard';
 import { 
   Users, 
@@ -63,6 +64,10 @@ const AdminDashboard = () => {
   const [selectedBuyer, setSelectedBuyer] = useState<any>(null);
   const [deleteBuyerOpen, setDeleteBuyerOpen] = useState(false);
   const [buyerToDelete, setBuyerToDelete] = useState<any>(null);
+
+  // Users UI state
+  const [userDetailsOpen, setUserDetailsOpen] = useState(false);
+  const [selectedUserDetails, setSelectedUserDetails] = useState<any>(null);
 
   useEffect(() => {
     // Check if user is authenticated
@@ -570,6 +575,12 @@ const AdminDashboard = () => {
                 }}
               />
 
+              <UserDetailsDialog
+                open={userDetailsOpen}
+                onOpenChange={setUserDetailsOpen}
+                user={selectedUserDetails}
+              />
+
               {/* Delete Buyer Confirmation Dialog */}
               <Dialog open={deleteBuyerOpen} onOpenChange={setDeleteBuyerOpen}>
                 <DialogContent>
@@ -616,10 +627,8 @@ const AdminDashboard = () => {
                     <table className="w-full">
                       <thead>
                         <tr className="border-b border-border">
-                          <th className="text-left p-4 font-medium text-muted-foreground">User ID</th>
                           <th className="text-left p-4 font-medium text-muted-foreground">Username</th>
                           <th className="text-left p-4 font-medium text-muted-foreground">Email</th>
-                          <th className="text-left p-4 font-medium text-muted-foreground">Name</th>
                           <th className="text-left p-4 font-medium text-muted-foreground">Actions</th>
                         </tr>
                       </thead>
@@ -627,41 +636,18 @@ const AdminDashboard = () => {
                         {filteredUsers.map((user) => (
                           <tr key={user.id} className="border-b border-border hover:bg-secondary/30 transition-colors">
                             <td className="p-4">
-                              <span className="font-mono text-sm font-medium text-primary">{user.id}</span>
-                            </td>
-                            <td className="p-4">
                               <span className="text-sm font-medium text-foreground">{user.username}</span>
                             </td>
                             <td className="p-4">
                               <span className="text-sm text-foreground">{user.email}</span>
                             </td>
                             <td className="p-4">
-                              <span className="text-sm text-foreground">
-                                {user.first_name || user.last_name ? `${user.first_name} ${user.last_name}`.trim() : 'N/A'}
-                              </span>
-                            </td>
-                            <td className="p-4">
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={async () => {
-                                  try {
-                                    const response = await landDealsApi.admin.getUserDetailsWithDeals(user.id);
-                                    if (response.success) {
-                                      console.log('User details:', response.data);
-                                      toast({
-                                        title: "User Details",
-                                        description: "User details loaded successfully",
-                                      });
-                                    }
-                                  } catch (error) {
-                                    console.error('Failed to load user details:', error);
-                                    toast({
-                                      title: "Error",
-                                      description: "Failed to load user details",
-                                      variant: "destructive",
-                                    });
-                                  }
+                                onClick={() => {
+                                  setSelectedUserDetails(user);
+                                  setUserDetailsOpen(true);
                                 }}
                                 className="hover:bg-primary hover:text-primary-foreground"
                               >
