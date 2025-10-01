@@ -2,12 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Eye, Edit, MapPin, Calendar, DollarSign, FileText } from 'lucide-react';
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, closestCorners, PointerSensor, useSensor, useSensors, useDroppable } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 
 interface Deal {
   id: number;
@@ -91,117 +86,80 @@ const getStatusVariant = (status: string) => {
   }
 };
 
-const DroppableColumn: React.FC<{
-  id: string;
-  children: React.ReactNode;
-}> = ({ id, children }) => {
-  const { setNodeRef, isOver } = useDroppable({
-    id,
-  });
-
-  return (
-    <div 
-      ref={setNodeRef}
-      className={`flex-1 space-y-0 min-h-[200px] transition-colors rounded-lg p-2 ${
-        isOver ? 'bg-muted/50 border-2 border-dashed border-primary' : ''
-      }`}
-    >
-      {children}
-    </div>
-  );
-};
-
-const DraggableDealCard: React.FC<{ 
+const DealCard: React.FC<{ 
   deal: Deal; 
   onDealClick: (deal: Deal) => void; 
   onEditStatus: (deal: Deal) => void; 
 }> = ({ deal, onDealClick, onEditStatus }) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: `deal-${deal.id}` });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
-
   return (
-    <div ref={setNodeRef} style={style}>
-      <Card className="mb-3 cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow bg-card border" {...attributes} {...listeners}>
-        <CardContent className="p-4">
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex-1">
-              <h4 className="font-medium text-sm text-foreground mb-1">
-                Deal #{deal.id}
-              </h4>
-              <div className="flex items-start space-x-2 mb-2">
-                <MapPin className="h-3 w-3 text-muted-foreground mt-0.5 flex-shrink-0" />
-                <p className="text-xs text-foreground line-clamp-2">{deal.address}</p>
-              </div>
-            </div>
-            <Badge variant={getStatusVariant(deal.status)} className="text-xs ml-2 flex-shrink-0">
-              {deal.status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-            </Badge>
-          </div>
-          
-          <div className="space-y-2 mb-3">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">Type:</span>
-              <span className="text-foreground capitalize">{deal.land_type_name || deal.landType}</span>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">Value:</span>
-              <span className="text-foreground font-medium">
-                {formatCurrency(deal.agreed_price || deal.agreedPrice || 0)}
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">Size:</span>
-              <span className="text-foreground">
-                {deal.lot_size || deal.acreage || 'N/A'} {deal.lot_size_unit || 'acres'}
-              </span>
+    <Card className="mb-3 cursor-pointer hover:shadow-md transition-shadow bg-card border">
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex-1">
+            <h4 className="font-medium text-sm text-foreground mb-1">
+              Deal #{deal.id}
+            </h4>
+            <div className="flex items-start space-x-2 mb-2">
+              <MapPin className="h-3 w-3 text-muted-foreground mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-foreground line-clamp-2">{deal.address}</p>
             </div>
           </div>
+          <Badge variant={getStatusVariant(deal.status)} className="text-xs ml-2 flex-shrink-0">
+            {deal.status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+          </Badge>
+        </div>
+        
+        <div className="space-y-2 mb-3">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-muted-foreground">Type:</span>
+            <span className="text-foreground capitalize">{deal.land_type_name || deal.landType}</span>
+          </div>
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-muted-foreground">Value:</span>
+            <span className="text-foreground font-medium">
+              {formatCurrency(deal.agreed_price || deal.agreedPrice || 0)}
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-muted-foreground">Size:</span>
+            <span className="text-foreground">
+              {deal.lot_size || deal.acreage || 'N/A'} {deal.lot_size_unit || 'acres'}
+            </span>
+          </div>
+        </div>
 
-          <div className="flex items-center justify-between pt-2 border-t border-border">
-            <div className="flex items-center space-x-1 text-xs text-muted-foreground">
-              <Calendar className="h-3 w-3" />
-              <span>{formatDate(deal.created_at || deal.submittedOn)}</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEditStatus(deal);
-                }}
-                className="h-6 px-2 text-xs"
-              >
-                <Edit className="h-3 w-3" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDealClick(deal);
-                }}
-                className="h-6 px-2 text-xs"
-              >
-                <Eye className="h-3 w-3" />
-              </Button>
-            </div>
+        <div className="flex items-center justify-between pt-2 border-t border-border">
+          <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+            <Calendar className="h-3 w-3" />
+            <span>{formatDate(deal.created_at || deal.submittedOn)}</span>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+          <div className="flex items-center space-x-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEditStatus(deal);
+              }}
+              className="h-6 px-2 text-xs"
+            >
+              <Edit className="h-3 w-3" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDealClick(deal);
+              }}
+              className="h-6 px-2 text-xs"
+            >
+              <Eye className="h-3 w-3" />
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
@@ -211,16 +169,6 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   onDealClick, 
   onEditStatus 
 }) => {
-  const [activeDeal, setActiveDeal] = React.useState<Deal | null>(null);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    })
-  );
-
   const groupDealsByStatus = (deals: Deal[]) => {
     const grouped: Record<string, Deal[]> = {};
     
@@ -233,109 +181,47 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
   const groupedDeals = groupDealsByStatus(deals);
 
-  const handleDragStart = (event: DragStartEvent) => {
-    const { active } = event;
-    const dealId = parseInt(active.id.toString().replace('deal-', ''));
-    const deal = deals.find(d => d.id === dealId);
-    setActiveDeal(deal || null);
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    setActiveDeal(null);
-
-    if (!over) return;
-
-    const dealId = parseInt(active.id.toString().replace('deal-', ''));
-    const deal = deals.find(d => d.id === dealId);
-    
-    if (!deal) return;
-
-    // Check if dropped on a column
-    const newStatus = over.id.toString().replace('column-', '');
-    
-    if (deal.status !== newStatus && statusColumns.find(col => col.key === newStatus)) {
-      onStatusUpdate(deal, newStatus);
-    }
-  };
-
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCorners}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
-      <ScrollArea className="w-full">
-        <div className="flex gap-4 pb-4">
-          {statusColumns.map(column => {
-            const columnDeals = groupedDeals[column.key] || [];
-            const dealIds = columnDeals.map(deal => `deal-${deal.id}`);
-            
-            return (
-              <div 
-                key={column.key} 
-                id={`column-${column.key}`}
-                className="flex flex-col min-w-[320px] flex-shrink-0"
-              >
-                <Card className={`${column.color} mb-4`}>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-sm font-medium text-foreground">
-                        {column.title}
-                      </CardTitle>
-                      <Badge variant="secondary" className="text-xs">
-                        {columnDeals.length}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                </Card>
-                
-                <SortableContext items={dealIds} strategy={verticalListSortingStrategy}>
-                  <DroppableColumn id={`column-${column.key}`}>
-                    {columnDeals.length === 0 ? (
-                      <div className="text-center py-8">
-                        <FileText className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                        <p className="text-xs text-muted-foreground">No deals</p>
-                      </div>
-                    ) : (
-                      columnDeals.map(deal => (
-                        <DraggableDealCard
-                          key={deal.id}
-                          deal={deal}
-                          onDealClick={onDealClick}
-                          onEditStatus={onEditStatus}
-                        />
-                      ))
-                    )}
-                  </DroppableColumn>
-                </SortableContext>
-              </div>
-            );
-          })}
-        </div>
-      </ScrollArea>
-
-      <DragOverlay>
-        {activeDeal ? (
-          <Card className="cursor-grabbing shadow-lg bg-card border w-[320px]">
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <h4 className="font-medium text-sm text-foreground mb-1">
-                    Deal #{activeDeal.id}
-                  </h4>
-                  <div className="flex items-start space-x-2 mb-2">
-                    <MapPin className="h-3 w-3 text-muted-foreground mt-0.5 flex-shrink-0" />
-                    <p className="text-xs text-foreground line-clamp-2">{activeDeal.address}</p>
-                  </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 h-full">
+      {statusColumns.map(column => {
+        const columnDeals = groupedDeals[column.key] || [];
+        
+        return (
+          <div key={column.key} className="flex flex-col">
+            <Card className={`${column.color} mb-4`}>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium text-foreground">
+                    {column.title}
+                  </CardTitle>
+                  <Badge variant="secondary" className="text-xs">
+                    {columnDeals.length}
+                  </Badge>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ) : null}
-      </DragOverlay>
-    </DndContext>
+              </CardHeader>
+            </Card>
+            
+            <div className="flex-1 space-y-0">
+              {columnDeals.length === 0 ? (
+                <div className="text-center py-8">
+                  <FileText className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-xs text-muted-foreground">No deals</p>
+                </div>
+              ) : (
+                columnDeals.map(deal => (
+                  <DealCard
+                    key={deal.id}
+                    deal={deal}
+                    onDealClick={onDealClick}
+                    onEditStatus={onEditStatus}
+                  />
+                ))
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 };
 
