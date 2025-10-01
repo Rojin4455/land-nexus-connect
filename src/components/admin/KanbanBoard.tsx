@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Eye, Edit, MapPin, Calendar, DollarSign, FileText } from 'lucide-react';
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, closestCorners, PointerSensor, useSensor, useSensors, useDroppable } from '@dnd-kit/core';
+import { DndContext, DragEndEvent, DragOverEvent, DragOverlay, DragStartEvent, closestCorners, PointerSensor, useSensor, useSensors, useDroppable, MeasuringStrategy } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -297,6 +297,44 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     setActiveDeal(deal || null);
   };
 
+  const handleDragOver = (event: DragOverEvent) => {
+    const { active, over } = event;
+    
+    if (!over) return;
+
+    const activeId = active.id.toString();
+    const overId = over.id.toString();
+
+    // Don't do anything if dropping on itself
+    if (activeId === overId) return;
+
+    // Get the active deal
+    const activeDealId = parseInt(activeId.replace('deal-', ''));
+    const activeDeal = deals.find(d => d.id === activeDealId);
+    
+    if (!activeDeal) return;
+
+    // Determine the target column
+    let targetStatus: string;
+    
+    if (overId.startsWith('column-')) {
+      targetStatus = overId.replace('column-', '');
+    } else if (overId.startsWith('deal-')) {
+      const overDealId = parseInt(overId.replace('deal-', ''));
+      const overDeal = deals.find(d => d.id === overDealId);
+      if (!overDeal) return;
+      targetStatus = overDeal.status;
+    } else {
+      return;
+    }
+
+    // Only update if status is different
+    if (activeDeal.status !== targetStatus) {
+      // Visual feedback during drag - the actual update happens in handleDragEnd
+      console.log(`Would move deal ${activeDealId} to ${targetStatus}`);
+    }
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveDeal(null);
@@ -334,7 +372,13 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       sensors={sensors}
       collisionDetection={closestCorners}
       onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
+      measuring={{
+        droppable: {
+          strategy: MeasuringStrategy.Always,
+        },
+      }}
     >
       <div className="w-full h-[calc(100vh-200px)] overflow-x-auto overflow-y-hidden">
         <div className="flex gap-6 pb-6 px-2 min-w-max">
