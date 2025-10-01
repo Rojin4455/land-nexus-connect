@@ -2,7 +2,6 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Eye, Edit, MapPin, Calendar, DollarSign, FileText } from 'lucide-react';
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, closestCorners, PointerSensor, useSensor, useSensors, useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -324,8 +323,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <ScrollArea className="w-full h-[calc(100vh-200px)]">
-        <div className="flex gap-6 pb-6 px-2">
+      <div className="w-full h-[calc(100vh-200px)] overflow-x-auto overflow-y-hidden">
+        <div className="flex gap-6 pb-6 px-2 min-w-max">
           {statusColumns.map(column => {
             const columnDeals = groupedDeals[column.key] || [];
             const dealIds = columnDeals.map(deal => `deal-${deal.id}`);
@@ -373,7 +372,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             );
           })}
         </div>
-      </ScrollArea>
+      </div>
 
       <DragOverlay>
         {activeDeal ? (
