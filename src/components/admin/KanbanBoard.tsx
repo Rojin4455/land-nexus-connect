@@ -270,13 +270,6 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 }) => {
   const [activeDeal, setActiveDeal] = React.useState<Deal | null>(null);
 
-  console.log('🗂️ KanbanBoard received deals:', {
-    totalDeals: deals.length,
-    dealIds: deals.map(d => d.id),
-    dealIdsWithTypes: deals.slice(0, 5).map(d => ({ id: d.id, type: typeof d.id, status: d.status })),
-    firstDeal: deals[0],
-  });
-
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -299,131 +292,67 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
-    console.log('🎯 DRAG START:', {
-      activeId: active.id,
-    });
     const dealId = active.id.toString().replace('deal-', '');
     const deal = deals.find(d => d.id.toString() === dealId);
-    console.log('📦 Deal being dragged:', { dealId, deal, dealStatus: deal?.status });
     setActiveDeal(deal || null);
   };
 
   const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
     
-    console.log('🔄 DRAG OVER:', {
-      activeId: active.id,
-      overId: over?.id,
-    });
-
-    if (!over) {
-      console.log('⚠️ No over target');
-      return;
-    }
+    if (!over) return;
 
     const activeId = active.id.toString();
     const overId = over.id.toString();
 
-    console.log('🎪 IDs:', { activeId, overId });
+    if (activeId === overId) return;
 
-    // Don't do anything if dropping on itself
-    if (activeId === overId) {
-      console.log('⚠️ Dropping on itself, skipping');
-      return;
-    }
-
-    // Get the active deal
     const activeDealId = activeId.replace('deal-', '');
     const activeDeal = deals.find(d => d.id.toString() === activeDealId);
     
-    if (!activeDeal) {
-      console.log('⚠️ Active deal not found');
-      return;
-    }
+    if (!activeDeal) return;
 
-    // Determine the target column
     let targetStatus: string;
     
     if (overId.startsWith('column-')) {
       targetStatus = overId.replace('column-', '');
-      console.log('📍 Dropping on column:', targetStatus);
     } else if (overId.startsWith('deal-')) {
       const overDealId = overId.replace('deal-', '');
       const overDeal = deals.find(d => d.id.toString() === overDealId);
-      if (!overDeal) {
-        console.log('⚠️ Over deal not found');
-        return;
-      }
+      if (!overDeal) return;
       targetStatus = overDeal.status;
-      console.log('📍 Dropping on deal in column:', targetStatus);
     } else {
-      console.log('⚠️ Unknown drop target type');
       return;
-    }
-
-    // Only update if status is different
-    if (activeDeal.status !== targetStatus) {
-      console.log(`✅ Would move deal ${activeDealId} from ${activeDeal.status} to ${targetStatus}`);
     }
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     
-    console.log('🏁 DRAG END:', {
-      activeId: active.id,
-      overId: over?.id,
-    });
-
     setActiveDeal(null);
 
-    if (!over) {
-      console.log('❌ No drop target - drag cancelled');
-      return;
-    }
+    if (!over) return;
 
     const dealId = active.id.toString().replace('deal-', '');
     const deal = deals.find(d => d.id.toString() === dealId);
     
-    if (!deal) {
-      console.log('❌ Deal not found:', dealId);
-      return;
-    }
+    if (!deal) return;
 
     let newStatus: string;
 
-    // Check if dropped on a column directly
     if (over.id.toString().startsWith('column-')) {
       newStatus = over.id.toString().replace('column-', '');
-      console.log('✅ Dropped on column:', newStatus);
     } else if (over.id.toString().startsWith('deal-')) {
-      // Dropped on another card - find the status of that card
       const targetDealId = over.id.toString().replace('deal-', '');
       const targetDeal = deals.find(d => d.id.toString() === targetDealId);
-      if (!targetDeal) {
-        console.log('❌ Target deal not found:', targetDealId);
-        return;
-      }
+      if (!targetDeal) return;
       newStatus = targetDeal.status;
-      console.log('✅ Dropped on deal, using its status:', newStatus);
     } else {
-      console.log('❌ Unknown drop target type:', over.id);
       return;
     }
     
-    console.log('🔄 Status change:', {
-      dealId,
-      oldStatus: deal.status,
-      newStatus,
-      willUpdate: deal.status !== newStatus,
-    });
-
-    // Only update if status changed
     if (deal.status !== newStatus && statusColumns.find(col => col.key === newStatus)) {
-      console.log('🚀 Calling onStatusUpdate');
       onStatusUpdate(deal, newStatus);
-    } else {
-      console.log('⏭️ Skipping update - same status or invalid column');
     }
   };
 
