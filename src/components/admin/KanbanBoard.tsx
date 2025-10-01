@@ -161,7 +161,7 @@ const DroppableColumn: React.FC<{
   return (
     <div 
       ref={setNodeRef}
-      className={`flex-1 space-y-0 min-h-[500px] max-h-[calc(100vh-280px)] overflow-y-auto transition-all duration-300 rounded-lg p-3 ${columnBg} ${
+      className={`flex-1 space-y-0 overflow-y-auto transition-all duration-300 rounded-lg p-3 ${columnBg} ${
         isOver ? 'ring-2 ring-primary ring-offset-2 scale-[1.02] shadow-lg bg-primary/10' : ''
       }`}
     >
@@ -428,7 +428,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
               <div 
                 key={column.key} 
                 id={`column-${column.key}`}
-                className="flex flex-col min-w-[340px] max-w-[340px] flex-shrink-0"
+                className="flex flex-col min-w-[340px] max-w-[340px] flex-shrink-0 h-full"
               >
                 <div className={`${column.headerBg} ${column.headerText} rounded-t-lg px-4 py-3 mb-2 shadow-md`}>
                   <div className="flex items-center justify-between">
