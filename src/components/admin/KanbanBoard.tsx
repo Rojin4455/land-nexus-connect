@@ -161,7 +161,7 @@ const DroppableColumn: React.FC<{
   return (
     <div 
       ref={setNodeRef}
-      className={`flex-1 space-y-0 min-h-[400px] transition-all duration-300 rounded-lg p-3 ${columnBg} ${
+      className={`flex-1 space-y-0 min-h-[500px] max-h-[calc(100vh-280px)] overflow-y-auto transition-all duration-300 rounded-lg p-3 ${columnBg} ${
         isOver ? 'ring-2 ring-primary ring-offset-2 scale-[1.02] shadow-lg bg-primary/10' : ''
       }`}
     >
@@ -441,8 +441,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                   </div>
                 </div>
                 
-                <SortableContext id={`column-${column.key}`} items={dealIds} strategy={verticalListSortingStrategy}>
-                  <DroppableColumn id={`column-${column.key}`} columnBg={column.columnBg}>
+                <DroppableColumn id={`column-${column.key}`} columnBg={column.columnBg}>
+                  <SortableContext id={`column-${column.key}`} items={dealIds} strategy={verticalListSortingStrategy}>
                     {columnDeals.length === 0 ? (
                       <div className="text-center py-12 px-4">
                         <div className="bg-background/50 backdrop-blur-sm rounded-lg p-6 border-2 border-dashed border-border">
@@ -461,8 +461,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                         />
                       ))
                     )}
-                  </DroppableColumn>
-                </SortableContext>
+                  </SortableContext>
+                </DroppableColumn>
               </div>
             );
           })}
