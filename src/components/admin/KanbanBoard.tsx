@@ -359,7 +359,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                   </div>
                 </div>
                 
-                <SortableContext items={dealIds} strategy={verticalListSortingStrategy}>
+                <SortableContext id={`column-${column.key}`} items={dealIds} strategy={verticalListSortingStrategy}>
                   <DroppableColumn id={`column-${column.key}`} columnBg={column.columnBg}>
                     {columnDeals.length === 0 ? (
                       <div className="text-center py-12 px-4">
