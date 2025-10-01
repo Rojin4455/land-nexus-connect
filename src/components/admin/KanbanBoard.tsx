@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { Eye, Edit, MapPin, Calendar, DollarSign, FileText } from 'lucide-react';
 import { DndContext, DragEndEvent, DragOverEvent, DragOverlay, DragStartEvent, closestCorners, PointerSensor, useSensor, useSensors, useDroppable, MeasuringStrategy } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -159,7 +162,7 @@ const DroppableColumn: React.FC<{
     <div 
       ref={setNodeRef}
       className={`flex-1 space-y-0 min-h-[400px] transition-all duration-300 rounded-lg p-3 ${columnBg} ${
-        isOver ? 'ring-2 ring-primary ring-offset-2 scale-[1.02] shadow-lg' : ''
+        isOver ? 'ring-2 ring-primary ring-offset-2 scale-[1.02] shadow-lg bg-primary/10' : ''
       }`}
     >
       {children}
@@ -269,6 +272,18 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   onEditStatus 
 }) => {
   const [activeDeal, setActiveDeal] = React.useState<Deal | null>(null);
+  const [optimisticDeals, setOptimisticDeals] = React.useState<Deal[]>([]);
+  const [showRejectDialog, setShowRejectDialog] = React.useState(false);
+  const [pendingRejectDeal, setPendingRejectDeal] = React.useState<{ deal: Deal; newStatus: string } | null>(null);
+  const [rejectReason, setRejectReason] = React.useState('');
+
+  // Use optimistic deals if available, otherwise use props deals
+  const displayDeals = optimisticDeals.length > 0 ? optimisticDeals : deals;
+
+  React.useEffect(() => {
+    // Reset optimistic state when deals prop updates
+    setOptimisticDeals([]);
+  }, [deals]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -288,12 +303,12 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     return grouped;
   };
 
-  const groupedDeals = groupDealsByStatus(deals);
+  const groupedDeals = groupDealsByStatus(displayDeals);
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
     const dealId = active.id.toString().replace('deal-', '');
-    const deal = deals.find(d => d.id.toString() === dealId);
+    const deal = displayDeals.find(d => d.id.toString() === dealId);
     setActiveDeal(deal || null);
   };
 
@@ -308,7 +323,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     if (activeId === overId) return;
 
     const activeDealId = activeId.replace('deal-', '');
-    const activeDeal = deals.find(d => d.id.toString() === activeDealId);
+    const activeDeal = displayDeals.find(d => d.id.toString() === activeDealId);
     
     if (!activeDeal) return;
 
@@ -318,12 +333,32 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       targetStatus = overId.replace('column-', '');
     } else if (overId.startsWith('deal-')) {
       const overDealId = overId.replace('deal-', '');
-      const overDeal = deals.find(d => d.id.toString() === overDealId);
+      const overDeal = displayDeals.find(d => d.id.toString() === overDealId);
       if (!overDeal) return;
       targetStatus = overDeal.status;
     } else {
       return;
     }
+  };
+
+  const handleRejectSubmit = () => {
+    if (!pendingRejectDeal || !rejectReason.trim()) return;
+    
+    const { deal, newStatus } = pendingRejectDeal;
+    
+    // Optimistic update
+    const updatedDeals = deals.map(d => 
+      d.id === deal.id ? { ...d, status: newStatus } : d
+    );
+    setOptimisticDeals(updatedDeals);
+    
+    // Call API
+    onStatusUpdate(deal, newStatus, rejectReason);
+    
+    // Reset
+    setShowRejectDialog(false);
+    setPendingRejectDeal(null);
+    setRejectReason('');
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -352,6 +387,20 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     }
     
     if (deal.status !== newStatus && statusColumns.find(col => col.key === newStatus)) {
+      // If dropping to rejected status, show dialog for reason
+      if (newStatus === 'buyer_rejected') {
+        setPendingRejectDeal({ deal, newStatus });
+        setShowRejectDialog(true);
+        return;
+      }
+      
+      // Optimistic update for other statuses
+      const updatedDeals = deals.map(d => 
+        d.id === deal.id ? { ...d, status: newStatus } : d
+      );
+      setOptimisticDeals(updatedDeals);
+      
+      // Call API
       onStatusUpdate(deal, newStatus);
     }
   };
@@ -450,6 +499,49 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           </Card>
         ) : null}
       </DragOverlay>
+
+      {/* Reject Reason Dialog */}
+      <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Rejection Reason Required</DialogTitle>
+            <DialogDescription>
+              Please provide a reason for rejecting this deal. This will be recorded with the status change.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="reject-reason">Rejection Reason</Label>
+              <Textarea
+                id="reject-reason"
+                placeholder="Enter the reason for rejection..."
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                className="min-h-[100px]"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowRejectDialog(false);
+                setPendingRejectDeal(null);
+                setRejectReason('');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleRejectSubmit}
+              disabled={!rejectReason.trim()}
+            >
+              Reject Deal
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DndContext>
   );
 };
