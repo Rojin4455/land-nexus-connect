@@ -40,14 +40,70 @@ interface KanbanBoardProps {
 }
 
 const statusColumns = [
-  { key: 'submitted', title: 'Submitted', color: 'bg-blue-50 border-blue-200' },
-  { key: 'under_review_with_buyer', title: 'Under Review', color: 'bg-yellow-50 border-yellow-200' },
-  { key: 'buyer_approved', title: 'Approved', color: 'bg-green-50 border-green-200' },
-  { key: 'buyer_rejected', title: 'Rejected', color: 'bg-red-50 border-red-200' },
-  { key: 'mls_pending', title: 'MLS Pending', color: 'bg-purple-50 border-purple-200' },
-  { key: 'mls_active', title: 'MLS Active', color: 'bg-indigo-50 border-indigo-200' },
-  { key: 'sold', title: 'Sold', color: 'bg-emerald-50 border-emerald-200' },
-  { key: 'canceled', title: 'Canceled', color: 'bg-gray-50 border-gray-200' }
+  { 
+    key: 'submitted', 
+    title: 'Submitted', 
+    headerBg: 'bg-blue-500',
+    headerText: 'text-white',
+    columnBg: 'bg-blue-50/50 dark:bg-blue-950/20',
+    border: 'border-blue-200 dark:border-blue-900'
+  },
+  { 
+    key: 'under_review_with_buyer', 
+    title: 'Under Review', 
+    headerBg: 'bg-yellow-500',
+    headerText: 'text-white',
+    columnBg: 'bg-yellow-50/50 dark:bg-yellow-950/20',
+    border: 'border-yellow-200 dark:border-yellow-900'
+  },
+  { 
+    key: 'buyer_approved', 
+    title: 'Approved', 
+    headerBg: 'bg-green-500',
+    headerText: 'text-white',
+    columnBg: 'bg-green-50/50 dark:bg-green-950/20',
+    border: 'border-green-200 dark:border-green-900'
+  },
+  { 
+    key: 'buyer_rejected', 
+    title: 'Rejected', 
+    headerBg: 'bg-red-500',
+    headerText: 'text-white',
+    columnBg: 'bg-red-50/50 dark:bg-red-950/20',
+    border: 'border-red-200 dark:border-red-900'
+  },
+  { 
+    key: 'mls_pending', 
+    title: 'MLS Pending', 
+    headerBg: 'bg-purple-500',
+    headerText: 'text-white',
+    columnBg: 'bg-purple-50/50 dark:bg-purple-950/20',
+    border: 'border-purple-200 dark:border-purple-900'
+  },
+  { 
+    key: 'mls_active', 
+    title: 'MLS Active', 
+    headerBg: 'bg-indigo-500',
+    headerText: 'text-white',
+    columnBg: 'bg-indigo-50/50 dark:bg-indigo-950/20',
+    border: 'border-indigo-200 dark:border-indigo-900'
+  },
+  { 
+    key: 'sold', 
+    title: 'Sold', 
+    headerBg: 'bg-emerald-500',
+    headerText: 'text-white',
+    columnBg: 'bg-emerald-50/50 dark:bg-emerald-950/20',
+    border: 'border-emerald-200 dark:border-emerald-900'
+  },
+  { 
+    key: 'canceled', 
+    title: 'Canceled', 
+    headerBg: 'bg-gray-500',
+    headerText: 'text-white',
+    columnBg: 'bg-gray-50/50 dark:bg-gray-950/20',
+    border: 'border-gray-200 dark:border-gray-900'
+  }
 ];
 
 const formatCurrency = (amount: string | number) => {
@@ -94,7 +150,8 @@ const getStatusVariant = (status: string) => {
 const DroppableColumn: React.FC<{
   id: string;
   children: React.ReactNode;
-}> = ({ id, children }) => {
+  columnBg: string;
+}> = ({ id, children, columnBg }) => {
   const { setNodeRef, isOver } = useDroppable({
     id,
   });
@@ -102,8 +159,8 @@ const DroppableColumn: React.FC<{
   return (
     <div 
       ref={setNodeRef}
-      className={`flex-1 space-y-0 min-h-[200px] transition-colors rounded-lg p-2 ${
-        isOver ? 'bg-muted/50 border-2 border-dashed border-primary' : ''
+      className={`flex-1 space-y-0 min-h-[400px] transition-all duration-300 rounded-lg p-3 ${columnBg} ${
+        isOver ? 'ring-2 ring-primary ring-offset-2 scale-[1.02] shadow-lg' : ''
       }`}
     >
       {children}
@@ -128,12 +185,13 @@ const DraggableDealCard: React.FC<{
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.3 : 1,
+    cursor: isDragging ? 'grabbing' : 'grab',
   };
 
   return (
-    <div ref={setNodeRef} style={style}>
-      <Card className="mb-3 cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow bg-card border" {...attributes} {...listeners}>
+    <div ref={setNodeRef} style={style} className="touch-none">
+      <Card className={`mb-3 hover:shadow-lg transition-all duration-200 bg-card border-2 ${isDragging ? 'shadow-2xl rotate-2 scale-105' : 'hover:scale-[1.02]'}`} {...attributes} {...listeners}>
         <CardContent className="p-4">
           <div className="flex items-start justify-between mb-3">
             <div className="flex-1">
@@ -266,8 +324,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <ScrollArea className="w-full">
-        <div className="flex gap-4 pb-4">
+      <ScrollArea className="w-full h-[calc(100vh-200px)]">
+        <div className="flex gap-6 pb-6 px-2">
           {statusColumns.map(column => {
             const columnDeals = groupedDeals[column.key] || [];
             const dealIds = columnDeals.map(deal => `deal-${deal.id}`);
@@ -276,27 +334,28 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
               <div 
                 key={column.key} 
                 id={`column-${column.key}`}
-                className="flex flex-col min-w-[320px] flex-shrink-0"
+                className="flex flex-col min-w-[340px] max-w-[340px] flex-shrink-0"
               >
-                <Card className={`${column.color} mb-4`}>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-sm font-medium text-foreground">
-                        {column.title}
-                      </CardTitle>
-                      <Badge variant="secondary" className="text-xs">
-                        {columnDeals.length}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                </Card>
+                <div className={`${column.headerBg} ${column.headerText} rounded-t-lg px-4 py-3 mb-2 shadow-md`}>
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-semibold tracking-wide">
+                      {column.title}
+                    </h3>
+                    <span className="bg-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full text-xs font-bold">
+                      {columnDeals.length}
+                    </span>
+                  </div>
+                </div>
                 
                 <SortableContext items={dealIds} strategy={verticalListSortingStrategy}>
-                  <DroppableColumn id={`column-${column.key}`}>
+                  <DroppableColumn id={`column-${column.key}`} columnBg={column.columnBg}>
                     {columnDeals.length === 0 ? (
-                      <div className="text-center py-8">
-                        <FileText className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                        <p className="text-xs text-muted-foreground">No deals</p>
+                      <div className="text-center py-12 px-4">
+                        <div className="bg-background/50 backdrop-blur-sm rounded-lg p-6 border-2 border-dashed border-border">
+                          <FileText className="h-10 w-10 text-muted-foreground mx-auto mb-3 opacity-50" />
+                          <p className="text-sm text-muted-foreground font-medium">No deals yet</p>
+                          <p className="text-xs text-muted-foreground mt-1">Drag cards here</p>
+                        </div>
                       </div>
                     ) : (
                       columnDeals.map(deal => (
@@ -318,7 +377,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
       <DragOverlay>
         {activeDeal ? (
-          <Card className="cursor-grabbing shadow-lg bg-card border w-[320px]">
+          <Card className="cursor-grabbing shadow-2xl bg-card border-2 border-primary w-[340px] rotate-3 scale-110 opacity-90">
             <CardContent className="p-4">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
@@ -329,6 +388,17 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                     <MapPin className="h-3 w-3 text-muted-foreground mt-0.5 flex-shrink-0" />
                     <p className="text-xs text-foreground line-clamp-2">{activeDeal.address}</p>
                   </div>
+                </div>
+                <Badge variant={getStatusVariant(activeDeal.status)} className="text-xs ml-2 flex-shrink-0">
+                  {activeDeal.status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                </Badge>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">Value:</span>
+                  <span className="text-foreground font-medium">
+                    {formatCurrency(activeDeal.agreed_price || activeDeal.agreedPrice || 0)}
+                  </span>
                 </div>
               </div>
             </CardContent>
