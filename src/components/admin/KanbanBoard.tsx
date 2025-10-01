@@ -301,19 +301,9 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     const { active } = event;
     console.log('🎯 DRAG START:', {
       activeId: active.id,
-      activeData: active.data.current,
     });
-    const dealId = parseInt(active.id.toString().replace('deal-', ''));
-    console.log('🔍 Looking for deal:', {
-      dealId,
-      dealIdType: typeof dealId,
-      firstFiveDeals: deals.slice(0, 5).map(d => ({ id: d.id, type: typeof d.id })),
-      searchResult: deals.find(d => {
-        console.log(`Comparing ${d.id} (${typeof d.id}) === ${dealId} (${typeof dealId}): ${d.id === dealId}`);
-        return d.id === dealId;
-      }),
-    });
-    const deal = deals.find(d => d.id === dealId);
+    const dealId = active.id.toString().replace('deal-', '');
+    const deal = deals.find(d => d.id.toString() === dealId);
     console.log('📦 Deal being dragged:', { dealId, deal, dealStatus: deal?.status });
     setActiveDeal(deal || null);
   };
@@ -324,7 +314,6 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     console.log('🔄 DRAG OVER:', {
       activeId: active.id,
       overId: over?.id,
-      overData: over?.data.current,
     });
 
     if (!over) {
@@ -344,8 +333,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     }
 
     // Get the active deal
-    const activeDealId = parseInt(activeId.replace('deal-', ''));
-    const activeDeal = deals.find(d => d.id === activeDealId);
+    const activeDealId = activeId.replace('deal-', '');
+    const activeDeal = deals.find(d => d.id.toString() === activeDealId);
     
     if (!activeDeal) {
       console.log('⚠️ Active deal not found');
@@ -359,8 +348,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       targetStatus = overId.replace('column-', '');
       console.log('📍 Dropping on column:', targetStatus);
     } else if (overId.startsWith('deal-')) {
-      const overDealId = parseInt(overId.replace('deal-', ''));
-      const overDeal = deals.find(d => d.id === overDealId);
+      const overDealId = overId.replace('deal-', '');
+      const overDeal = deals.find(d => d.id.toString() === overDealId);
       if (!overDeal) {
         console.log('⚠️ Over deal not found');
         return;
@@ -384,7 +373,6 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     console.log('🏁 DRAG END:', {
       activeId: active.id,
       overId: over?.id,
-      overData: over?.data.current,
     });
 
     setActiveDeal(null);
@@ -394,8 +382,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       return;
     }
 
-    const dealId = parseInt(active.id.toString().replace('deal-', ''));
-    const deal = deals.find(d => d.id === dealId);
+    const dealId = active.id.toString().replace('deal-', '');
+    const deal = deals.find(d => d.id.toString() === dealId);
     
     if (!deal) {
       console.log('❌ Deal not found:', dealId);
@@ -410,8 +398,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       console.log('✅ Dropped on column:', newStatus);
     } else if (over.id.toString().startsWith('deal-')) {
       // Dropped on another card - find the status of that card
-      const targetDealId = parseInt(over.id.toString().replace('deal-', ''));
-      const targetDeal = deals.find(d => d.id === targetDealId);
+      const targetDealId = over.id.toString().replace('deal-', '');
+      const targetDeal = deals.find(d => d.id.toString() === targetDealId);
       if (!targetDeal) {
         console.log('❌ Target deal not found:', targetDealId);
         return;
