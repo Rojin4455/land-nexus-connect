@@ -273,6 +273,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   console.log('🗂️ KanbanBoard received deals:', {
     totalDeals: deals.length,
     dealIds: deals.map(d => d.id),
+    dealIdsWithTypes: deals.slice(0, 5).map(d => ({ id: d.id, type: typeof d.id, status: d.status })),
     firstDeal: deals[0],
   });
 
@@ -306,7 +307,11 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     console.log('🔍 Looking for deal:', {
       dealId,
       dealIdType: typeof dealId,
-      availableDealIds: deals.map(d => ({ id: d.id, type: typeof d.id })),
+      firstFiveDeals: deals.slice(0, 5).map(d => ({ id: d.id, type: typeof d.id })),
+      searchResult: deals.find(d => {
+        console.log(`Comparing ${d.id} (${typeof d.id}) === ${dealId} (${typeof dealId}): ${d.id === dealId}`);
+        return d.id === dealId;
+      }),
     });
     const deal = deals.find(d => d.id === dealId);
     console.log('📦 Deal being dragged:', { dealId, deal, dealStatus: deal?.status });
