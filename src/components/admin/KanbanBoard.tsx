@@ -308,9 +308,22 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     
     if (!deal) return;
 
-    // Check if dropped on a column
-    const newStatus = over.id.toString().replace('column-', '');
+    let newStatus: string;
+
+    // Check if dropped on a column directly
+    if (over.id.toString().startsWith('column-')) {
+      newStatus = over.id.toString().replace('column-', '');
+    } else if (over.id.toString().startsWith('deal-')) {
+      // Dropped on another card - find the status of that card
+      const targetDealId = parseInt(over.id.toString().replace('deal-', ''));
+      const targetDeal = deals.find(d => d.id === targetDealId);
+      if (!targetDeal) return;
+      newStatus = targetDeal.status;
+    } else {
+      return;
+    }
     
+    // Only update if status changed
     if (deal.status !== newStatus && statusColumns.find(col => col.key === newStatus)) {
       onStatusUpdate(deal, newStatus);
     }
