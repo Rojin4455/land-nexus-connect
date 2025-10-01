@@ -94,7 +94,7 @@ export type BuyBoxFormValues = z.infer<typeof BuyBoxSchema>;
 interface BuyerDetailsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  buyer: { id: number; name: string; email: string; phone?: string | null } | null;
+  buyer: { id: number; user_id: number; name: string; email: string; phone?: string | null } | null;
   onUpdated?: () => void;
 }
 
@@ -220,10 +220,10 @@ export default function BuyerDetailsDialog({ open, onOpenChange, buyer, onUpdate
 
   // API functions
 const loadBuyBox = async () => {
-  if (!buyer?.id || state.buyBoxLoaded) return;
+  if (!buyer?.user_id || state.buyBoxLoaded) return;
   
   try {
-    const res = await landDealsApi.admin.getBuyerBuyBox(String(buyer.id));
+    const res = await landDealsApi.admin.getBuyerBuyBox(String(buyer.user_id));
     if (res?.success && res.data) {
       const data = res.data;
       
@@ -288,11 +288,11 @@ const loadBuyBox = async () => {
 };
 
   const loadDealLogs = async () => {
-    if (!buyer?.id || state.loadingDealLogs) return;
+    if (!buyer?.user_id || state.loadingDealLogs) return;
     
     try {
       updateState({ loadingDealLogs: true });
-      const res = await landDealsApi.admin.getBuyerDealLogs(String(buyer.id));
+      const res = await landDealsApi.admin.getBuyerDealLogs(String(buyer.user_id));
       
       if (res?.success && res.data) {
         updateState({ dealLogs: res.data });
@@ -320,7 +320,7 @@ const loadBuyBox = async () => {
         email: (document.getElementById("buyer-info-email") as HTMLInputElement)?.value || buyer.email,
         phone: (document.getElementById("buyer-info-phone") as HTMLInputElement)?.value || buyer.phone || "",
       };
-      await landDealsApi.admin.updateBuyer(String(buyer.id), payload);
+      await landDealsApi.admin.updateBuyer(String(buyer.user_id), payload);
       toast({ title: "Buyer updated" });
       onUpdated?.();
     } catch (e: any) {
@@ -367,7 +367,7 @@ const onSubmit = async (values: BuyBoxFormValues) => {
       notes: values.notes,
     };
 
-    const res = await landDealsApi.admin.updateBuyerBuyBox(String(buyer.id), payload);
+    const res = await landDealsApi.admin.updateBuyerBuyBox(String(buyer.user_id), payload);
     if (res?.success) toast({ title: "Buy box saved" });
     onUpdated?.();
   } catch (e: any) {
@@ -385,7 +385,7 @@ const onSubmit = async (values: BuyBoxFormValues) => {
       const res = await landDealsApi.admin.matchBuyersForProperty(propId);
       if (res?.success) {
         const list: any[] = (res.data as any) || [];
-        const match = list.find((b: any) => String(b.id) === String(buyer?.id));
+        const match = list.find((b: any) => String(b.id) === String(buyer?.user_id));
         if (match) {
           updateState({ matchScore: Number((match as any).score ?? (match as any).match_score ?? 0) });
         } else {
@@ -401,11 +401,11 @@ const onSubmit = async (values: BuyBoxFormValues) => {
   };
 
   const toggleBuyBoxActive = async () => {
-    if (!buyer?.id || state.togglingBuyBox) return;
+    if (!buyer?.user_id || state.togglingBuyBox) return;
     
     try {
       updateState({ togglingBuyBox: true });
-      const res = await landDealsApi.admin.toggleBuyBoxActive(String(buyer.id));
+      const res = await landDealsApi.admin.toggleBuyBoxActive(String(buyer.user_id));
       
       if (res?.success) {
         // Update the form value to reflect the new status
