@@ -357,7 +357,7 @@ const AdminDashboard = () => {
               </div>
               <div>
                 <h1 className="text-xl font-bold text-foreground">Admin Dashboard</h1>
-                <p className="text-sm text-muted-foreground">LandDeal Pro Management</p>
+                <p className="text-sm text-muted-foreground">JV Deal Hub Management</p>
               </div>
             </div>
             

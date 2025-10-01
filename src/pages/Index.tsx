@@ -19,7 +19,7 @@ const Index = () => {
                     <MapPin className="h-8 w-8 text-primary-foreground" />
                   </div>
                   <h1 className="text-4xl lg:text-5xl font-bold text-foreground">
-                    LandDeal Pro
+                    JV Deal Hub
                   </h1>
                 </div>
                 <p className="text-xl lg:text-2xl text-muted-foreground leading-relaxed">
@@ -62,7 +62,7 @@ const Index = () => {
             {/* Right side - Features */}
             <div className="space-y-6">
               <div className="space-y-4">
-                <h3 className="text-2xl font-bold text-foreground">Why Choose LandDeal Pro?</h3>
+                <h3 className="text-2xl font-bold text-foreground">Why Choose JV Deal Hub?</h3>
                 
                 <div className="space-y-4">
                   <div className="flex items-start space-x-4 p-4 bg-card rounded-lg border border-border">
@@ -172,7 +172,7 @@ const Index = () => {
             Ready to Transform Your Land Investments?
           </h2>
           <p className="text-xl text-primary-foreground/90 mb-8">
-            Join hundreds of successful investors who trust LandDeal Pro for their land investment decisions.
+            Join hundreds of successful investors who trust JV Deal Hub for their land investment decisions.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 

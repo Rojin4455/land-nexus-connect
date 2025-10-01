@@ -57,7 +57,7 @@ const DashboardLayout = ({ children, activeTab = 'dashboard' }) => {
             <MapPin className="h-6 w-6 text-primary-foreground" />
           </div>
           <div>
-            <h2 className="font-bold text-lg">LandDeal Pro</h2>
+            <h2 className="font-bold text-lg">JV Deal Hub</h2>
             <p className="text-sm text-muted-foreground">Student Portal</p>
           </div>
         </div>
