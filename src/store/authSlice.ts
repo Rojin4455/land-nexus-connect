@@ -225,6 +225,10 @@ export const verifyLoginOTP = createAsyncThunk(
   async (otpData: { email: string; otp: string }, { rejectWithValue }) => {
     try {
       const response = await axios.post(`${API_BASE_URL}/auth/login-verify-otp/`, otpData);
+      console.log('✅ Login OTP Response:', response.data);
+      console.log('🔑 Access token:', response.data.access);
+      console.log('🔑 Refresh token:', response.data.refresh);
+      console.log('👤 User:', response.data.user);
       return response.data as AuthResponse;
     } catch (error: any) {
       console.error('Verify Login OTP error:', error.response?.data);
