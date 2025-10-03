@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { store } from '@/store';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
@@ -12,7 +13,28 @@ const apiClient = axios.create({
 
 // Add auth interceptor
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('access_token');
+  // Get token from Redux store first (most up-to-date)
+  let token = store.getState().auth?.accessToken;
+  
+  // Fallback to persisted state in localStorage
+  if (!token) {
+    const persistedState = localStorage.getItem('persist:root');
+    if (persistedState) {
+      try {
+        const parsed = JSON.parse(persistedState);
+        const authData = JSON.parse(parsed.auth);
+        token = authData?.accessToken;
+      } catch (error) {
+        console.warn('Failed to parse persisted auth state');
+      }
+    }
+  }
+  
+  // Final fallback to direct localStorage tokens
+  if (!token) {
+    token = localStorage.getItem('access_token') || localStorage.getItem('adminToken') || localStorage.getItem('userToken');
+  }
+  
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
