@@ -226,10 +226,18 @@ export const verifyLoginOTP = createAsyncThunk(
     try {
       const response = await axios.post(`${API_BASE_URL}/auth/login-verify-otp/`, otpData);
       console.log('✅ Login OTP Response:', response.data);
-      console.log('🔑 Access token:', response.data.access);
-      console.log('🔑 Refresh token:', response.data.refresh);
-      console.log('👤 User:', response.data.user);
-      return response.data as AuthResponse;
+      
+      // Transform the response to match our expected AuthResponse interface
+      const transformedResponse: AuthResponse = {
+        access: response.data.tokens.access,
+        refresh: response.data.tokens.refresh,
+        user: response.data.user
+      };
+      
+      console.log('🔑 Access token:', transformedResponse.access);
+      console.log('🔑 Refresh token:', transformedResponse.refresh);
+      console.log('👤 User:', transformedResponse.user);
+      return transformedResponse;
     } catch (error: any) {
       console.error('Verify Login OTP error:', error.response?.data);
       if (error.response?.data) {
