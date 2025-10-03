@@ -13,15 +13,18 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   // Get token from Redux store first (most up-to-date)
   let token = store.getState().auth?.accessToken;
+  console.log('🔑 Token from Redux store:', token ? 'Found' : 'Not found');
   
   // Fallback to persisted state in localStorage
   if (!token) {
     const persistedState = localStorage.getItem('persist:root');
+    console.log('💾 Persist:root in localStorage:', persistedState ? 'Found' : 'Not found');
     if (persistedState) {
       try {
         const parsed = JSON.parse(persistedState);
         const authData = JSON.parse(parsed.auth);
         token = authData?.accessToken;
+        console.log('🔑 Token from persist:root:', token ? 'Found' : 'Not found');
       } catch (error) {
         console.warn('Failed to parse persisted auth state');
       }
@@ -31,7 +34,11 @@ api.interceptors.request.use((config) => {
   // Final fallback to direct localStorage tokens
   if (!token) {
     token = localStorage.getItem('authToken') || localStorage.getItem('adminToken') || localStorage.getItem('userToken');
+    console.log('🔑 Token from direct localStorage:', token ? 'Found' : 'Not found');
   }
+  
+  console.log('🎯 Final token status:', token ? 'Using token' : 'NO TOKEN AVAILABLE');
+  console.log('📡 Making request to:', config.url);
   
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
