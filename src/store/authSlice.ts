@@ -225,20 +225,21 @@ export const verifyLoginOTP = createAsyncThunk(
   async (otpData: { email: string; otp: string }, { rejectWithValue }) => {
     try {
       const response = await axios.post(`${API_BASE_URL}/auth/login-verify-otp/`, otpData);
-      console.log('✅ Full Login OTP Response:', JSON.stringify(response.data, null, 2));
-      console.log('✅ Response.data.user:', response.data.user);
-      console.log('✅ Response.data.tokens:', response.data.tokens);
+      
+      // Backend doesn't return user data, so fetch it separately
+      const profileResponse = await axios.get(`${API_BASE_URL}/auth/profile/`, {
+        headers: {
+          Authorization: `Bearer ${response.data.tokens.access}`,
+        },
+      });
       
       // Transform the response to match our expected AuthResponse interface
       const transformedResponse: AuthResponse = {
         access: response.data.tokens.access,
         refresh: response.data.tokens.refresh,
-        user: response.data.user
+        user: profileResponse.data
       };
       
-      console.log('🔑 Access token:', transformedResponse.access);
-      console.log('🔑 Refresh token:', transformedResponse.refresh);
-      console.log('👤 User:', transformedResponse.user);
       return transformedResponse;
     } catch (error: any) {
       console.error('Verify Login OTP error:', error.response?.data);
