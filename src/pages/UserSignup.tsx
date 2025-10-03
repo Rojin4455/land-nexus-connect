@@ -85,9 +85,9 @@ const UserSignup = () => {
       })).unwrap();
       toast({
         title: "Signup Successful",
-        description: "Your account has been created successfully.",
+        description: "Your account has been created. Please sign in to continue.",
       });
-      navigate('/dashboard');
+      navigate('/login');
     } catch {
       // Error toast handled by error effect
     }
