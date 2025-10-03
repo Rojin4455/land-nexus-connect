@@ -3,21 +3,23 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import AuthLayout from '@/components/AuthLayout';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { useAppSelector } from '@/hooks/useAppSelector';
-import { signupUser, clearError, logout } from '@/store/authSlice';
+import { requestSignupOTP, verifySignupOTP, clearError } from '@/store/authSlice';
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
 
 const UserSignup = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [step, setStep] = useState<'details' | 'otp'>('details');
+  const [otp, setOtp] = useState('');
   const [formData, setFormData] = useState({
     username: '',
     email: '',
-    password: '',
-    password_confirm: '',
     first_name: '',
     last_name: '',
     phone: ''
@@ -40,19 +42,10 @@ const UserSignup = () => {
     }
   }, [error, toast, dispatch]);
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmitDetails = async (e: any) => {
     e.preventDefault();
-    
-    if (formData.password !== formData.password_confirm) {
-      toast({
-        title: "Error",
-        description: "Passwords do not match.",
-        variant: "destructive"
-      });
-      return;
-    }
 
-    if (!formData.username || !formData.email || !formData.password || !formData.phone) {
+    if (!formData.username || !formData.email || !formData.phone) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -62,14 +55,39 @@ const UserSignup = () => {
     }
 
     try {
-      await dispatch(signupUser(formData)).unwrap();
-      // Ensure we require login after signup
-      dispatch(logout());
+      await dispatch(requestSignupOTP(formData)).unwrap();
       toast({
-        title: "Signup successful",
-        description: "Your account was created. Please sign in to continue.",
+        title: "OTP Sent",
+        description: "Please check your email/phone for the verification code.",
       });
-      navigate('/login');
+      setStep('otp');
+    } catch {
+      // Error toast handled by error effect
+    }
+  };
+
+  const handleVerifyOTP = async (e: any) => {
+    e.preventDefault();
+
+    if (otp.length !== 6) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid 6-digit OTP",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await dispatch(verifySignupOTP({ 
+        username: formData.username, 
+        otp 
+      })).unwrap();
+      toast({
+        title: "Signup Successful",
+        description: "Your account has been created successfully.",
+      });
+      navigate('/dashboard');
     } catch {
       // Error toast handled by error effect
     }
@@ -83,9 +101,56 @@ const UserSignup = () => {
     }));
   };
 
+  if (step === 'otp') {
+    return (
+      <AuthLayout title="Verify OTP" subtitle="Enter the verification code sent to your email/phone">
+        <form onSubmit={handleVerifyOTP} className="space-y-6">
+          <div className="space-y-4">
+            <div className="flex flex-col items-center space-y-2">
+              <Label htmlFor="otp">Enter 6-digit OTP</Label>
+              <InputOTP 
+                maxLength={6} 
+                value={otp} 
+                onChange={(value) => setOtp(value)}
+              >
+                <InputOTPGroup>
+                  <InputOTPSlot index={0} />
+                  <InputOTPSlot index={1} />
+                  <InputOTPSlot index={2} />
+                  <InputOTPSlot index={3} />
+                  <InputOTPSlot index={4} />
+                  <InputOTPSlot index={5} />
+                </InputOTPGroup>
+              </InputOTP>
+            </div>
+          </div>
+
+          <Button 
+            type="submit" 
+            className="w-full" 
+            disabled={isLoading || otp.length !== 6}
+          >
+            {isLoading ? "Verifying..." : "Verify & Complete Signup"}
+          </Button>
+
+          <div className="text-center">
+            <Button
+              type="button"
+              variant="link"
+              onClick={() => setStep('details')}
+              className="text-sm"
+            >
+              Back to signup form
+            </Button>
+          </div>
+        </form>
+      </AuthLayout>
+    );
+  }
+
   return (
     <AuthLayout title="Create Account" subtitle="Join our platform and start managing your land deals today">
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmitDetails} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="username">Username *</Label>
           <Input
@@ -150,68 +215,12 @@ const UserSignup = () => {
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="password">Password *</Label>
-          <div className="relative">
-            <Input
-              id="password"
-              name="password"
-              type={showPassword ? "text" : "password"}
-              value={formData.password}
-              onChange={handleInputChange}
-              required
-              className="w-full pr-10"
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? (
-                <EyeOff className="h-4 w-4" />
-              ) : (
-                <Eye className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="password_confirm">Confirm Password *</Label>
-          <div className="relative">
-            <Input
-              id="password_confirm"
-              name="password_confirm"
-              type={showConfirmPassword ? "text" : "password"}
-              value={formData.password_confirm}
-              onChange={handleInputChange}
-              required
-              className="w-full pr-10"
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            >
-              {showConfirmPassword ? (
-                <EyeOff className="h-4 w-4" />
-              ) : (
-                <Eye className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
-        </div>
-
         <Button 
           type="submit" 
           className="w-full" 
           disabled={isLoading}
         >
-          {isLoading ? "Creating account..." : "Create Account"}
+          {isLoading ? "Sending OTP..." : "Continue"}
         </Button>
 
         <div className="text-center">

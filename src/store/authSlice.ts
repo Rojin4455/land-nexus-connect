@@ -34,11 +34,14 @@ interface LoginCredentials {
 interface SignupData {
   username: string;
   email: string;
-  password: string;
-  password_confirm: string;
   first_name?: string;
   last_name?: string;
   phone?: string;
+}
+
+interface OTPVerificationData {
+  username: string;
+  otp: string;
 }
 
 interface AuthResponse {
@@ -126,16 +129,15 @@ export const loginAdmin = createAsyncThunk(
   }
 );
 
-// User Signup
-export const signupUser = createAsyncThunk(
-  'auth/signupUser',
+// Request Signup OTP
+export const requestSignupOTP = createAsyncThunk(
+  'auth/requestSignupOTP',
   async (signupData: SignupData, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/signup/`, signupData);
-      return response.data as AuthResponse;
+      const response = await axios.post(`${API_BASE_URL}/auth/signup/request-otp/`, signupData);
+      return response.data;
     } catch (error: any) {
-      console.error('Signup error:', error.response?.data);
-      // Extract specific error message from API response
+      console.error('Request OTP error:', error.response?.data);
       if (error.response?.data) {
         const errorData = error.response.data;
         if (errorData.detail && isReadableError(errorData.detail)) return rejectWithValue(errorData.detail);
@@ -151,20 +153,33 @@ export const signupUser = createAsyncThunk(
           const emailError = Array.isArray(errorData.email) ? errorData.email[0] : errorData.email;
           if (isReadableError(emailError)) return rejectWithValue(`Email: ${emailError}`);
         }
-        if (errorData.password) {
-          const passwordError = Array.isArray(errorData.password) ? errorData.password[0] : errorData.password;
-          if (isReadableError(passwordError)) return rejectWithValue(`Password: ${passwordError}`);
-        }
         if (errorData.phone) {
           const phoneError = Array.isArray(errorData.phone) ? errorData.phone[0] : errorData.phone;
           if (isReadableError(phoneError)) return rejectWithValue(`Phone: ${phoneError}`);
         }
-        if (errorData.non_field_errors) {
-          const nonFieldError = Array.isArray(errorData.non_field_errors) ? errorData.non_field_errors[0] : errorData.non_field_errors;
-          if (isReadableError(nonFieldError)) return rejectWithValue(nonFieldError);
-        }
       }
-      return rejectWithValue('Account creation failed. Please check your information and try again.');
+      return rejectWithValue('Failed to send OTP. Please check your information and try again.');
+    }
+  }
+);
+
+// Verify Signup OTP
+export const verifySignupOTP = createAsyncThunk(
+  'auth/verifySignupOTP',
+  async (otpData: OTPVerificationData, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/auth/signup/verify-otp/`, otpData);
+      return response.data as AuthResponse;
+    } catch (error: any) {
+      console.error('Verify OTP error:', error.response?.data);
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        if (errorData.detail && isReadableError(errorData.detail)) return rejectWithValue(errorData.detail);
+        if (errorData.message && isReadableError(errorData.message)) return rejectWithValue(errorData.message);
+        if (errorData.error && isReadableError(errorData.error)) return rejectWithValue(errorData.error);
+        if (isReadableError(errorData)) return rejectWithValue(errorData);
+      }
+      return rejectWithValue('Invalid OTP. Please try again.');
     }
   }
 );
@@ -305,13 +320,28 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
       });
 
-    // Signup User
+    // Request Signup OTP
     builder
-      .addCase(signupUser.pending, (state) => {
+      .addCase(requestSignupOTP.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(signupUser.fulfilled, (state, action) => {
+      .addCase(requestSignupOTP.fulfilled, (state) => {
+        state.isLoading = false;
+        state.error = null;
+      })
+      .addCase(requestSignupOTP.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      });
+
+    // Verify Signup OTP
+    builder
+      .addCase(verifySignupOTP.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(verifySignupOTP.fulfilled, (state, action) => {
         state.isLoading = false;
         state.user = action.payload.user;
         state.accessToken = action.payload.access;
@@ -319,7 +349,7 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.error = null;
       })
-      .addCase(signupUser.rejected, (state, action) => {
+      .addCase(verifySignupOTP.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
         state.isAuthenticated = false;
