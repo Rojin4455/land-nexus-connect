@@ -27,6 +27,11 @@ interface AuthState {
 }
 
 interface LoginCredentials {
+  email: string;
+  phone: string;
+}
+
+interface AdminLoginCredentials {
   username: string;
   password: string;
 }
@@ -95,7 +100,7 @@ export const loginUser = createAsyncThunk(
 // Admin Login
 export const loginAdmin = createAsyncThunk(
   'auth/loginAdmin',
-  async (credentials: LoginCredentials, { rejectWithValue }) => {
+  async (credentials: AdminLoginCredentials, { rejectWithValue }) => {
     try {
       console.log('AuthSlice - Making admin login request to:', `${API_BASE_URL}/auth/admin/login/`);
       const response = await axios.post(`${API_BASE_URL}/auth/admin/login/`, credentials);
@@ -168,10 +173,61 @@ export const verifySignupOTP = createAsyncThunk(
   'auth/verifySignupOTP',
   async (otpData: OTPVerificationData, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/verify-otp/`, otpData);
+      const response = await axios.post(`${API_BASE_URL}/auth/signup-verify-otp/`, otpData);
       return response.data as AuthResponse;
     } catch (error: any) {
       console.error('Verify OTP error:', error.response?.data);
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        if (errorData.detail && isReadableError(errorData.detail)) return rejectWithValue(errorData.detail);
+        if (errorData.message && isReadableError(errorData.message)) return rejectWithValue(errorData.message);
+        if (errorData.error && isReadableError(errorData.error)) return rejectWithValue(errorData.error);
+        if (isReadableError(errorData)) return rejectWithValue(errorData);
+      }
+      return rejectWithValue('Invalid OTP. Please try again.');
+    }
+  }
+);
+
+// Request Login OTP
+export const requestLoginOTP = createAsyncThunk(
+  'auth/requestLoginOTP',
+  async (loginData: LoginCredentials, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/auth/login/`, loginData);
+      return response.data;
+    } catch (error: any) {
+      console.error('Request Login OTP error:', error.response?.data);
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        if (errorData.detail && isReadableError(errorData.detail)) return rejectWithValue(errorData.detail);
+        if (errorData.message && isReadableError(errorData.message)) return rejectWithValue(errorData.message);
+        if (errorData.error && isReadableError(errorData.error)) return rejectWithValue(errorData.error);
+        if (isReadableError(errorData)) return rejectWithValue(errorData);
+        // Handle field-specific errors
+        if (errorData.email) {
+          const emailError = Array.isArray(errorData.email) ? errorData.email[0] : errorData.email;
+          if (isReadableError(emailError)) return rejectWithValue(`Email: ${emailError}`);
+        }
+        if (errorData.phone) {
+          const phoneError = Array.isArray(errorData.phone) ? errorData.phone[0] : errorData.phone;
+          if (isReadableError(phoneError)) return rejectWithValue(`Phone: ${phoneError}`);
+        }
+      }
+      return rejectWithValue('Failed to send login OTP. Please check your information and try again.');
+    }
+  }
+);
+
+// Verify Login OTP
+export const verifyLoginOTP = createAsyncThunk(
+  'auth/verifyLoginOTP',
+  async (otpData: { email: string; otp: string }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/auth/login-verify-otp/`, otpData);
+      return response.data as AuthResponse;
+    } catch (error: any) {
+      console.error('Verify Login OTP error:', error.response?.data);
       if (error.response?.data) {
         const errorData = error.response.data;
         if (errorData.detail && isReadableError(errorData.detail)) return rejectWithValue(errorData.detail);
@@ -350,6 +406,41 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(verifySignupOTP.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+        state.isAuthenticated = false;
+      });
+
+    // Request Login OTP
+    builder
+      .addCase(requestLoginOTP.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(requestLoginOTP.fulfilled, (state) => {
+        state.isLoading = false;
+        state.error = null;
+      })
+      .addCase(requestLoginOTP.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      });
+
+    // Verify Login OTP
+    builder
+      .addCase(verifyLoginOTP.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(verifyLoginOTP.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = action.payload.user;
+        state.accessToken = action.payload.access;
+        state.refreshToken = action.payload.refresh;
+        state.isAuthenticated = true;
+        state.error = null;
+      })
+      .addCase(verifyLoginOTP.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
         state.isAuthenticated = false;

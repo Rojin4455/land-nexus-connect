@@ -3,20 +3,24 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import AuthLayout from '@/components/AuthLayout';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { useAppSelector } from '@/hooks/useAppSelector';
-import { loginUser, clearError } from '@/store/authSlice';
+import { requestLoginOTP, verifyLoginOTP, clearError } from '@/store/authSlice';
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
 
 const UserLogin = () => {
-  const [showPassword, setShowPassword] = useState(false);
+  const [step, setStep] = useState<'credentials' | 'otp'>('credentials');
+  const [otp, setOtp] = useState('');
   const [formData, setFormData] = useState({
-    username: '',
-    password: ''
+    email: '',
+    phone: ''
   });
-  console.log(import.meta.env.VITE_API_URL, "dwdwdwddwd");
 
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -48,7 +52,7 @@ const UserLogin = () => {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     
-    if (!formData.username || !formData.password) {
+    if (!formData.email || !formData.phone) {
       toast({
         title: "Error",
         description: "Please fill in all fields",
@@ -57,7 +61,43 @@ const UserLogin = () => {
       return;
     }
 
-    dispatch(loginUser(formData));
+    try {
+      await dispatch(requestLoginOTP(formData)).unwrap();
+      toast({
+        title: "OTP Sent",
+        description: "Please check your email or phone for the OTP code.",
+      });
+      setStep('otp');
+    } catch {
+      // Error toast handled by error effect
+    }
+  };
+
+  const handleVerifyOTP = async (e: any) => {
+    e.preventDefault();
+
+    if (otp.length !== 6) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid 6-digit OTP",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await dispatch(verifyLoginOTP({
+        email: formData.email,
+        otp
+      })).unwrap();
+      toast({
+        title: "Login Successful",
+        description: "Welcome back!",
+      });
+      navigate('/dashboard');
+    } catch {
+      // Error toast handled by error effect
+    }
   };
 
   const handleInputChange = (e: any) => {
@@ -70,65 +110,93 @@ const UserLogin = () => {
 
   return (
     <AuthLayout title="Welcome Back" subtitle="Sign in to your account">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="username">Username</Label>
-          <Input
-            id="username"
-            name="username"
-            type="text"
-            value={formData.username}
-            onChange={handleInputChange}
-            required
-            className="w-full"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
-          <div className="relative">
+      {step === 'credentials' ? (
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
             <Input
-              id="password"
-              name="password"
-              type={showPassword ? "text" : "password"}
-              value={formData.password}
+              id="email"
+              name="email"
+              type="email"
+              value={formData.email}
               onChange={handleInputChange}
               required
-              className="w-full pr-10"
+              className="w-full"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="phone">Phone</Label>
+            <Input
+              id="phone"
+              name="phone"
+              type="tel"
+              value={formData.phone}
+              onChange={handleInputChange}
+              required
+              className="w-full"
+            />
+          </div>
+
+          <Button 
+            type="submit" 
+            className="w-full" 
+            disabled={isLoading}
+          >
+            {isLoading ? 'Sending OTP...' : 'Continue'}
+          </Button>
+          
+          <div className="text-center">
+            <p className="text-sm text-muted-foreground">
+              Don't have an account?{' '}
+              <Link to="/signup" className="text-primary hover:underline">
+                Sign up here
+              </Link>
+            </p>
+          </div>
+        </form>
+      ) : (
+        <form onSubmit={handleVerifyOTP} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="otp">Enter OTP</Label>
+            <div className="flex justify-center">
+              <InputOTP
+                maxLength={6}
+                value={otp}
+                onChange={(value) => setOtp(value)}
+              >
+                <InputOTPGroup>
+                  <InputOTPSlot index={0} />
+                  <InputOTPSlot index={1} />
+                  <InputOTPSlot index={2} />
+                  <InputOTPSlot index={3} />
+                  <InputOTPSlot index={4} />
+                  <InputOTPSlot index={5} />
+                </InputOTPGroup>
+              </InputOTP>
+            </div>
+          </div>
+
+          <Button 
+            type="submit" 
+            className="w-full" 
+            disabled={isLoading}
+          >
+            {isLoading ? 'Verifying...' : 'Verify OTP'}
+          </Button>
+
+          <div className="text-center">
             <Button
               type="button"
               variant="ghost"
-              size="sm"
-              className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-              onClick={() => setShowPassword(!showPassword)}
+              onClick={() => setStep('credentials')}
+              className="text-sm"
             >
-              {showPassword ? (
-                <EyeOff className="h-4 w-4" />
-              ) : (
-                <Eye className="h-4 w-4" />
-              )}
+              Back to login
             </Button>
           </div>
-        </div>
-
-        <Button 
-          type="submit" 
-          className="w-full" 
-          disabled={isLoading}
-        >
-          {isLoading ? 'Signing in...' : 'Sign in'}
-        </Button>
-        
-        <div className="text-center">
-          <p className="text-sm text-muted-foreground">
-            Don't have an account?{' '}
-            <Link to="/signup" className="text-primary hover:underline">
-              Sign up here
-            </Link>
-          </p>
-        </div>
-      </form>
+        </form>
+      )}
     </AuthLayout>
   );
 };
