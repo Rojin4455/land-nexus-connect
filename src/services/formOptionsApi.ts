@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { store } from '@/store';
 
 // Configure base API instance for form options
 const api = axios.create({
@@ -10,21 +11,31 @@ const api = axios.create({
 
 // Add auth token to requests
 api.interceptors.request.use((config) => {
-  // Check Redux store first, then fallback to localStorage
-  const persistedState = localStorage.getItem('persist:root');
   let token = null;
-  
-  if (persistedState) {
-    try {
-      const parsed = JSON.parse(persistedState);
-      const authData = JSON.parse(parsed.auth);
-      token = authData?.accessToken;
-    } catch (error) {
-      console.warn('Failed to parse persisted auth state');
+
+  // First try to get token from Redux store (most current)
+  try {
+    const state = store.getState();
+    token = state.auth?.accessToken;
+  } catch (error) {
+    console.warn('Failed to get token from Redux store');
+  }
+
+  // Fallback to persisted state in localStorage
+  if (!token) {
+    const persistedState = localStorage.getItem('persist:root');
+    if (persistedState) {
+      try {
+        const parsed = JSON.parse(persistedState);
+        const authData = JSON.parse(parsed.auth);
+        token = authData?.accessToken;
+      } catch (error) {
+        console.warn('Failed to parse persisted auth state');
+      }
     }
   }
   
-  // Fallback to localStorage tokens
+  // Final fallback to direct localStorage tokens
   if (!token) {
     token = localStorage.getItem('adminToken') || localStorage.getItem('userToken');
   }

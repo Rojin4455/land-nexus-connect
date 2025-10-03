@@ -94,7 +94,7 @@ const UserLogin = () => {
         title: "Login Successful",
         description: "Welcome back!",
       });
-      navigate('/dashboard');
+      // Navigation handled by useEffect
     } catch {
       // Error toast handled by error effect
     }
