@@ -134,7 +134,7 @@ export const requestSignupOTP = createAsyncThunk(
   'auth/requestSignupOTP',
   async (signupData: SignupData, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/signup/request-otp/`, signupData);
+      const response = await axios.post(`${API_BASE_URL}/auth/signup/`, signupData);
       return response.data;
     } catch (error: any) {
       console.error('Request OTP error:', error.response?.data);
@@ -168,7 +168,7 @@ export const verifySignupOTP = createAsyncThunk(
   'auth/verifySignupOTP',
   async (otpData: OTPVerificationData, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/signup/verify-otp/`, otpData);
+      const response = await axios.post(`${API_BASE_URL}/auth/verify-otp/`, otpData);
       return response.data as AuthResponse;
     } catch (error: any) {
       console.error('Verify OTP error:', error.response?.data);
