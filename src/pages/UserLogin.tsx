@@ -18,8 +18,7 @@ const UserLogin = () => {
   const [step, setStep] = useState<'credentials' | 'otp'>('credentials');
   const [otp, setOtp] = useState('');
   const [formData, setFormData] = useState({
-    email: '',
-    phone: ''
+    phone: '+1'
   });
 
   const dispatch = useAppDispatch();
@@ -52,10 +51,10 @@ const UserLogin = () => {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     
-    if (!formData.email || !formData.phone) {
+    if (!formData.phone || formData.phone.length < 4) {
       toast({
         title: "Error",
-        description: "Please fill in all fields",
+        description: "Please enter a valid phone number",
         variant: "destructive",
       });
       return;
@@ -65,7 +64,7 @@ const UserLogin = () => {
       await dispatch(requestLoginOTP(formData)).unwrap();
       toast({
         title: "OTP Sent",
-        description: "Please check your email or phone for the OTP code.",
+        description: "Please check your phone for the OTP code.",
       });
       setStep('otp');
     } catch {
@@ -87,7 +86,7 @@ const UserLogin = () => {
 
     try {
       await dispatch(verifyLoginOTP({
-        email: formData.email,
+        phone: formData.phone,
         otp
       })).unwrap();
       toast({
@@ -100,11 +99,21 @@ const UserLogin = () => {
     }
   };
 
-  const handleInputChange = (e: any) => {
-    const { name, value } = e.target;
+  const handlePhoneChange = (e: any) => {
+    let value = e.target.value;
+    
+    // Ensure +1 prefix is always present
+    if (!value.startsWith('+1')) {
+      value = '+1' + value.replace(/^\+?1?/, '');
+    }
+    
+    // Remove any non-digit characters except the leading +1
+    const digits = value.slice(2).replace(/\D/g, '');
+    value = '+1' + digits;
+    
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      phone: value
     }));
   };
 
@@ -113,29 +122,18 @@ const UserLogin = () => {
       {step === 'credentials' ? (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              required
-              className="w-full"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="phone">Phone</Label>
+            <Label htmlFor="phone">Phone Number</Label>
             <Input
               id="phone"
               name="phone"
               type="tel"
               value={formData.phone}
-              onChange={handleInputChange}
+              onChange={handlePhoneChange}
+              placeholder="+1"
               required
               className="w-full"
             />
+            <p className="text-xs text-muted-foreground">Enter your phone number (e.g., +15551234567)</p>
           </div>
 
           <Button 

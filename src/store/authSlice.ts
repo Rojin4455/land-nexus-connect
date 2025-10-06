@@ -27,7 +27,6 @@ interface AuthState {
 }
 
 interface LoginCredentials {
-  email: string;
   phone: string;
 }
 
@@ -222,7 +221,7 @@ export const requestLoginOTP = createAsyncThunk(
 // Verify Login OTP
 export const verifyLoginOTP = createAsyncThunk(
   'auth/verifyLoginOTP',
-  async (otpData: { email: string; otp: string }, { rejectWithValue }) => {
+  async (otpData: { phone: string; otp: string }, { rejectWithValue }) => {
     try {
       const response = await axios.post(`${API_BASE_URL}/auth/login-verify-otp/`, otpData);
       
